@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<launch>
+<arg name="pipeline" default="dirrt"/>
+<arg name="fake" default="true"/>
+<arg name="rviz_config" default="$(find sharework_cembre_configurations)/launch/control.rviz"/>
+<arg name="controllers_configurations" default="$(find sharework_cembre_configurations)/config/controllers_configurations.yaml" doc="Kinematics config file used for calibration correction. This will be used to verify the robot's calibration is matching the robot_description."/>
+<arg name="controllers_dispatches" default="$(find sharework_cembre_configurations)/config/controllers_dispatches.yaml"/>
+
+<include file="$(find sharework_cembre_configurations)/launch/robot_control.launch">
+  <arg name="fake" value="$(arg fake)"/>
+  <arg name="controllers_configurations" value="$(arg controllers_configurations)"/>
+  <arg name="controllers_dispatches" value="$(arg controllers_dispatches)"/>
+</include>
+
+<include file="$(find sharework_cembre_configurations)/launch/moveit.launch">
+  <arg name="pipeline" value="$(arg pipeline)"/>
+  <arg name="rviz_config" value="$(arg rviz_config)"/>
+</include>
+
+<!-- <rosparam command="load" file="$(find manipulation_skills)/config/go_to_location_server.yaml" />
+<rosparam command="load" file="$(find manipulation_skills)/config/objects_description.yaml" />
+<rosparam command="load" file="$(find manipulation_skills)/config/inbound_server.yaml" />
+<rosparam command="load" file="$(find manipulation_skills)/config/objects_distribution.yaml" />
+<rosparam command="load" file="$(find manipulation_skills)/config/outbound_server.yaml" />
+<rosparam command="load" file="$(find manipulation_skills)/config/recipe.yaml" />
+<rosparam command="load" file="$(find manipulation_skills)/config/slots_distribution.yaml" />
+<rosparam command="load" file="$(find manipulation_skills)/config/static_scene.yaml" /> -->
+
+</launch>
