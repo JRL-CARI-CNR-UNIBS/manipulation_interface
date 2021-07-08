@@ -12,7 +12,7 @@
 #include <QtGui>
 #include <QMessageBox>
 #include <iostream>
-#include "../include/initial_interface/main_window.hpp"
+#include "main_window.hpp"
 
 /*****************************************************************************
 ** Namespaces

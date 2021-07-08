@@ -245,7 +245,7 @@ private:
     std::vector<place>       place_locations;
     std::vector<pick>        pick_locations;
     std::vector<object_type> objects;
-    std::vector<slot>        slots;
+    std::vector<slot>        manipulation_slots;
     std::vector<std::string> groups;
     std::vector<box>         boxes;
     std::vector<go_to>       go_to_locations_compare;

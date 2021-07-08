@@ -15,7 +15,7 @@
 #include <string>
 #include <std_msgs/String.h>
 #include <sstream>
-#include "../include/second_interface/qnode.hpp"
+#include "qnode.hpp"
 #include <rosparam_utilities/rosparam_utilities.h>
 #include <mongo_interactions/SaveParam.h>
 

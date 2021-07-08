@@ -12,7 +12,7 @@
 #include <QtGui>
 #include <QMessageBox>
 #include <iostream>
-#include "../include/second_interface/main_window.hpp"
+#include "main_window.hpp"
 
 /*****************************************************************************
 ** Namespaces
@@ -55,7 +55,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.list_slot   ->setEditTriggers(QListView::NoEditTriggers);
 
     ui.list_recipe ->setDragDropMode(QAbstractItemView::DragDrop);
-    ui.list_recipe->model()->setSupportedDragActions(Qt::MoveAction);
+//    ui.list_recipe->model()->doSetSupportedDragActions(Qt::MoveAction);
 
     ui.list_go_to->setDragEnabled(true);
     ui.list_place->setDragEnabled(true);

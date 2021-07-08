@@ -17,7 +17,7 @@
 #include <std_msgs/String.h>
 #include <sstream>
 #include <tf/transform_listener.h>
-#include "../include/initial_interface/qnode.hpp"
+#include "qnode.hpp"
 #include <fstream>
 #include <rosparam_utilities/rosparam_utilities.h>
 #include <mongo_interactions/SaveParam.h>
@@ -334,7 +334,7 @@ void QNode::remove_object(int ind)
 
 void QNode::remove_slot(int ind)
 {
-    slots.erase           (slots.begin()+ind);
+    manipulation_slots.erase           (manipulation_slots.begin()+ind);
 }
 
 void QNode::remove_box(int ind)
@@ -345,16 +345,16 @@ void QNode::remove_box(int ind)
 std::vector<int> QNode::remove_group(int ind)
 {
     std::vector<int> indexes;
-    for ( int i = 0; i < slots.size(); i++)
+    for ( int i = 0; i < manipulation_slots.size(); i++)
     {
-        if ( ! slots[i].group.compare( groups.at(ind) ) )
+        if ( ! manipulation_slots[i].group.compare( groups.at(ind) ) )
         {
             indexes.push_back(i);
         }
     }
     for ( int i = indexes.size()-1; i >= 0; i--)
     {
-        slots.erase(slots.begin()+indexes[i]);
+        manipulation_slots.erase(manipulation_slots.begin()+indexes[i]);
     }
     groups.erase(groups.begin()+ind);
     return indexes;
@@ -740,13 +740,13 @@ XmlRpc::XmlRpcValue QNode::get_slot_param(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(get_xml_string_param("name", slots[index].name));
-    xml_body.append(get_xml_string_param("frame", slots[index].frame));
-    xml_body.append(get_xml_string_param("slots_group", slots[index].group));
-    xml_body.append(get_xml_max_number_string(slots[index].max_objects));
-    xml_body.append(get_xml_position_string("position", slots[index].location_.pos));
-    xml_body.append(get_xml_quaternion_string( slots[index].location_.quat));
-    xml_body.append(get_xml_position_string("approach_distance", slots[index].approach));
+    xml_body.append(get_xml_string_param("name", manipulation_slots[index].name));
+    xml_body.append(get_xml_string_param("frame", manipulation_slots[index].frame));
+    xml_body.append(get_xml_string_param("slots_group", manipulation_slots[index].group));
+    xml_body.append(get_xml_max_number_string(manipulation_slots[index].max_objects));
+    xml_body.append(get_xml_position_string("position", manipulation_slots[index].location_.pos));
+    xml_body.append(get_xml_quaternion_string( manipulation_slots[index].location_.quat));
+    xml_body.append(get_xml_position_string("approach_distance", manipulation_slots[index].approach));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -837,16 +837,16 @@ void QNode::check_other_param()
     for ( int i = 0; i < slots_compare.size(); i++ )
     {
         bool presence = false;
-        for ( int j = 0; j < slots.size(); j++)
+        for ( int j = 0; j < manipulation_slots.size(); j++)
         {
-            if ( slots[j].name == slots_compare[i].name )
+            if ( manipulation_slots[j].name == slots_compare[i].name )
             {
                 presence = true;
             }
         }
         if ( presence == false )
         {
-            slots.push_back( slots_compare[i] );
+            manipulation_slots.push_back( slots_compare[i] );
         }
     }
     for ( int i = 0; i < groups_compare.size(); i++ )
@@ -925,7 +925,7 @@ bool QNode::save_all()
     n.setParam("/places_param", param);
     param.clear();
 
-    for ( int i = 0; i < slots.size(); i++)
+    for ( int i = 0; i < manipulation_slots.size(); i++)
     {
         param[i] = get_slot_param( i );
     }
@@ -1023,7 +1023,7 @@ bool QNode::save_slot(std::string slot_name, location slot_approach, location sl
     slt.location_      = slot_final_pos;
     slt.max_objects    = max_number;
     slt.frame          = base_frame;
-    slots.push_back(slt);
+    manipulation_slots.push_back(slt);
     return true;
 }
 
@@ -1142,19 +1142,19 @@ void QNode::write_param()
             log_group( groups[i] );
         }
     }
-    for ( int i = 0; i < slots.size(); i++)
+    for ( int i = 0; i < manipulation_slots.size(); i++)
     {
         bool presence = false;
         for ( int j = 0; j < logging_model_slot.rowCount(); j++)
         {
-            if ( !slots[i].name.compare(logging_model_slot.data( logging_model_slot.index( j ), 0 ).toString().toStdString() ) )
+            if ( !manipulation_slots[i].name.compare(logging_model_slot.data( logging_model_slot.index( j ), 0 ).toString().toStdString() ) )
             {
                 presence = true;
             }
         }
         if ( !presence )
         {
-            log_slot(slots[i].name);
+            log_slot(manipulation_slots[i].name);
         }
     }
     for ( int i = 0; i < go_to_locations.size(); i++)
@@ -1584,9 +1584,9 @@ bool QNode::readSlotsFromParam()
         slot_.location_ = loc;
 
         bool presence = false;
-        for ( int j = 0; j < slots.size(); j++)
+        for ( int j = 0; j < manipulation_slots.size(); j++)
         {
-            if ( !slot_.name.compare(slots[j].name) )
+            if ( !slot_.name.compare(manipulation_slots[j].name) )
             {
                 presence = true;
             }
@@ -1594,7 +1594,7 @@ bool QNode::readSlotsFromParam()
 
         if ( !presence )
         {
-            slots.push_back(slot_);
+            manipulation_slots.push_back(slot_);
             slots_compare.push_back(slot_);
         }
     }

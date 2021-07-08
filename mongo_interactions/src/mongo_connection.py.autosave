@@ -52,7 +52,7 @@ def save_recipe_param(srv):
 	return 'true'
 
 def save_server():
-  s = rospy.Service('/save_initial_param_on_mongo', SaveParam, save_initial_param)
+  s = rospy.Service('save_initial_param_on_mongo', SaveParam, save_initial_param)
   s = rospy.Service('/save_recipe_param_on_mongo', SaveParam, save_recipe_param)
 	print("Ready to save new param.")
 	rospy.spin()

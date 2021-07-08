@@ -12,8 +12,8 @@
 ** Includes
 *****************************************************************************/
 
-#include <QtGui/QMainWindow>
-#include "ui_main_window.h"
+#include <QMainWindow>
+#include <ui_main_window.h>
 #include "qnode.hpp"
 
 /*****************************************************************************
