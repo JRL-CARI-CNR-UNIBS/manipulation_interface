@@ -408,7 +408,6 @@ std::vector<std::string> QNode::load_recipe ( bool init, std::string name_recipe
 
 bool QNode::save_all( std::string recipe_name )
 {
-    ROS_ERROR("recipe_name = %s", recipe_name.c_str());
     ros::NodeHandle n;
     action_list.clear();
     for ( int i = 0; i < logging_model_recipe.rowCount(); i++ )
