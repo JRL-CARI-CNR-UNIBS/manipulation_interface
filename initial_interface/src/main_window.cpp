@@ -182,7 +182,7 @@ void MainWindow::on_button_add_place_clicked(bool check)
             if ( !qnode.add_place(place_name,groups) )
             {
                 QMessageBox msgBox;
-                msgBox.setText("There is another place with the same name.");
+                msgBox.setText("There is another place with the same name or groups.");
                 msgBox.exec();
                 ui.edit_position_name->clear();
             }
@@ -223,7 +223,7 @@ void MainWindow::on_button_add_pick_clicked(bool check)
             if ( !qnode.add_pick(pick_name,objects) )
             {
                 QMessageBox msgBox;
-                msgBox.setText("Pick: There is another position with the same name.");
+                msgBox.setText("There is another pick with the same name or objects.");
                 msgBox.exec();
                 ui.edit_position_name->clear();
             }

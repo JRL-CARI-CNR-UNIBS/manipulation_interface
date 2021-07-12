@@ -15,7 +15,6 @@ go_to_server_collection    = db.go_to_location_server
 outbound_server_collection = db.outbound_place_server
 inbound_server_collection  = db.inbound_pick_server
 multi_skills_collection    = db.multi_skills
-objects_collection         = db.objects
 
 if __name__ == '__main__':
   rospy.init_node('prova', anonymous=True)
@@ -36,6 +35,3 @@ if __name__ == '__main__':
   multi_skills_param = rospy.get_param("/multi_skills")
   multi_skills_collection.insert_one(multi_skills_param)
 
-  objects_collection.delete_many({})
-  objects_param = rospy.get_param("/manipulation_objects")
-  objects_collection.insert_one(objects_param)

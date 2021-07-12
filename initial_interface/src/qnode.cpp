@@ -84,7 +84,7 @@ bool QNode::init() {
 
 bool QNode::add_go_to(std::string position_name)
 {
-    if ( ! logging_model_go_to.rowCount()==0 )
+    if ( logging_model_go_to.rowCount()!=0 )
     {
         //            ROS_ERROR("sei entrato nell if");
         for (int i=0; i<logging_model_go_to.rowCount(); i++)
@@ -110,9 +110,9 @@ bool QNode::add_go_to(std::string position_name)
 
 }
 
-bool QNode::add_place(std::string place_name, std::vector<std::string> groups)
+bool QNode::add_place(std::string place_name, std::vector<std::string> groups_)
 {
-    if ( ! logging_model_place.rowCount()==0 )
+    if ( logging_model_place.rowCount()!=0 )
     {
         //            ROS_ERROR("sei entrato nell if");
         for (int i=0; i<logging_model_place.rowCount(); i++)
@@ -124,21 +124,29 @@ bool QNode::add_place(std::string place_name, std::vector<std::string> groups)
                 return false;
             }
         }
+        for ( int i = 0; i < place_locations.size(); i++)
+        {
+            if ( compare( groups_, place_locations[i].groups) )
+            {
+                return false;
+            }
+        }
+
     }
     log_place(place_name);
     place plc;
     plc.name   = place_name;
-    plc.groups = groups;
+    plc.groups = groups_;
     place_locations.push_back(plc);
 
     return true;
 }
 
-bool QNode::add_pick(std::string position_name, std::vector<std::string> objects)
+bool QNode::add_pick(std::string position_name, std::vector<std::string> objects_)
 {
     if ( !position_name.empty())
     {
-        if ( ! logging_model_pick.rowCount()==0 )
+        if ( logging_model_pick.rowCount()!=0 )
         {
 //            ROS_ERROR("sei entrato nell if");
             for (int i=0; i<logging_model_pick.rowCount(); i++)
@@ -150,11 +158,18 @@ bool QNode::add_pick(std::string position_name, std::vector<std::string> objects
                     return false;
                 }
             }
+            for ( int i = 0; i < pick_locations.size(); i++)
+            {
+                if ( compare( objects_, pick_locations[i].objects) )
+                {
+                    return false;
+                }
+            }
         }
         log_pick(position_name);
         pick pck;
         pck.name    = position_name;
-        pck.objects = objects;
+        pck.objects = objects_;
         pick_locations.push_back(pck);
         return true;
     }
@@ -409,30 +424,30 @@ void QNode::close_gripper( bool action )
     if ( action )
     {
         ROS_ERROR("Gripper are closing");
-//        gripper_req.request.skill_name = " ";
-//        gripper_req.request.tool_id = "gripper_fake";
-//        gripper_req.request.property_id = "close_min_force_min_vel";
+        gripper_req.request.skill_name = " ";
+        gripper_req.request.tool_id = "gripper_fake";
+        gripper_req.request.property_id = "close_min_force_min_vel";
 
-//        gripper_srv.waitForExistence();
-//        if (!gripper_srv.call(gripper_req))
-//        {
-//            ROS_ERROR("Unable to move gripper t %s state",gripper_req.request.property_id.c_str());
-//            return;
-//        }
+        gripper_srv.waitForExistence();
+        if (!gripper_srv.call(gripper_req))
+        {
+            ROS_ERROR("Unable to move gripper t %s state",gripper_req.request.property_id.c_str());
+            return;
+        }
     }
     else
     {
         ROS_ERROR("Gripper are opening");
-//        gripper_req.request.skill_name = " ";
-//        gripper_req.request.tool_id = "gripper_fake";
-//        gripper_req.request.property_id = "open";
+        gripper_req.request.skill_name = " ";
+        gripper_req.request.tool_id = "gripper_fake";
+        gripper_req.request.property_id = "open";
 
-//        gripper_srv.waitForExistence();
-//        if (!gripper_srv.call(gripper_req))
-//        {
-//            ROS_ERROR("Unable to move gripper t %s state",gripper_req.request.property_id.c_str());
-//            return;
-//        }
+        gripper_srv.waitForExistence();
+        if (!gripper_srv.call(gripper_req))
+        {
+            ROS_ERROR("Unable to move gripper t %s state",gripper_req.request.property_id.c_str());
+            return;
+        }
     }
 }
 
@@ -954,7 +969,7 @@ bool QNode::save_all()
 
 bool QNode::save_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp)
 {
-    if ( ! logging_model_object.rowCount()==0 )
+    if ( logging_model_object.rowCount()!=0 )
     {
         for (int i=0; i<logging_model_object.rowCount(); i++)
         {
@@ -979,7 +994,7 @@ bool QNode::save_object(std::string object_name, std::vector<position> object_ap
 
 bool QNode::save_slot(std::string slot_name, location slot_approach, location slot_final_pos, std::string group_name, int max_number )
 {
-    if ( ! logging_model_slot.rowCount()==0 )
+    if ( logging_model_slot.rowCount()!=0 )
     {
         for (int i=0; i<logging_model_slot.rowCount(); i++)
         {
@@ -989,7 +1004,7 @@ bool QNode::save_slot(std::string slot_name, location slot_approach, location sl
             }
         }
     }
-    if ( ! logging_model_group.rowCount()==0 )
+    if ( logging_model_group.rowCount()!=0 )
     {
         bool add = true;
         for ( int i=0; i<logging_model_group.rowCount(); i++)
@@ -1029,7 +1044,7 @@ bool QNode::save_slot(std::string slot_name, location slot_approach, location sl
 
 bool QNode::save_box(std::string box_name, location approach_position, location final_position)
 {
-    if ( ! logging_model_box.rowCount()==0 )
+    if ( logging_model_box.rowCount()!=0 )
     {
         for (int i=0; i<logging_model_box.rowCount(); i++)
         {
@@ -1648,7 +1663,7 @@ bool QNode::readLocationsFromParam()
         std::vector<double> pos;
         if( !rosparam_utilities::getParam(single_location,"position",pos,what) )
         {
-            ROS_WARN("Slot %s has not the field 'position'",go_to_.name);
+            ROS_WARN("Slot %s has not the field 'position'",go_to_.name.c_str());
             return false;
         }
         assert(pos.size()==3);
@@ -1660,7 +1675,7 @@ bool QNode::readLocationsFromParam()
         std::vector<double> quat;
         if( !rosparam_utilities::getParam(single_location,"quaternion",quat,what) )
         {
-            ROS_WARN("Slot %s has not the field 'quaternion'",go_to_.name);
+            ROS_WARN("Slot %s has not the field 'quaternion'",go_to_.name.c_str());
             return false;
         }
         assert(quat.size()==4);
@@ -1795,10 +1810,15 @@ bool QNode::readPickAndPlaceFromParam()
         }
     }
 
-
-
     return true;
 
+}
+
+bool QNode::compare(std::vector<std::string> &v1, std::vector<std::string> &v2)
+{
+    std::sort(v1.begin(), v1.end());
+    std::sort(v2.begin(), v2.end());
+    return v1 == v2;
 }
 
 }  // namespace initial_interface

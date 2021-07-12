@@ -149,9 +149,7 @@ void MainWindow::on_button_load_recipe_clicked(bool check)
     }
     else
     {
-        ROS_ERROR("son detro il load recipe");
         std::string name_recipe = ui.recipe_box->currentText().toStdString();
-        ROS_ERROR("name_recipe: %s", name_recipe.c_str());
         qnode.load_recipe(true, name_recipe);
     }
 }

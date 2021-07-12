@@ -282,7 +282,6 @@ std::vector<std::string> QNode::load_recipe ( bool init, std::string name_recipe
         int num_action = 0;
         std::string str = "/multi_skills/recipes/";
         str.append(name_recipe);
-        ROS_ERROR("%s", str.c_str());
         if ( !n.getParam(str,recipe_param) )
         {
             ROS_ERROR("recipe_param don't find");

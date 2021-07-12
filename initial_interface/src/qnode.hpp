@@ -121,8 +121,8 @@ public:
 	bool init(const std::string &master_url, const std::string &host_url);
 
     bool add_go_to (std::string position_name);
-    bool add_place (std::string position_name, std::vector<std::string> groups);
-    bool add_pick  (std::string position_name, std::vector<std::string> objects);
+    bool add_place (std::string position_name, std::vector<std::string> groups_);
+    bool add_pick  (std::string position_name, std::vector<std::string> objects_);
     bool add_objects_pick ( int ind );
     bool add_groups_place ( int ind );
 
@@ -209,6 +209,7 @@ public:
     void active_manual_guidance( bool action );
     void close_gripper( bool action );
     std::vector<int> remove_group( int ind);
+    bool compare(std::vector<std::string> &v1, std::vector<std::string> &v2);
 
     std::vector<std::string> TFs;
     std::vector<std::string> robots;
