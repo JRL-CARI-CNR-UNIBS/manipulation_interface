@@ -20,13 +20,13 @@
 #include "qnode.hpp"
 #include <fstream>
 #include <rosparam_utilities/rosparam_utilities.h>
-#include <mongo_interactions/SaveParam.h>
+#include <manipulation_interface_mongo/SaveParam.h>
 
 /*****************************************************************************
 ** Namespaces
 *****************************************************************************/
 
-namespace initial_interface {
+namespace manipulation_interface_gui {
 
 /*****************************************************************************
 ** Implementation
@@ -48,7 +48,7 @@ QNode::~QNode() {
 
 
 bool QNode::init() {
-	ros::init(init_argc,init_argv,"initial_interface");
+    ros::init(init_argc,init_argv,"manipulation_interface_gui");
 	if ( ! ros::master::check() ) {
 		return false;
 	}
@@ -429,8 +429,8 @@ bool QNode::save_recipe( std::string recipe_name )
     str.append(recipe_name);
     n.setParam( str, param);
 
-    ros::ServiceClient client = n.serviceClient<mongo_interactions::SaveParam>("save_recipe_param_on_mongo");
-    mongo_interactions::SaveParam srv;
+    ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("save_recipe_param_on_mongo");
+    manipulation_interface_mongo::SaveParam srv;
     client.waitForExistence();
      if ( !client.call(srv) )
     {
@@ -1506,8 +1506,8 @@ bool QNode::save_components()
         param.clear();
     }
 
-    ros::ServiceClient client = n.serviceClient<mongo_interactions::SaveParam>("save_initial_param_on_mongo");
-    mongo_interactions::SaveParam srv;
+    ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("save_initial_param_on_mongo");
+    manipulation_interface_mongo::SaveParam srv;
     client.call(srv);
     return true;
 }
@@ -2366,6 +2366,4 @@ bool QNode::compare(std::vector<std::string> &v1, std::vector<std::string> &v2)
     return v1 == v2;
 }
 
-}  // namespace initial_interface
-
-
+}  // namespace manipulation_interface_gui

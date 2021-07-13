@@ -6,7 +6,7 @@ import rospy
 
 from std_msgs.msg import String
 from pymongo import MongoClient
-from mongo_interactions.srv import SaveParam
+from manipulation_interface_mongo.srv import SaveParam
 
 def callback(data):
   return data.data

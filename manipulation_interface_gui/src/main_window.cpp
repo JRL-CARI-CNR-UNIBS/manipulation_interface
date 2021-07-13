@@ -18,7 +18,7 @@
 ** Namespaces
 *****************************************************************************/
 
-namespace initial_interface {
+namespace manipulation_interface_gui {
 
 using namespace Qt;
 
@@ -1074,5 +1074,5 @@ void MainWindow::closeEvent(QCloseEvent *event)
     QMainWindow::closeEvent(event);
 }
 
-}  // namespace initial_interface
+}  // namespace manipulation_interface_gui
 

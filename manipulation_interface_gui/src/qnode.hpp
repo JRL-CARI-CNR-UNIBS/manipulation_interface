@@ -1,5 +1,5 @@
 /**
- * @file /include/initial_interface/qnode.hpp
+ * @file /include/manipulation_interface_gui/qnode.hpp
  *
  * @brief Communications central!
  *
@@ -9,8 +9,8 @@
 ** Ifdefs
 *****************************************************************************/
 
-#ifndef initial_interface_QNODE_HPP_
-#define initial_interface_QNODE_HPP_
+#ifndef manipulation_interface_gui_QNODE_HPP_
+#define manipulation_interface_gui_QNODE_HPP_
 
 /*****************************************************************************
 ** Includes
@@ -31,7 +31,7 @@
 ** Namespaces
 *****************************************************************************/
 
-namespace initial_interface {
+namespace manipulation_interface_gui {
 
 struct position
 {
@@ -339,6 +339,6 @@ private:
     bool manual_guidance = false;
 };
 
-}  // namespace initial_interface
+}  // namespace manipulation_interface_gui
 
-#endif /* initial_interface_QNODE_HPP_ */
+#endif /* manipulation_interface_gui_QNODE_HPP_ */

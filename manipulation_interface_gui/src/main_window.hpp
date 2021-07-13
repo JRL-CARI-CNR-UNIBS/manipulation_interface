@@ -1,12 +1,12 @@
 /**
- * @file /include/initial_interface/main_window.hpp
+ * @file /include/manipulation_interface_gui/main_window.hpp
  *
- * @brief Qt based gui for initial_interface.
+ * @brief Qt based gui for manipulation_interface_gui.
  *
  * @date November 2010
  **/
-#ifndef initial_interface_MAIN_WINDOW_H
-#define initial_interface_MAIN_WINDOW_H
+#ifndef manipulation_interface_gui_MAIN_WINDOW_H
+#define manipulation_interface_gui_MAIN_WINDOW_H
 
 /*****************************************************************************
 ** Includes
@@ -20,7 +20,7 @@
 ** Namespace
 *****************************************************************************/
 
-namespace initial_interface {
+namespace manipulation_interface_gui {
 
 /*****************************************************************************
 ** Interface [MainWindow]
@@ -110,6 +110,6 @@ private:
     bool init_box_final = false;
 };
 
-}  // namespace initial_interface
+}  // namespace manipulation_interface_gui
 
-#endif // initial_interface_MAIN_WINDOW_H
+#endif // manipulation_interface_gui_MAIN_WINDOW_H

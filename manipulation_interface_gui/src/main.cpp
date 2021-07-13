@@ -9,10 +9,9 @@
 ** Includes
 *****************************************************************************/
 
-#include <QtGui>
+#include <QWidget>
 #include <QApplication>
 #include "main_window.hpp"
-
 /*****************************************************************************
 ** Main
 *****************************************************************************/
@@ -23,7 +22,7 @@ int main(int argc, char **argv) {
     ** Qt
     **********************/
     QApplication app(argc, argv);
-    second_interface::MainWindow w(argc,argv);
+    manipulation_interface_gui::MainWindow w(argc,argv);
     w.show();
     app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
     int result = app.exec();

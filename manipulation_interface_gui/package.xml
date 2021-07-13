@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package>
-  <name>initial_interface</name>
+  <name>manipulation_interface_gui</name>
   <version>0.1.0</version>
   <description>
 
-     initial_interface
+     manipulation_interface_gui
 
   </description>
   <maintainer email="michele@gmail.com">michele</maintainer>
@@ -19,7 +19,7 @@
   <build_depend>libqt4-dev</build_depend>
   <build_depend>manipulation_msgs</build_depend>
   <build_depend>configuration_msgs</build_depend>
-  <build_depend>mongo_interactions</build_depend>
+  <build_depend>manipulation_interface_mongo</build_depend>
   <build_depend>rosparam_utilities</build_depend>
   <build_depend>tf</build_depend>
   <run_depend>qt_build</run_depend>
@@ -27,7 +27,7 @@
   <run_depend>libqt4-dev</run_depend>
   <run_depend>manipulation_msgs</run_depend>
   <run_depend>configuration_msgs</run_depend>
-  <run_depend>mongo_interactions</run_depend>
+  <run_depend>manipulation_interface_mongo</run_depend>
   <run_depend>rosparam_utilities</run_depend>
   <run_depend>tf</run_depend>
 
