@@ -50,14 +50,15 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.list_groups_place   ->setModel(qnode.loggingModelGrpPlace());
     ui.list_objects_pick   ->setModel(qnode.loggingModelObjPick());
 
+    ui.list_go_to  ->setModel(qnode.loggingModelSecondGoto());
+    ui.list_place  ->setModel(qnode.loggingModelSecondPlace());
+    ui.list_pick   ->setModel(qnode.loggingModelSecondPick());
+    ui.list_recipe ->setModel(qnode.loggingModelRecipe());
+    ui.list_object ->setModel(qnode.loggingModelSecondObjects());
+    ui.list_slot   ->setModel(qnode.loggingModelSecondSlots());
+
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
 
-    /*********************
-    ** Window connect to ROS
-    **********************/
-    if ( !qnode.init() ) {
-        showNoMasterMessage();
-    }
     ui.go_to_list  ->setSelectionMode(QAbstractItemView::MultiSelection);
 //    ui.place_list  ->setSelectionMode(QAbstractItemView::MultiSelection);
 //    ui.pick_list   ->setSelectionMode(QAbstractItemView::MultiSelection);
@@ -65,6 +66,14 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.slot_list   ->setSelectionMode(QAbstractItemView::MultiSelection);
     ui.group_list  ->setSelectionMode(QAbstractItemView::MultiSelection);
     ui.box_list    ->setSelectionMode(QAbstractItemView::MultiSelection);
+
+
+    ui.list_recipe ->setDragDropMode(QAbstractItemView::DragDrop);
+//    ui.list_recipe->model()->doSetSupportedDragActions(Qt::MoveAction);
+
+    ui.list_go_to->setDragEnabled(true);
+    ui.list_place->setDragEnabled(true);
+    ui.list_pick ->setDragEnabled(true);
 
     ui.button_add_approach_box           ->setEnabled(false);
     ui.button_add_approach_object        ->setEnabled(false);
@@ -84,7 +93,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.robot_list                        ->setEnabled(false);
     ui.TF_list                           ->setEnabled(false);
     ui.button_remove_grasp               ->setEnabled(false);
-    ui.button_save                       ->setEnabled(false);
+    ui.button_save_components            ->setEnabled(false);
     ui.button_save_box                   ->setEnabled(false);
     ui.button_save_object                ->setEnabled(false);
     ui.button_save_slot                  ->setEnabled(false);
@@ -116,6 +125,20 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.slot_list   ->setEditTriggers(QListView::NoEditTriggers);
     ui.group_list  ->setEditTriggers(QListView::NoEditTriggers);
     ui.box_list    ->setEditTriggers(QListView::NoEditTriggers);
+
+    ui.list_go_to  ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_place  ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_pick   ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_recipe ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_object ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_slot   ->setEditTriggers(QListView::NoEditTriggers);
+
+    /*********************
+    ** Window connect to ROS
+    **********************/
+    if ( !qnode.init() ) {
+        showNoMasterMessage();
+    }
 
     QString tf;
     for ( int i = 0; i < qnode.TFs.size(); i++ )
@@ -542,9 +565,9 @@ void MainWindow::on_button_gripper_clicked(bool check)
     return;
 }
 
-void MainWindow::on_button_save_clicked(bool check)
+void MainWindow::on_button_save_components_clicked(bool check)
 {
-    if ( qnode.save_all() )
+    if ( qnode.save_components() )
     {
         QMessageBox msgBox;
         msgBox.setText("The position are saved.");
@@ -785,11 +808,10 @@ void MainWindow::on_check_robot_TF_stateChanged(int state)
         ui.button_add_grasp               ->setEnabled(true);
         ui.button_add_pick                ->setEnabled(true);
         ui.button_add_place               ->setEnabled(true);
-        ui.button_save                    ->setEnabled(true);
+        ui.button_save_components         ->setEnabled(true);
         ui.button_save_box                ->setEnabled(true);
         ui.button_save_object             ->setEnabled(true);
         ui.button_save_slot               ->setEnabled(true);
-        ui.button_save                    ->setEnabled(true);
         ui.button_save_box                ->setEnabled(true);
         ui.button_save_object             ->setEnabled(true);
         ui.button_save_slot               ->setEnabled(true);
@@ -888,6 +910,134 @@ void MainWindow::on_pick_list_pressed(const QModelIndex &index)
     qnode.add_objects_pick ( ui.pick_list->selectionModel()->selectedIndexes().at(0).row() );
 }
 
+void MainWindow::on_button_remove_element_clicked(bool check )
+{
+    QModelIndexList indexes =  ui.list_recipe->selectionModel()->selectedIndexes();
+    if (!indexes.empty())
+    {
+        QModelIndex index;
+        QAbstractItemModel* model = ui.list_recipe->model();
+        for ( int i = indexes.size()-1 ; i >= 0; i--)
+        {
+            index = indexes.at(i);
+            model->removeRow(index.row());
+            indexes =  ui.list_recipe->selectionModel()->selectedIndexes();
+        }
+        return;
+    }
+
+    QMessageBox msgBox;
+    msgBox.setText("There isn't a selected position");
+    msgBox.exec();
+}
+
+void MainWindow::on_button_load_recipe_clicked(bool check)
+{
+    if ( ui.recipe_box->count() == 0 )
+    {
+        std::vector<std::string> recipes_names = qnode.load_recipe(false, " ");
+        if ( recipes_names.empty() )
+        {
+            QMessageBox msgBox;
+            msgBox.setText("Recipes_param is empty.");
+            msgBox.exec();
+            return;
+        }
+        for ( int i = 0; i < recipes_names.size(); i++)
+        {
+            ui.recipe_box->addItem( QString::fromStdString(recipes_names[i]) );
+        }
+    }
+    else
+    {
+        std::string name_recipe = ui.recipe_box->currentText().toStdString();
+        qnode.load_recipe(true, name_recipe);
+    }
+}
+
+void MainWindow::on_button_load_actions_clicked  ( bool check )
+{
+    qnode.load_actions();
+}
+
+void MainWindow::on_button_save_recipe_clicked ( bool check )
+{
+    std::string recipe_name = ui.edit_recipe_name->text().toStdString();
+    if ( recipe_name.empty() )
+    {
+        QMessageBox msgBox;
+        msgBox.setText("The recipe_name is empty.");
+        msgBox.exec();
+        return;
+    }
+    else if ( !recipe_name.compare("recipe"))
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Change name, 'recipe' is a taboo.");
+        msgBox.exec();
+        return;
+    }
+    if ( ui.list_recipe->model()->rowCount() == 0 )
+    {
+        QMessageBox msgBox;
+        msgBox.setText("The recipe is empty.");
+        msgBox.exec();
+        return;
+    }
+
+    if ( qnode.save_recipe( recipe_name ) )
+    {
+        QMessageBox msgBox;
+        msgBox.setText("The recipe is saved.");
+        msgBox.exec();
+        ui.edit_recipe_name->clear();
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("There is some problem with the save");
+        msgBox.exec();
+        return;
+    }
+    std::vector<std::string> recipes_names = qnode.load_recipe(false, " ");
+    if ( recipes_names.empty() )
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Recipes_param is empty.");
+        msgBox.exec();
+        return;
+    }
+    ui.recipe_box->clear();
+    for ( int i = 0; i < recipes_names.size(); i++)
+    {
+        ui.recipe_box->addItem( QString::fromStdString(recipes_names[i]) );
+    }
+
+}
+
+void MainWindow::on_button_set_recipe_clicked ( bool check )
+{
+    if ( ui.list_recipe->model()->rowCount() == 0 )
+    {
+        QMessageBox msgBox;
+        msgBox.setText("The recipe is empty.");
+        msgBox.exec();
+        return;
+    }
+
+    qnode.set_recipe();
+}
+
+void MainWindow::on_list_place_pressed(const QModelIndex &index)
+{
+    qnode.add_slot_groups( index.row() );
+}
+
+void MainWindow::on_list_pick_pressed(const QModelIndex &index)
+{
+    qnode.add_object_type( index.row() );
+}
+
 /*****************************************************************************
 ** Implemenation [Slots][manually connected]
 *****************************************************************************/
@@ -901,6 +1051,9 @@ void MainWindow::updateLoggingView() {
         ui.go_to_list -> scrollToBottom();
         ui.place_list -> scrollToBottom();
         ui.pick_list  -> scrollToBottom();
+        ui.list_go_to -> scrollToBottom();
+        ui.list_place -> scrollToBottom();
+        ui.list_pick  -> scrollToBottom();
 }
 
 /*****************************************************************************

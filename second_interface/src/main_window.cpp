@@ -40,12 +40,12 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
 	/*********************
 	** Logging
 	**********************/
-    ui.list_go_to  ->setModel(qnode.loggingModelGoto());
-    ui.list_place  ->setModel(qnode.loggingModelPlace());
-    ui.list_pick   ->setModel(qnode.loggingModelPick());
+    ui.list_go_to  ->setModel(qnode.loggingModelSecondGoto());
+    ui.list_place  ->setModel(qnode.loggingModelSecondPlace());
+    ui.list_pick   ->setModel(qnode.loggingModelSecondPick());
     ui.list_recipe ->setModel(qnode.loggingModelRecipe());
-    ui.list_object ->setModel(qnode.loggingModelObjects());
-    ui.list_slot   ->setModel(qnode.loggingModelSlots());
+    ui.list_object ->setModel(qnode.loggingModelSecondObjects());
+    ui.list_slot   ->setModel(qnode.loggingModelSecondSlots());
 
     ui.list_go_to  ->setEditTriggers(QListView::NoEditTriggers);
     ui.list_place  ->setEditTriggers(QListView::NoEditTriggers);
@@ -59,7 +59,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
 
     ui.list_go_to->setDragEnabled(true);
     ui.list_place->setDragEnabled(true);
-    ui.list_pick->setDragEnabled(true);
+    ui.list_pick ->setDragEnabled(true);
 
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
 
@@ -184,7 +184,7 @@ void MainWindow::on_button_save_clicked ( bool check )
         return;
     }
 
-    if ( qnode.save_all( recipe_name ) )
+    if ( qnode.save_recipe( recipe_name ) )
     {
 
         QMessageBox msgBox;

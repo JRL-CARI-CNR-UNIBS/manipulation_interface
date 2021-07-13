@@ -19,6 +19,8 @@ multi_skills_collection    = db.multi_skills
 if __name__ == '__main__':
   rospy.init_node('prova', anonymous=True)
 
+#	The idea is to save the params in mongo using an initial yaml file to generate ros-params
+
   go_to_server_collection.delete_many({})
   go_to_param = rospy.get_param("/go_to_location_server")
   go_to_server_collection.insert_one(go_to_param)

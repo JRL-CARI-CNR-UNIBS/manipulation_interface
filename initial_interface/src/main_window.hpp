@@ -35,9 +35,6 @@ public:
 	MainWindow(int argc, char** argv, QWidget *parent = 0);
 	~MainWindow();
 
-	void ReadSettings(); // Load up qt program settings at startup
-	void WriteSettings(); // Save qt program settings when closing
-
 	void closeEvent(QCloseEvent *event); // Overloaded function
 	void showNoMasterMessage();
 
@@ -70,7 +67,7 @@ public Q_SLOTS:
     void on_button_remove_final_box_clicked(bool check);
     void on_button_manual_guidance_clicked(bool check);
     void on_button_gripper_clicked(bool check);
-    void on_button_save_clicked(bool check);
+    void on_button_save_components_clicked(bool check);
     void on_button_save_object_clicked(bool check);
     void on_button_save_slot_clicked(bool check);
     void on_button_save_box_clicked(bool check);
@@ -82,6 +79,14 @@ public Q_SLOTS:
     void on_robot_list_currentIndexChanged(int index);
     void on_place_list_pressed(const QModelIndex &index);
     void on_pick_list_pressed(const QModelIndex &index);
+
+    void on_button_remove_element_clicked( bool check );
+    void on_button_load_recipe_clicked   ( bool check );
+    void on_button_load_actions_clicked  ( bool check );
+    void on_button_save_recipe_clicked   ( bool check );
+    void on_button_set_recipe_clicked    ( bool check );
+    void on_list_place_pressed ( const QModelIndex &index );
+    void on_list_pick_pressed  ( const QModelIndex &index );
 
     /******************************************
     ** Manual connections

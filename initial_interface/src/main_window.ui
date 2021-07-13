@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1379</width>
-    <height>731</height>
+    <width>1552</width>
+    <height>783</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,9 +38,9 @@
       </property>
       <widget class="QWidget" name="tab_status">
        <attribute name="title">
-        <string>Ros Communications</string>
+        <string>Components setting</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <layout class="QHBoxLayout" name="horizontalLayout_15">
         <item>
          <widget class="QGroupBox" name="groupBox_12">
           <property name="sizePolicy">
@@ -50,9 +50,42 @@
            </sizepolicy>
           </property>
           <property name="title">
-           <string>Components</string>
+           <string/>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
+           <item row="0" column="1">
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <widget class="QComboBox" name="world_TF_list"/>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="check_robot_TF">
+               <property name="maximumSize">
+                <size>
+                 <width>16</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="0" column="9">
+            <widget class="QComboBox" name="robot_list"/>
+           </item>
+           <item row="3" column="6">
+            <widget class="QListView" name="object_list"/>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="button_load">
+             <property name="text">
+              <string>Load Param</string>
+             </property>
+            </widget>
+           </item>
            <item row="4" column="0">
             <widget class="QPushButton" name="button_remove_go_to">
              <property name="text">
@@ -60,27 +93,31 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <layout class="QVBoxLayout" name="verticalLayout_9">
-             <item>
-              <widget class="QListView" name="pick_list"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="button_remove_pick">
-               <property name="text">
-                <string> Remove pick</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QListView" name="list_objects_pick"/>
-             </item>
-            </layout>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="label_4">
+           <item row="2" column="6">
+            <widget class="QLabel" name="label_6">
              <property name="text">
-              <string>Pick</string>
+              <string>Object types</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Go to</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>                  Select base frame:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="9">
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>Boxes</string>
              </property>
             </widget>
            </item>
@@ -88,40 +125,6 @@
             <widget class="QLabel" name="label_11">
              <property name="text">
               <string>Slots</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="2">
-            <layout class="QVBoxLayout" name="verticalLayout_10">
-             <item>
-              <widget class="QListView" name="place_list"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="button_remove_place">
-               <property name="text">
-                <string> Remove place</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QListView" name="list_groups_place"/>
-             </item>
-            </layout>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_18">
-             <property name="text">
-              <string>Select base frame:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="6">
-            <widget class="QListView" name="object_list"/>
-           </item>
-           <item row="2" column="2">
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string>Place</string>
              </property>
             </widget>
            </item>
@@ -156,18 +159,8 @@
              </item>
             </layout>
            </item>
-           <item row="2" column="6">
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>Object types</string>
-             </property>
-            </widget>
-           </item>
            <item row="3" column="0">
             <widget class="QListView" name="go_to_list"/>
-           </item>
-           <item row="3" column="9">
-            <widget class="QListView" name="box_list"/>
            </item>
            <item row="4" column="9">
             <widget class="QPushButton" name="button_remove_box">
@@ -176,17 +169,34 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_2">
+           <item row="3" column="2">
+            <layout class="QVBoxLayout" name="verticalLayout_10">
+             <item>
+              <widget class="QListView" name="place_list"/>
+             </item>
+             <item>
+              <widget class="QPushButton" name="button_remove_place">
+               <property name="text">
+                <string> Remove place</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListView" name="list_groups_place"/>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="label_4">
              <property name="text">
-              <string>Go to</string>
+              <string>Pick</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="9">
-            <widget class="QLabel" name="label_15">
+           <item row="2" column="2">
+            <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>Boxes</string>
+              <string>Place</string>
              </property>
             </widget>
            </item>
@@ -196,26 +206,6 @@
               <string>Remove type</string>
              </property>
             </widget>
-           </item>
-           <item row="0" column="1">
-            <layout class="QHBoxLayout" name="horizontalLayout_6">
-             <item>
-              <widget class="QComboBox" name="world_TF_list"/>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="check_robot_TF">
-               <property name="maximumSize">
-                <size>
-                 <width>16</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-            </layout>
            </item>
            <item row="0" column="10">
             <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -235,20 +225,622 @@
              </item>
             </layout>
            </item>
-           <item row="0" column="9">
-            <widget class="QComboBox" name="robot_list"/>
-           </item>
            <item row="0" column="6">
             <widget class="QLabel" name="label_17">
              <property name="text">
-              <string>         Selected Robot:</string>
+              <string>                       Selected Robot:</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
-            <widget class="QPushButton" name="button_load">
+           <item row="3" column="1">
+            <layout class="QVBoxLayout" name="verticalLayout_9">
+             <item>
+              <widget class="QListView" name="pick_list"/>
+             </item>
+             <item>
+              <widget class="QPushButton" name="button_remove_pick">
+               <property name="text">
+                <string> Remove pick</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListView" name="list_objects_pick"/>
+             </item>
+            </layout>
+           </item>
+           <item row="3" column="9">
+            <widget class="QListView" name="box_list"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QTabWidget" name="tabWidget">
+            <property name="minimumSize">
+             <size>
+              <width>300</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="tab">
+             <attribute name="title">
+              <string>Position</string>
+             </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_11">
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_4">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>Go To position name</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="edit_position_name"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_add_go_to">
+                  <property name="text">
+                   <string>Add Go To position</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_add_place">
+                  <property name="text">
+                   <string>Add Place</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_add_pick">
+                  <property name="text">
+                   <string>Add Pick</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_2">
+             <attribute name="title">
+              <string>Object</string>
+             </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_12">
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_5">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <item>
+                   <widget class="QLabel" name="label_7">
+                    <property name="text">
+                     <string>Object type:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="edit_object_name"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_load_TF">
+                  <property name="text">
+                   <string>Load TF</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_9">
+                  <item>
+                   <widget class="QLabel" name="label_16">
+                    <property name="text">
+                     <string>Reference TF:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="TF_list"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_add_approach_object">
+                  <property name="text">
+                   <string>Add Approach</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="approach_list"/>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_remove_approach_object">
+                  <property name="text">
+                   <string>Remove Approach</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_5">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_add_grasp">
+                  <property name="text">
+                   <string>Add Grasp</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="grasp_list"/>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_remove_grasp">
+                  <property name="text">
+                   <string>Remove Grasp</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_19">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_gripper">
+                  <property name="text">
+                   <string>Open/Close gripper</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="check_gripper">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_12">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_save_object">
+                  <property name="text">
+                   <string>Save object</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_14">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_3">
+             <attribute name="title">
+              <string>Slot</string>
+             </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_13">
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_7">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_3">
+                  <item>
+                   <widget class="QLabel" name="label_8">
+                    <property name="text">
+                     <string>Slot name:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="edit_slot_name"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_add_approach_slot">
+                  <property name="text">
+                   <string>Add Approach position</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_remove_approach_slot">
+                  <property name="text">
+                   <string>Remove Approach position</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_add_final_position_slot">
+                  <property name="text">
+                   <string>Add Final position</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_remove_final_position_slot">
+                  <property name="text">
+                   <string>Remove Final position</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_3"/>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <item>
+                   <widget class="QLabel" name="label_10">
+                    <property name="text">
+                     <string>Group name:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="edit_group_name"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_4">
+                  <item>
+                   <widget class="QLabel" name="label_9">
+                    <property name="text">
+                     <string>Max objects:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="edit_max_object"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_save_slot">
+                  <property name="text">
+                   <string>Save Slot</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_13">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_4">
+             <attribute name="title">
+              <string>Box</string>
+             </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_14">
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_6">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_7">
+                  <item>
+                   <widget class="QLabel" name="label_20">
+                    <property name="text">
+                     <string>Box name:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="edit_box_name"/>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_add_approach_box">
+                  <property name="text">
+                   <string>Add Approach position</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_remove_approach_box">
+                  <property name="text">
+                   <string>Remove Approach position</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_add_final_box">
+                  <property name="text">
+                   <string>Add Final position</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_remove_final_box">
+                  <property name="text">
+                   <string>Remove Final position</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_4">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="button_save_box">
+                  <property name="text">
+                   <string>Save Box</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_22">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="button_save_components">
+            <property name="text">
+             <string>Save All</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_5">
+       <attribute name="title">
+        <string>Recipe setting </string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_13">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="2" column="4">
+            <widget class="QLabel" name="label_21">
              <property name="text">
-              <string>Load Param</string>
+              <string>Recipe</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QListView" name="list_go_to"/>
+           </item>
+           <item row="4" column="4">
+            <widget class="QListView" name="list_recipe"/>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="label_23">
+             <property name="text">
+              <string>Pick list</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QListView" name="list_pick"/>
+           </item>
+           <item row="2" column="3">
+            <widget class="QLabel" name="label_24">
+             <property name="text">
+              <string>Place list</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="4">
+            <widget class="QPushButton" name="button_remove_element">
+             <property name="text">
+              <string>Remove element</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_26">
+             <property name="text">
+              <string>Go_to list</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="3">
+            <widget class="QListView" name="list_place"/>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="button_load_actions">
+             <property name="text">
+              <string>Load actions</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QPushButton" name="button_load_recipe">
+             <property name="text">
+              <string>Load recipe</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="4">
+            <widget class="QComboBox" name="recipe_box"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QFrame" name="frame">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>350</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>450</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_10">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_12">
+               <item>
+                <widget class="QLabel" name="label_28">
+                 <property name="text">
+                  <string>Object types:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListView" name="list_object"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_13">
+               <item>
+                <widget class="QLabel" name="label_29">
+                 <property name="text">
+                  <string>Slot groups:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListView" name="list_slot"/>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_16">
+             <item>
+              <widget class="QLabel" name="label_27">
+               <property name="text">
+                <string>Recipe name: </string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="edit_recipe_name"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QPushButton" name="button_save_recipe">
+             <property name="text">
+              <string>Save recipe</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="button_set_recipe">
+             <property name="text">
+              <string>Set recipe param</string>
              </property>
             </widget>
            </item>
@@ -266,7 +858,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1379</width>
+     <width>1552</width>
      <height>22</height>
     </rect>
    </property>
@@ -284,476 +876,6 @@
    <addaction name="menu_File"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="dock_status">
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>371</width>
-     <height>687</height>
-    </size>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::RightDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Command Panel</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_2">
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QTabWidget" name="tabWidget">
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
-       <widget class="QWidget" name="tab">
-        <attribute name="title">
-         <string>Position</string>
-        </attribute>
-        <widget class="QWidget" name="verticalLayoutWidget_2">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>341</width>
-           <height>551</height>
-          </rect>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Go To position name</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="edit_position_name"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_add_go_to">
-            <property name="text">
-             <string>Add Go To position</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_add_place">
-            <property name="text">
-             <string>Add Place</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_add_pick">
-            <property name="text">
-             <string>Add Pick</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-       <widget class="QWidget" name="tab_2">
-        <attribute name="title">
-         <string>Object</string>
-        </attribute>
-        <widget class="QWidget" name="verticalLayoutWidget">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>341</width>
-           <height>551</height>
-          </rect>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QLabel" name="label_7">
-              <property name="text">
-               <string>Object type:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="edit_object_name"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_load_TF">
-            <property name="text">
-             <string>Load TF</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
-            <item>
-             <widget class="QLabel" name="label_16">
-              <property name="text">
-               <string>Reference TF:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="TF_list"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_add_approach_object">
-            <property name="text">
-             <string>Add Approach</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="approach_list"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_remove_approach_object">
-            <property name="text">
-             <string>Remove Approach</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_add_grasp">
-            <property name="text">
-             <string>Add Grasp</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="grasp_list"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_remove_grasp">
-            <property name="text">
-             <string>Remove Grasp</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_19">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_gripper">
-            <property name="text">
-             <string>Open/Close gripper</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="check_gripper">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_save_object">
-            <property name="text">
-             <string>Save object</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_14">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-       <widget class="QWidget" name="tab_3">
-        <attribute name="title">
-         <string>Slot</string>
-        </attribute>
-        <widget class="QWidget" name="verticalLayoutWidget_3">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>341</width>
-           <height>551</height>
-          </rect>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Slot name:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="edit_slot_name"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_add_approach_slot">
-            <property name="text">
-             <string>Add Approach position</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_remove_approach_slot">
-            <property name="text">
-             <string>Remove Approach position</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_add_final_position_slot">
-            <property name="text">
-             <string>Add Final position</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_remove_final_position_slot">
-            <property name="text">
-             <string>Remove Final position</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_3"/>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QLabel" name="label_10">
-              <property name="text">
-               <string>Group name:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="edit_group_name"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>Max objects:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="edit_max_object"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_save_slot">
-            <property name="text">
-             <string>Save Slot</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_13">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-       <widget class="QWidget" name="tab_4">
-        <attribute name="title">
-         <string>Box</string>
-        </attribute>
-        <widget class="QWidget" name="verticalLayoutWidget_5">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>341</width>
-           <height>551</height>
-          </rect>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
-             <widget class="QLabel" name="label_20">
-              <property name="text">
-               <string>Box name:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="edit_box_name"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_add_approach_box">
-            <property name="text">
-             <string>Add Approach position</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_remove_approach_box">
-            <property name="text">
-             <string>Remove Approach position</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_add_final_box">
-            <property name="text">
-             <string>Add Final position</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_remove_final_box">
-            <property name="text">
-             <string>Remove Final position</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_save_box">
-            <property name="text">
-             <string>Save Box</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_22">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="button_save">
-       <property name="text">
-        <string>Save All</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="quit_button">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Quit</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
   <action name="action_Quit">
    <property name="text">
     <string>&amp;Quit</string>
@@ -797,22 +919,6 @@
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>quit_button</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindowDesign</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>859</x>
-     <y>552</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>469</x>
      <y>299</y>
     </hint>
    </hints>

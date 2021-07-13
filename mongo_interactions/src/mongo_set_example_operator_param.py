@@ -22,6 +22,9 @@ objects_collection   = db.objects
 if __name__ == '__main__':
   rospy.init_node('prova', anonymous=True)
 
+#  The idea is to save some params that in pratic the operator have to set
+#	This is only to have some data to do some tests
+
   go_to_collection.delete_many({})
   go_to_param = rospy.get_param("/go_to_location")
   go_to_collection.insert_many(go_to_param)

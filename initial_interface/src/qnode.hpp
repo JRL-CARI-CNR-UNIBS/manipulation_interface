@@ -107,6 +107,18 @@ struct box
     std::string frame;
 };
 
+struct go__to
+{
+    std::string frame;
+    std::string name;
+};
+
+struct action
+{
+    std::string type;
+    int index;
+};
+
 /*****************************************************************************
 ** Class
 *****************************************************************************/
@@ -118,7 +130,18 @@ public:
 	virtual ~QNode();
 
 	bool init();
-	bool init(const std::string &master_url, const std::string &host_url);
+
+    //
+    void load_actions();
+    void add_object_type (int ind);
+    void add_slot_groups (int ind);
+    std::vector<std::string> load_recipe(bool init, std::string name_recipe);
+    bool save_recipe(std::string recipe_name);
+    XmlRpc::XmlRpcValue set_recipe();
+    XmlRpc::XmlRpcValue get_action_go_to_param (int index);
+    XmlRpc::XmlRpcValue get_action_place_param (int index);
+    XmlRpc::XmlRpcValue get_action_pick_param  (int index);
+    //
 
     bool add_go_to (std::string position_name);
     bool add_place (std::string position_name, std::vector<std::string> groups_);
@@ -154,7 +177,7 @@ public:
     void check_objects_param();
     void check_other_param();
 
-    bool save_all();
+    bool save_components();
     bool save_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp);
     bool save_slot  (std::string slot_name, location slot_approach, location slot_final_pos, std::string goup_name, int max_number);
     bool save_box   (std::string box_name, location approach_position, location final_position);
@@ -190,6 +213,16 @@ public:
     QStringListModel* loggingModelObjDist() { return &logging_model_obj_dist; }
     QStringListModel* loggingModelGrpPlace(){ return &logging_model_grp_place; }
     QStringListModel* loggingModelObjPick() { return &logging_model_obj_pick; }
+
+    //
+    QStringListModel* loggingModelSecondGoto()   { return &logging_model_second_go_to; }
+    QStringListModel* loggingModelSecondPlace()  { return &logging_model_second_place; }
+    QStringListModel* loggingModelSecondPick()   { return &logging_model_second_pick; }
+    QStringListModel* loggingModelSecondObjects(){ return &logging_model_second_objects; }
+    QStringListModel* loggingModelSecondSlots()  { return &logging_model_second_slots; }
+    QStringListModel* loggingModelRecipe()       { return &logging_model_recipe; }
+    //
+
     void log_go_to     ( const std::string &msg);
     void log_place     ( const std::string &msg);
     void log_pick      ( const std::string &msg);
@@ -200,6 +233,16 @@ public:
     void log_obj_dist  ( const std::string &msg);
     void log_grp_place ( const std::string &msg);
     void log_obj_pick  ( const std::string &msg);
+
+    //
+    void log_second_go_to  (const std::string &msg);
+    void log_second_place  (const std::string &msg);
+    void log_second_pick   (const std::string &msg);
+    void log_second_objects(const std::string &msg);
+    void log_second_slots  (const std::string &msg);
+    void log_recipe (const std::string &msg);
+    //
+
     void remove_go_to  (const int &ind);
     void remove_place  ( int ind);
     void remove_pick   ( int ind);
@@ -223,14 +266,12 @@ Q_SIGNALS:
 private:
 	int init_argc;
 	char** init_argv;
-    ros::Publisher chatter_publisher;
-    ros::Publisher go_to_position_publisher;
-    ros::Publisher place_position_publisher;
-    ros::Publisher pick_position_publisher;
+
     ros::ServiceClient set_ctrl_srv;
     ros::ServiceClient gripper_srv;
     configuration_msgs::StartConfiguration start_ctrl_req;
     manipulation_msgs::JobExecution gripper_req;
+
     QStringListModel logging_model_go_to;
     QStringListModel logging_model_place;
     QStringListModel logging_model_pick;
@@ -241,6 +282,15 @@ private:
     QStringListModel logging_model_obj_dist;
     QStringListModel logging_model_grp_place;
     QStringListModel logging_model_obj_pick;
+
+
+    QStringListModel logging_model_second_go_to;
+    QStringListModel logging_model_second_place;
+    QStringListModel logging_model_second_pick;
+    QStringListModel logging_model_second_objects;
+    QStringListModel logging_model_second_slots;
+    QStringListModel logging_model_recipe;
+
 
     std::vector<go_to>       go_to_locations;
     std::vector<place>       place_locations;
@@ -256,6 +306,13 @@ private:
     std::vector<slot>        slots_compare;
     std::vector<std::string> groups_compare;
     std::vector<box>         boxes_compare;
+
+    //
+    std::vector<go__to> go_to_actions;
+    std::vector<place> place_actions;
+    std::vector<pick>  pick_actions;
+    std::vector<action> action_list;
+    //
 
     std::vector<std::string> param_names;
     std::vector<std::string> robot_name_params;

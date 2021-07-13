@@ -61,9 +61,9 @@ void QNode::load_actions()
     XmlRpc::XmlRpcValue places_param;
     XmlRpc::XmlRpcValue picks_param;
 
-    logging_model_go_to.removeRows (0, logging_model_go_to.rowCount());
-    logging_model_place.removeRows (0, logging_model_place.rowCount());
-    logging_model_pick.removeRows  (0, logging_model_pick.rowCount());
+    logging_model_second_go_to.removeRows (0, logging_model_second_go_to.rowCount());
+    logging_model_second_place.removeRows (0, logging_model_second_place.rowCount());
+    logging_model_second_pick.removeRows  (0, logging_model_second_pick.rowCount());
 
     if ( !n.getParam("/go_to_location",go_to_param) )
     {
@@ -77,7 +77,7 @@ void QNode::load_actions()
     {
         for ( size_t i = 0; i < go_to_param.size(); i++ )
         {
-            go_to single_go_to;
+            go__to single_go_to;
             XmlRpc::XmlRpcValue param = go_to_param[i];
 
             if ( param.getType() != XmlRpc::XmlRpcValue::TypeStruct)
@@ -103,7 +103,7 @@ void QNode::load_actions()
                 single_go_to.name = rosparam_utilities::toString(param["name"]);
             }
             go_to_actions.push_back(single_go_to);
-            log_go_to(single_go_to.name);
+            log_second_go_to(single_go_to.name);
         }
     }
 
@@ -149,7 +149,7 @@ void QNode::load_actions()
                 }
             }
             place_actions.push_back(single_place);
-            log_place(single_place.name);
+            log_second_place(single_place.name);
         }
     }
 
@@ -195,7 +195,7 @@ void QNode::load_actions()
                 }
             }
             pick_actions.push_back(single_pick);
-            log_pick(single_pick.name);
+            log_second_pick(single_pick.name);
         }
     }
 
@@ -203,47 +203,32 @@ void QNode::load_actions()
 
 void QNode::add_object_type (int ind)
 {
-    if ( logging_model_objects.rowCount() != 0 )
+    if ( logging_model_second_objects.rowCount() != 0 )
     {
-        logging_model_objects.removeRows(0,logging_model_objects.rowCount());
+        logging_model_second_objects.removeRows(0,logging_model_second_objects.rowCount());
     }
     if ( ind != 1000)
     {
         for ( int i = 0; i < pick_actions[ind].objects.size(); i++)
         {
-            log_objects( pick_actions[ind].objects[i] );
+            log_second_objects( pick_actions[ind].objects[i] );
         }
     }
 }
 
 void QNode::add_slot_groups (int ind)
 {
-    if ( logging_model_slots.rowCount() != 0 )
+    if ( logging_model_second_slots.rowCount() != 0 )
     {
-        logging_model_slots.removeRows(0,logging_model_slots.rowCount());
+        logging_model_second_slots.removeRows(0,logging_model_second_slots.rowCount());
     }
     if ( ind != 1000)
     {
         for ( int i = 0; i < place_actions[ind].groups.size(); i++)
         {
-            log_slots( place_actions[ind].groups[i] );
+            log_second_slots( place_actions[ind].groups[i] );
         }
     }
-}
-
-void QNode::add_go_to ( int ind )
-{
-    log_recipe( go_to_actions[ind].name );
-}
-
-void QNode::add_place ( int ind )
-{
-    log_recipe( place_actions[ind].name );
-}
-
-void QNode::add_pick  ( int ind )
-{
-    log_recipe( pick_actions[ind].name );
 }
 
 std::vector<std::string> QNode::load_recipe ( bool init, std::string name_recipe)
@@ -405,32 +390,32 @@ std::vector<std::string> QNode::load_recipe ( bool init, std::string name_recipe
 
 }
 
-bool QNode::save_all( std::string recipe_name )
+bool QNode::save_recipe( std::string recipe_name )
 {
     ros::NodeHandle n;
     action_list.clear();
     for ( int i = 0; i < logging_model_recipe.rowCount(); i++ )
     {
         action action_;
-        for ( int j = 0; j < logging_model_go_to.rowCount(); j++ )
+        for ( int j = 0; j < logging_model_second_go_to.rowCount(); j++ )
         {
-            if ( !logging_model_go_to.data( logging_model_go_to.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
+            if ( !logging_model_second_go_to.data( logging_model_second_go_to.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
             {
                 action_.type  = "go_to";
                 action_.index = j;
             }
         }
-        for ( int j = 0; j < logging_model_place.rowCount(); j++ )
+        for ( int j = 0; j < logging_model_second_place.rowCount(); j++ )
         {
-            if ( !logging_model_place.data( logging_model_place.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
+            if ( !logging_model_second_place.data( logging_model_second_place.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
             {
                 action_.type  = "place";
                 action_.index = j;
             }
         }
-        for ( int j = 0; j < logging_model_pick.rowCount(); j++ )
+        for ( int j = 0; j < logging_model_second_pick.rowCount(); j++ )
         {
-            if ( !logging_model_pick.data( logging_model_pick.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
+            if ( !logging_model_second_pick.data( logging_model_second_pick.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
             {
                 action_.type  = "pick";
                 action_.index = j;
@@ -457,7 +442,7 @@ bool QNode::save_all( std::string recipe_name )
         }
         else
         {
-            ROS_ERROR("The type of action is wrong");
+            ROS_ERROR("The type of action is wrong: action %d", i);
         }
 
     }
@@ -603,48 +588,48 @@ XmlRpc::XmlRpcValue QNode::get_action_pick_param(int index)
     return param;
 }
 
-void QNode::log_go_to( const std::string &msg)
+void QNode::log_second_go_to( const std::string &msg)
 {
-    logging_model_go_to.insertRows(logging_model_go_to.rowCount(),1);
+    logging_model_second_go_to.insertRows(logging_model_second_go_to.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
-    logging_model_go_to.setData(logging_model_go_to.index(logging_model_go_to.rowCount()-1),new_row);
+    logging_model_second_go_to.setData(logging_model_second_go_to.index(logging_model_second_go_to.rowCount()-1),new_row);
 	Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::log_place (const std::string &msg)
+void QNode::log_second_place (const std::string &msg)
 {
-    logging_model_place.insertRows(logging_model_place.rowCount(),1);
+    logging_model_second_place.insertRows(logging_model_second_place.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
-    logging_model_place.setData(logging_model_place.index(logging_model_place.rowCount()-1),new_row);
+    logging_model_second_place.setData(logging_model_second_place.index(logging_model_second_place.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::log_pick  (const std::string &msg)
+void QNode::log_second_pick  (const std::string &msg)
 {
-    logging_model_pick.insertRows(logging_model_pick.rowCount(),1);
+    logging_model_second_pick.insertRows(logging_model_second_pick.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
-    logging_model_pick.setData(logging_model_pick.index(logging_model_pick.rowCount()-1),new_row);
+    logging_model_second_pick.setData(logging_model_second_pick.index(logging_model_second_pick.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::log_objects(const std::string &msg)
+void QNode::log_second_objects(const std::string &msg)
 {
-    logging_model_objects.insertRows(logging_model_objects.rowCount(),1);
+    logging_model_second_objects.insertRows(logging_model_second_objects.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
-    logging_model_objects.setData(logging_model_objects.index(logging_model_objects.rowCount()-1),new_row);
+    logging_model_second_objects.setData(logging_model_second_objects.index(logging_model_second_objects.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::log_slots (const std::string &msg)
+void QNode::log_second_slots (const std::string &msg)
 {
-    logging_model_slots.insertRows(logging_model_slots.rowCount(),1);
+    logging_model_second_slots.insertRows(logging_model_second_slots.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
-    logging_model_slots.setData(logging_model_slots.index(logging_model_slots.rowCount()-1),new_row);
+    logging_model_second_slots.setData(logging_model_second_slots.index(logging_model_second_slots.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
