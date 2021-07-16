@@ -52,6 +52,7 @@ public Q_SLOTS:
     void on_button_add_final_position_slot_clicked(bool check);
     void on_button_add_approach_box_clicked(bool check);
     void on_button_add_final_box_clicked(bool check);
+    void on_button_add_location_clicked(bool check);
     void on_button_remove_go_to_clicked(bool check);
     void on_button_remove_place_clicked(bool check);
     void on_button_remove_pick_clicked(bool check);
@@ -79,6 +80,7 @@ public Q_SLOTS:
     void on_robot_list_currentIndexChanged(int index);
     void on_place_list_pressed(const QModelIndex &index);
     void on_pick_list_pressed(const QModelIndex &index);
+    void on_go_to_list_pressed(const QModelIndex &index);
 
     void on_button_remove_element_clicked( bool check );
     void on_button_load_recipe_clicked   ( bool check );

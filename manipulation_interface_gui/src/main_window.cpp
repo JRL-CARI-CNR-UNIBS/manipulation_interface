@@ -49,6 +49,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.box_list            ->setModel(qnode.loggingModelBox());
     ui.list_groups_place   ->setModel(qnode.loggingModelGrpPlace());
     ui.list_objects_pick   ->setModel(qnode.loggingModelObjPick());
+    ui.locations_list      ->setModel(qnode.loggingModelLocation());
+    ui.list_locations_goto ->setModel(qnode.loggingModelLocationGoTo());
 
     ui.list_go_to  ->setModel(qnode.loggingModelSecondGoto());
     ui.list_place  ->setModel(qnode.loggingModelSecondPlace());
@@ -59,14 +61,13 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
 
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
 
-    ui.go_to_list  ->setSelectionMode(QAbstractItemView::MultiSelection);
-//    ui.place_list  ->setSelectionMode(QAbstractItemView::MultiSelection);
-//    ui.pick_list   ->setSelectionMode(QAbstractItemView::MultiSelection);
-    ui.object_list ->setSelectionMode(QAbstractItemView::MultiSelection);
-    ui.slot_list   ->setSelectionMode(QAbstractItemView::MultiSelection);
-    ui.group_list  ->setSelectionMode(QAbstractItemView::MultiSelection);
-    ui.box_list    ->setSelectionMode(QAbstractItemView::MultiSelection);
-
+    ui.object_list    ->setSelectionMode(QAbstractItemView::MultiSelection);
+    ui.slot_list      ->setSelectionMode(QAbstractItemView::MultiSelection);
+    ui.group_list     ->setSelectionMode(QAbstractItemView::MultiSelection);
+    ui.box_list       ->setSelectionMode(QAbstractItemView::MultiSelection);
+    ui.locations_list ->setSelectionMode(QAbstractItemView::MultiSelection);
+    //    ui.place_list  ->setSelectionMode(QAbstractItemView::MultiSelection);
+    //    ui.pick_list   ->setSelectionMode(QAbstractItemView::MultiSelection);
 
     ui.list_recipe ->setDragDropMode(QAbstractItemView::DragDrop);
 //    ui.list_recipe->model()->doSetSupportedDragActions(Qt::MoveAction);
@@ -97,7 +98,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.button_save_box                   ->setEnabled(false);
     ui.button_save_object                ->setEnabled(false);
     ui.button_save_slot                  ->setEnabled(false);
-    ui.edit_position_name                ->setEnabled(false);
+    ui.edit_action_name                  ->setEnabled(false);
     ui.edit_box_name                     ->setEnabled(false);
     ui.edit_group_name                   ->setEnabled(false);
     ui.edit_max_object                   ->setEnabled(false);
@@ -117,6 +118,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.button_load                       ->setEnabled(false);
     ui.button_load_TF                    ->setEnabled(false);
     ui.approach_list                     ->setEnabled(false);
+    ui.edit_location                     ->setEnabled(false);
+    ui.button_add_location               ->setEnabled(false);
 
     ui.go_to_list  ->setEditTriggers(QListView::NoEditTriggers);
     ui.place_list  ->setEditTriggers(QListView::NoEditTriggers);
@@ -169,29 +172,49 @@ void MainWindow::showNoMasterMessage() {
 
 void MainWindow::on_button_add_go_to_clicked(bool check)
 {
-    std::string position_name;
-    position_name=ui.edit_position_name->text().toStdString();
-    if ( ! position_name.empty() )
+    std::string go_to_name=ui.edit_action_name->text().toStdString();
+    std::vector<std::string> locations;
+    QModelIndexList indexes =  ui.locations_list->selectionModel()->selectedIndexes();
+    if ( !indexes.empty() )
     {
-        if ( !qnode.add_go_to(position_name) )
+        if ( ! go_to_name.empty() )
+        {
+            for ( int i = 0; i < indexes.size(); i++)
+            {
+                locations.push_back( qnode.return_location_list_text( indexes.at(i).row() ) );
+            }
+            if ( !qnode.add_go_to(go_to_name,locations) )
+            {
+                QMessageBox msgBox;
+                msgBox.setText("There is another goto with the same name or locations.");
+                msgBox.exec();
+                ui.edit_action_name->clear();
+            }
+            else
+            {
+                ui.edit_action_name->clear();
+                ui.locations_list->clearSelection();
+            }
+        }
+        else
         {
             QMessageBox msgBox;
-            msgBox.setText("There is another position with the same name.");
+            msgBox.setText("Empty name");
             msgBox.exec();
         }
-        ui.edit_position_name->clear();
     }
     else
     {
         QMessageBox msgBox;
-        msgBox.setText("Empty name");
+        msgBox.setText("There isn't any location selected.");
         msgBox.exec();
     }
+
 }
 
 void MainWindow::on_button_add_place_clicked(bool check)
 {
-    std::string place_name = ui.edit_position_name->text().toStdString();
+    std::string place_name = ui.edit_action_name->text().toStdString();
     std::vector<std::string> groups;
     QModelIndexList indexes =  ui.group_list->selectionModel()->selectedIndexes();
     if ( !indexes.empty() )
@@ -207,11 +230,11 @@ void MainWindow::on_button_add_place_clicked(bool check)
                 QMessageBox msgBox;
                 msgBox.setText("There is another place with the same name or groups.");
                 msgBox.exec();
-                ui.edit_position_name->clear();
+                ui.edit_action_name->clear();
             }
             else
             {
-                ui.edit_position_name->clear();
+                ui.edit_action_name->clear();
                 ui.group_list->clearSelection();
             }
         }
@@ -232,7 +255,7 @@ void MainWindow::on_button_add_place_clicked(bool check)
 
 void MainWindow::on_button_add_pick_clicked(bool check)
 {
-    std::string pick_name = ui.edit_position_name->text().toStdString();
+    std::string pick_name = ui.edit_action_name->text().toStdString();
     std::vector<std::string> objects;
     QModelIndexList indexes =  ui.object_list->selectionModel()->selectedIndexes();
     if ( !pick_name.empty())
@@ -248,11 +271,11 @@ void MainWindow::on_button_add_pick_clicked(bool check)
                 QMessageBox msgBox;
                 msgBox.setText("There is another pick with the same name or objects.");
                 msgBox.exec();
-                ui.edit_position_name->clear();
+                ui.edit_action_name->clear();
             }
             else
             {
-                ui.edit_position_name->clear();
+                ui.edit_action_name->clear();
                 ui.object_list->clearSelection();
             }
         }
@@ -315,6 +338,31 @@ void MainWindow::on_button_add_final_position_slot_clicked(bool check)
     init_slot_final = true;
     ui.button_add_final_position_slot->setEnabled(false);
     ui.button_remove_final_position_slot->setEnabled(true);
+}
+
+void MainWindow::on_button_add_location_clicked(bool check)
+{
+    std::string location_name = ui.edit_location->text().toStdString();
+    if ( !location_name.empty() )
+    {
+        if ( !qnode.add_location(location_name) )
+        {
+            QMessageBox msgBox;
+            msgBox.setText("There is another location with the same name.");
+            msgBox.exec();
+            ui.edit_location->clear();
+        }
+        else
+        {
+            ui.edit_location->clear();
+        }
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Empty name");
+        msgBox.exec();
+    }
 }
 
 void MainWindow::on_button_add_approach_box_clicked(bool check)
@@ -815,7 +863,7 @@ void MainWindow::on_check_robot_TF_stateChanged(int state)
         ui.button_save_box                ->setEnabled(true);
         ui.button_save_object             ->setEnabled(true);
         ui.button_save_slot               ->setEnabled(true);
-        ui.edit_position_name             ->setEnabled(true);
+        ui.edit_action_name               ->setEnabled(true);
         ui.edit_box_name                  ->setEnabled(true);
         ui.edit_group_name                ->setEnabled(true);
         ui.edit_max_object                ->setEnabled(true);
@@ -840,6 +888,9 @@ void MainWindow::on_check_robot_TF_stateChanged(int state)
         ui.button_load                    ->setEnabled(true);
         ui.button_load_TF                 ->setEnabled(true);
         ui.approach_list                  ->setEnabled(true);
+        ui.edit_location                  ->setEnabled(true);
+        ui.button_add_location            ->setEnabled(true);
+
 
         ui.check_robot_TF ->setEnabled(false);
         ui.world_TF_list  ->setEnabled(false);
@@ -909,6 +960,13 @@ void MainWindow::on_pick_list_pressed(const QModelIndex &index)
     ui.list_objects_pick->model()->removeRows( 0, ui.list_objects_pick->model()->rowCount() );
     qnode.add_objects_pick ( ui.pick_list->selectionModel()->selectedIndexes().at(0).row() );
 }
+
+void MainWindow::on_go_to_list_pressed(const QModelIndex &index)
+{
+    ui.list_locations_goto->model()->removeRows( 0, ui.list_locations_goto->model()->rowCount() );
+    qnode.add_locations_go_to ( ui.go_to_list->selectionModel()->selectedIndexes().at(0).row() );
+}
+
 
 void MainWindow::on_button_remove_element_clicked(bool check )
 {
@@ -1025,7 +1083,20 @@ void MainWindow::on_button_set_recipe_clicked ( bool check )
         return;
     }
 
-    qnode.set_recipe();
+    if ( !qnode.set_recipe() )
+    {
+        QMessageBox msgBox;
+        msgBox.setText("There are one or more actions in recipe that there aren't in saved actions.");
+        msgBox.exec();
+        return;
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("The recipe is setted.");
+        msgBox.exec();
+        ui.edit_recipe_name->clear();
+    }
 }
 
 void MainWindow::on_list_place_pressed(const QModelIndex &index)

@@ -84,150 +84,24 @@ bool QNode::init() {
 
 void QNode::load_actions()
 {
-    ros::NodeHandle n;
-
-    XmlRpc::XmlRpcValue go_to_param;
-    XmlRpc::XmlRpcValue places_param;
-    XmlRpc::XmlRpcValue picks_param;
-
     logging_model_second_go_to.removeRows (0, logging_model_second_go_to.rowCount());
     logging_model_second_place.removeRows (0, logging_model_second_place.rowCount());
     logging_model_second_pick.removeRows  (0, logging_model_second_pick.rowCount());
 
-    if ( !n.getParam("/go_to_location",go_to_param) )
-    {
-        ROS_ERROR("go_to_param don't find");
-    }
-    else if( go_to_param.getType() != XmlRpc::XmlRpcValue::TypeArray)
-    {
-        ROS_ERROR("Go_to is not a list");
-    }
-    else
-    {
-        for ( size_t i = 0; i < go_to_param.size(); i++ )
-        {
-            go__to single_go_to;
-            XmlRpc::XmlRpcValue param = go_to_param[i];
+    load_param();
 
-            if ( param.getType() != XmlRpc::XmlRpcValue::TypeStruct)
-            {
-                ROS_ERROR("The element #%zu is not a struct", i);
-            }
-            if ( !param.hasMember("frame") )
-            {
-                ROS_ERROR("The element #%zu has not the field 'frame'", i);
-                single_go_to.frame=" ";
-            }
-            else
-            {
-                single_go_to.frame = rosparam_utilities::toString(param["frame"]);
-            }
-            if ( !param.hasMember("name") )
-            {
-                ROS_ERROR("The element #%zu has not the field 'name'", i);
-                single_go_to.name=" ";
-            }
-            else
-            {
-                single_go_to.name = rosparam_utilities::toString(param["name"]);
-            }
-            go_to_actions.push_back(single_go_to);
-            log_second_go_to(single_go_to.name);
-        }
-    }
-
-    if ( !n.getParam("/places_param",places_param) )
+    for ( int i = 0; i < go_to_actions.size(); i++ )
     {
-        ROS_ERROR("places_param don't find");
+        log_second_go_to( go_to_actions[i].name );
     }
-    else if ( places_param.getType() != XmlRpc::XmlRpcValue::TypeArray)
+    for ( int i = 0; i < pick_actions.size(); i++ )
     {
-        ROS_ERROR("Places is not a list");
+        log_second_pick( pick_actions[i].name );
     }
-    else
+    for ( int i = 0; i < place_actions.size(); i++ )
     {
-        for ( size_t i = 0; i < places_param.size(); i++ )
-        {
-            place single_place;
-            XmlRpc::XmlRpcValue param = places_param[i];
-
-            if ( param.getType() != XmlRpc::XmlRpcValue::TypeStruct)
-            {
-                ROS_ERROR("The element #%zu is not a struct", i);
-            }
-            if ( !param.hasMember("name") )
-            {
-                ROS_ERROR("The element #%zu has not the field 'name'", i);
-                single_place.name=" ";
-            }
-            else
-            {
-                single_place.name = rosparam_utilities::toString(param["name"]);
-            }
-            if ( !param.hasMember("groups") )
-            {
-                ROS_ERROR("The element #%zu has not the field 'groups'", i);
-            }
-            else
-            {
-                std::string what;
-                if( !rosparam_utilities::getParam(param,"groups",single_place.groups,what) )
-                {
-                  ROS_WARN("The element #%zu has not the field 'groups'", i);
-                  continue;
-                }
-            }
-            place_actions.push_back(single_place);
-            log_second_place(single_place.name);
-        }
+        log_second_place( place_actions[i].name );
     }
-
-    if ( !n.getParam("/picks_param",picks_param) )
-    {
-        ROS_ERROR("picks_param don't find");
-    }
-    else if ( picks_param.getType() != XmlRpc::XmlRpcValue::TypeArray)
-    {
-        ROS_ERROR("Picks is not a list");
-    }
-    else
-    {
-        for ( size_t i = 0; i < picks_param.size(); i++ )
-        {
-            pick single_pick;
-            XmlRpc::XmlRpcValue param = picks_param[i];
-
-            if ( param.getType() != XmlRpc::XmlRpcValue::TypeStruct)
-            {
-                ROS_ERROR("The element #%zu is not a struct", i);
-            }
-            if ( !param.hasMember("name") )
-            {
-                ROS_ERROR("The element #%zu has not the field 'name'", i);
-                single_pick.name=" ";
-            }
-            else
-            {
-                single_pick.name = rosparam_utilities::toString(param["name"]);
-            }
-            if ( !param.hasMember("objects") )
-            {
-                ROS_ERROR("The element #%zu has not the field 'objects'", i);
-            }
-            else
-            {
-                std::string what;
-                if( !rosparam_utilities::getParam(param,"objects",single_pick.objects,what) )
-                {
-                  ROS_WARN("The element #%zu has not the field 'groups'", i);
-                  continue;
-                }
-            }
-            pick_actions.push_back(single_pick);
-            log_second_pick(single_pick.name);
-        }
-    }
-
 }
 
 void QNode::add_object_type (int ind)
@@ -264,159 +138,70 @@ std::vector<std::string> QNode::load_recipe ( bool init, std::string name_recipe
 {
     ros::NodeHandle n;
 
-    XmlRpc::XmlRpcValue recipe_param;
+    XmlRpc::XmlRpcValue config;
 
-    std::vector<std::string> recipes_param, recipes_names;
+    std::vector<std::string> recipes_names;
 
-    if (!n.getParamNames(param_names))
+    if ( !n.getParam("/multi_skills/recipes", config) )
     {
-        ROS_ERROR("Empty robot parameter");
-        return recipes_names;
+        ROS_ERROR("Unable to find /multi_skills/recipes");
     }
-
-    for ( int i = 0; i < param_names.size(); i++)
+    if (config.getType() != XmlRpc::XmlRpcValue::TypeArray)
     {
-        std::size_t found  = param_names[i].find("/multi_skills/recipes");
-        if ( found != std::string::npos )
-        {
-            std::size_t found2  = param_names[i].find( "/", 5 );
-            std::size_t found3  = param_names[i].find( "/", found2+1 );
-            std::string str = param_names[i];
-            recipes_names.push_back( str.erase( 0, found3+1 ) );
-            recipes_param.push_back( param_names[i] );
-        }
+        ROS_ERROR("The recipes param is not an array" );
     }
+    ROS_INFO("There are %d recipes",config.size());
 
-    if ( !init )
+    recipes.clear();
+
+    for ( int i = 0; i < config.size(); i++)
     {
-        return recipes_names;
-    }
-    else
-    {
-        int num_action = 0;
-        std::string str = "/multi_skills/recipes/";
-        str.append(name_recipe);
-        if ( !n.getParam(str,recipe_param) )
+        XmlRpc::XmlRpcValue param = config[i];
+        recipe single_recipe;
+
+        if ( !param.hasMember("name") )
         {
-            ROS_ERROR("recipe_param don't find");
+            ROS_WARN("The recipe #%d has not the field 'name'", i);
         }
-        else if ( recipe_param.getType() != XmlRpc::XmlRpcValue::TypeArray)
+        single_recipe.name = rosparam_utilities::toString(param["name"]);
+
+        std::string what;
+        std::vector<std::string> description;
+        if( !rosparam_utilities::getParam(param,"recipe",description,what) )
         {
-            ROS_ERROR("recipe is not a list");
+          ROS_WARN("The element #%zu has not the field 'description'", i);
+          continue;
         }
-        else
+        single_recipe.recipe_ = description;
+        bool presence = false;
+        for ( int j = 0; j < recipes.size(); j++)
         {
-            for ( size_t i = 0; i < recipe_param.size(); i++ )
+            if ( !single_recipe.name.compare(recipes[j].name) )
             {
-                std::string type;
-                XmlRpc::XmlRpcValue param = recipe_param[i];
+                presence = true;
+            }
+        }
 
-                if ( param.getType() != XmlRpc::XmlRpcValue::TypeStruct)
+        if ( !presence )
+        {
+            recipes.push_back(single_recipe);
+            recipes_compare.push_back(single_recipe);
+            recipes_names.push_back(single_recipe.name);
+        }
+        if ( init )
+        {
+            if ( !name_recipe.compare( single_recipe.name ) )
+            {
+                for ( int j = 0; j < description.size(); j++ )
                 {
-                    ROS_ERROR("The element #%zu is not a struct", i);
-                }
-                if ( !param.hasMember("action") )
-                {
-                    ROS_ERROR("The element #%zu has not the field 'action'", i);
-                    type = " ";
-                }
-                else
-                {
-                    type = rosparam_utilities::toString(param["action"]);
-                }
-                if ( !param.hasMember("description") )
-                {
-                    ROS_ERROR("The element #%zu has not the field 'description'", i);
-                }
-                else
-                {
-                    if ( !type.compare("goto") )
-                    {
-                        std::string what;
-                        std::vector<std::string> description;
-                        if( !rosparam_utilities::getParam(param,"description",description,what) )
-                        {
-                          ROS_WARN("The element #%zu has not the field 'description'", i);
-                          continue;
-                        }
-                        std::string name;
-                        for (int j = 0; j < go_to_actions.size(); j++ )
-                        {
-
-                            if ( !description[0].compare( go_to_actions[j].name ) )
-                            {
-                                name = go_to_actions[j].name;
-                            }
-                        }
-                        if ( !name.empty() )
-                        {
-                            log_recipe( name );
-                        }
-                        else
-                        {
-                            num_action++;
-                            name="go_to";
-                            name.append(std::to_string(num_action));
-                            log_recipe( name );
-                        }
-                    }
-                    else if ( !type.compare("place") )
-                    {
-                        std::string what;
-                        std::vector<std::string> description;
-                        if( !rosparam_utilities::getParam(param,"description",description,what) )
-                        {
-                          ROS_WARN("The element #%zu has not the field 'description'", i);
-                          continue;
-                        }
-                        std::string name;
-                        for ( int j = 0; j < place_actions.size(); j++ )
-                        {
-                            if ( compare( description, place_actions[j].groups ) )
-                            {
-                                name = place_actions[j].name;
-                            }
-                        }
-                        if ( name.empty() )
-                        {
-                            num_action++;
-                            name="place";
-                            name.append(std::to_string(num_action));
-                        }
-                        log_recipe( name );
-                    }
-                    else if ( !type.compare("pick") )
-                    {
-                        std::string what;
-                        std::vector<std::string> description;
-                        if( !rosparam_utilities::getParam(param,"description",description,what) )
-                        {
-                          ROS_WARN("The element #%zu has not the field 'description'", i);
-                          continue;
-                        }
-                        std::string name;
-                        for ( int j = 0; j < pick_actions.size(); j++ )
-                        {
-                            if ( compare( description, pick_actions[j].objects ) )
-                            {
-                                name = pick_actions[j].name;
-                            }
-                        }
-                        if ( name.empty() )
-                        {
-                            num_action++;
-                            name="pick";
-                            name.append(std::to_string(num_action));
-                        }
-                        log_recipe( name );
-                    }
+                    log_recipe( description[j] );
                 }
             }
         }
-        return recipes_names;
+
     }
 
-
+    return recipes_names;
 }
 
 bool QNode::save_recipe( std::string recipe_name )
@@ -424,10 +209,38 @@ bool QNode::save_recipe( std::string recipe_name )
     ros::NodeHandle n;
     XmlRpc::XmlRpcValue param;
 
-    param = set_recipe();
-    std::string str = "/multi_skills/recipes/";
-    str.append(recipe_name);
-    n.setParam( str, param);
+    ROS_ERROR("in ingresso %zu", recipes.size());
+
+    for ( int i = 0; i < recipes.size(); i++ )
+    {
+        if ( !recipe_name.compare( recipes[i].name ) )
+        {
+            recipes.erase( recipes.begin()+i );
+        }
+    }
+
+    ROS_ERROR("dopo eliminazione %zu", recipes.size());
+
+    recipe recipe_;
+    recipe_.name = recipe_name;
+
+    for ( int i = 0; i < logging_model_recipe.rowCount(); i++ )
+    {
+        recipe_.recipe_.push_back( logging_model_recipe.data( logging_model_recipe.index(i) ).toString().toStdString() );
+    }
+
+    recipes.push_back(recipe_);
+
+    ROS_ERROR("dopo aggiunta %zu", recipes.size());
+
+    for ( int i = 0; i < recipes.size(); i++)
+    {
+        param[i] = get_recipe_param(i);
+    }
+    n.setParam("/multi_skills/recipes", param);
+    param.clear();
+
+    ROS_ERROR("dopo pubblicazione %zu", recipes.size());
 
     ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("save_recipe_param_on_mongo");
     manipulation_interface_mongo::SaveParam srv;
@@ -440,62 +253,95 @@ bool QNode::save_recipe( std::string recipe_name )
     return true;
 }
 
-XmlRpc::XmlRpcValue QNode::set_recipe()
+bool QNode::set_recipe()
 {
     ros::NodeHandle n;
-    action_list.clear();
+    std::vector<std::string> actions_names;
+
     for ( int i = 0; i < logging_model_recipe.rowCount(); i++ )
     {
-        action action_;
+        bool presence = false;
+
         for ( int j = 0; j < logging_model_second_go_to.rowCount(); j++ )
         {
             if ( !logging_model_second_go_to.data( logging_model_second_go_to.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
             {
-                action_.type  = "go_to";
-                action_.index = j;
+                presence = true;
             }
         }
         for ( int j = 0; j < logging_model_second_place.rowCount(); j++ )
         {
             if ( !logging_model_second_place.data( logging_model_second_place.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
             {
-                action_.type  = "place";
-                action_.index = j;
+                presence = true;
             }
         }
         for ( int j = 0; j < logging_model_second_pick.rowCount(); j++ )
         {
             if ( !logging_model_second_pick.data( logging_model_second_pick.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
             {
-                action_.type  = "pick";
-                action_.index = j;
+                presence = true;
             }
         }
-        action_list.push_back(action_);
-    }
 
-    XmlRpc::XmlRpcValue param;
-
-    for ( int i = 0; i <  action_list.size(); i++)
-    {
-        if ( !action_list[i].type.compare("go_to") )
+        if ( presence )
         {
-            param[i] = get_action_go_to_param(action_list[i].index);
-        }
-        else if ( !action_list[i].type.compare("place") )
-        {
-            param[i] = get_action_place_param(action_list[i].index);
-        }
-        else if ( !action_list[i].type.compare("pick") )
-        {
-            param[i] = get_action_pick_param(action_list[i].index);
+            actions_names.push_back( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() );
         }
         else
         {
-            ROS_ERROR("The type of action is wrong: action %d", i);
+            return false;
         }
     }
+    std::string xml_body;
+
+    xml_body.append(init_value);
+    xml_body.append(init_array);
+    xml_body.append(init_data);
+
+
+    for ( int i = 0; i < actions_names.size(); i++)
+    {
+        xml_body.append(init_value);
+        xml_body.append(init_string);
+        xml_body.append(actions_names[i]);
+        xml_body.append(end_string);
+        xml_body.append(end_value);
+    }
+
+    xml_body.append(end_data);
+    xml_body.append(end_array);
+    xml_body.append(end_value);
+
+    int offset = 0;
+    int* offset_ptr = &offset;
+    XmlRpc::XmlRpcValue param;
+    param.fromXml(xml_body,offset_ptr);
+
     n.setParam("/multi_skills/recipe", param);
+    return true;
+}
+
+
+
+XmlRpc::XmlRpcValue QNode::get_recipe_param(int index)
+{
+    std::string xml_body;
+
+    xml_body.append(init_value);
+    xml_body.append(init_struct);
+
+    xml_body.append(get_xml_string_param("name", recipes[index].name));
+    xml_body.append(get_xml_group_string("recipe", recipes[index].recipe_));
+
+    xml_body.append(end_struct);
+    xml_body.append(end_value);
+
+    int offset = 0;
+    int* offset_ptr = &offset;
+    XmlRpc::XmlRpcValue param;
+    param.fromXml(xml_body,offset_ptr);
+
     return param;
 }
 
@@ -573,29 +419,32 @@ XmlRpc::XmlRpcValue QNode::get_action_pick_param(int index)
     return param;
 }
 
-bool QNode::add_go_to(std::string position_name)
+bool QNode::add_go_to(std::string go_to_name, std::vector<std::string> locations_)
 {
     if ( logging_model_go_to.rowCount()!=0 )
     {
-        //            ROS_ERROR("sei entrato nell if");
         for (int i=0; i<logging_model_go_to.rowCount(); i++)
         {
-            //                ROS_ERROR("sei entrato nell for");
             ros::Duration(0.1);
-            if ( !position_name.compare( logging_model_go_to.data( logging_model_go_to.index( i ), 0 ).toString().toStdString() ) )
+            if ( !go_to_name.compare( logging_model_go_to.data( logging_model_go_to.index( i ), 0 ).toString().toStdString() ) )
+            {
+                return false;
+            }
+        }
+        for ( int i = 0; i < go_to_actions.size(); i++)
+        {
+            if ( compare( locations_, go_to_actions[i].locations) )
             {
                 return false;
             }
         }
     }
-    log_go_to(position_name);
+    log_go_to(go_to_name);
 
-    location loc = return_position(base_frame, target_frame);
     go_to gt;
-    gt.name     = position_name;
-    gt.location_ = loc;
-    gt.frame = base_frame;
-    go_to_locations.push_back(gt);
+    gt.name = go_to_name;
+    gt.locations = locations_;
+    go_to_actions.push_back(gt);
 
     return true;
 
@@ -605,30 +454,27 @@ bool QNode::add_place(std::string place_name, std::vector<std::string> groups_)
 {
     if ( logging_model_place.rowCount()!=0 )
     {
-        //            ROS_ERROR("sei entrato nell if");
         for (int i=0; i<logging_model_place.rowCount(); i++)
         {
-            //                ROS_ERROR("sei entrato nell for");
             ros::Duration(0.1);
             if ( !place_name.compare( logging_model_place.data( logging_model_place.index( i ), 0 ).toString().toStdString() ) )
             {
                 return false;
             }
         }
-        for ( int i = 0; i < place_locations.size(); i++)
+        for ( int i = 0; i < place_actions.size(); i++)
         {
-            if ( compare( groups_, place_locations[i].groups) )
+            if ( compare( groups_, place_actions[i].groups) )
             {
                 return false;
             }
         }
-
     }
     log_place(place_name);
     place plc;
     plc.name   = place_name;
     plc.groups = groups_;
-    place_locations.push_back(plc);
+    place_actions.push_back(plc);
 
     return true;
 }
@@ -649,9 +495,9 @@ bool QNode::add_pick(std::string position_name, std::vector<std::string> objects
                     return false;
                 }
             }
-            for ( int i = 0; i < pick_locations.size(); i++)
+            for ( int i = 0; i < pick_actions.size(); i++)
             {
-                if ( compare( objects_, pick_locations[i].objects) )
+                if ( compare( objects_, pick_actions[i].objects) )
                 {
                     return false;
                 }
@@ -661,7 +507,7 @@ bool QNode::add_pick(std::string position_name, std::vector<std::string> objects
         pick pck;
         pck.name    = position_name;
         pck.objects = objects_;
-        pick_locations.push_back(pck);
+        pick_actions.push_back(pck);
         return true;
     }
 
@@ -670,19 +516,54 @@ bool QNode::add_pick(std::string position_name, std::vector<std::string> objects
     return true;
 }
 
+bool QNode::add_location(std::string location_name)
+{
+    if ( logging_model_location.rowCount()!=0 )
+    {
+        //            ROS_ERROR("sei entrato nell if");
+        for (int i=0; i<logging_model_location.rowCount(); i++)
+        {
+            //                ROS_ERROR("sei entrato nell for");
+            ros::Duration(0.1);
+            if ( !location_name.compare( logging_model_location.data( logging_model_location.index( i ), 0 ).toString().toStdString() ) )
+            {
+                return false;
+            }
+        }
+    }
+    log_location(location_name);
+
+    location loc = return_position(base_frame, target_frame);
+    go_to_location gt;
+    gt.name     = location_name;
+    gt.location_ = loc;
+    gt.frame = base_frame;
+    go_to_locations.push_back(gt);
+
+    return true;
+}
+
 bool QNode::add_objects_pick ( int ind )
 {
-    for ( int i = 0; i < pick_locations[ind].objects.size(); i++ )
+    for ( int i = 0; i < pick_actions[ind].objects.size(); i++ )
     {
-        log_obj_pick(pick_locations[ind].objects[i]);
+        log_obj_pick(pick_actions[ind].objects[i]);
     }
 }
 
 bool QNode::add_groups_place ( int ind )
 {
-    for ( int i = 0; i < place_locations[ind].groups.size(); i++ )
+    for ( int i = 0; i < place_actions[ind].groups.size(); i++ )
     {
-        log_grp_place(place_locations[ind].groups[i]);
+        log_grp_place(place_actions[ind].groups[i]);
+    }
+}
+
+bool QNode::add_locations_go_to ( int ind )
+{
+    for ( int i = 0; i < go_to_actions[ind].locations.size(); i++ )
+    {
+        log_location_goto(go_to_actions[ind].locations[i]);
     }
 }
 
@@ -710,6 +591,11 @@ location QNode::return_position( std::string base_frame, std::string target_fram
     loc.quat.rotation_z = transform.getRotation().getZ();
     loc.quat.rotation_w = transform.getRotation().getW();
     return loc;
+}
+
+std::string QNode::return_location_list_text(int ind)
+{
+    return logging_model_location.data( logging_model_location.index( ind ), 0 ).toString().toStdString();
 }
 
 std::string QNode::return_group_list_text(int ind)
@@ -818,6 +704,24 @@ void QNode::log_obj_pick  ( const std::string &msg)
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
+void QNode::log_location  ( const std::string &msg)
+{
+    logging_model_location.insertRows(logging_model_location.rowCount(),1);
+    ROS_DEBUG_STREAM(msg);
+    QVariant new_row(QString(msg.c_str()));
+    logging_model_location.setData(logging_model_location.index(logging_model_location.rowCount()-1),new_row);
+    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+}
+
+void QNode::log_location_goto  ( const std::string &msg)
+{
+    logging_model_location_go_to.insertRows(logging_model_location_go_to.rowCount(),1);
+    ROS_DEBUG_STREAM(msg);
+    QVariant new_row(QString(msg.c_str()));
+    logging_model_location_go_to.setData(logging_model_location_go_to.index(logging_model_location_go_to.rowCount()-1),new_row);
+    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+}
+
 void QNode::log_second_go_to( const std::string &msg)
 {
     logging_model_second_go_to.insertRows(logging_model_second_go_to.rowCount(),1);
@@ -879,12 +783,12 @@ void QNode::remove_go_to(const int &ind)
 
 void QNode::remove_place(int ind)
 {
-    place_locations.erase (place_locations.begin()+ind);
+    place_actions.erase (place_actions.begin()+ind);
 }
 
 void QNode::remove_pick(int ind)
 {
-    pick_locations.erase (pick_locations.begin()+ind);
+    pick_actions.erase (pick_actions.begin()+ind);
 }
 
 void QNode::remove_object(int ind)
@@ -1140,9 +1044,55 @@ std::string QNode::get_xml_group_string( std::string name, std::vector<std::stri
     return xml_body;
 }
 
+std::string QNode::get_xml_object_grasp_string( int index, int index2 )
+{
+    std::string xml_body;
+
+    xml_body.append(init_value);
+    xml_body.append(init_struct);
+
+    xml_body.append(get_xml_string_param("tool", target_frame));
+    xml_body.append(get_xml_position_string("position", objects[index].grasp[index2].pos));
+    xml_body.append(get_xml_quaternion_string(objects[index].grasp[index2].quat));
+    xml_body.append(get_xml_position_string("approach_distance", objects[index].approach[index2]));
+
+    xml_body.append(end_struct);
+    xml_body.append(end_value);
+
+    return xml_body;
+}
+
+std::string QNode::get_xml_object_grasp_poses_string( int index )
+{
+    std::string xml_body;
+
+    xml_body.append(init_member);
+
+    xml_body.append(init_name);
+    xml_body.append("grasp_poses");
+    xml_body.append(end_name);
+
+    xml_body.append(init_value);
+    xml_body.append(init_array);
+    xml_body.append(init_data);
+
+    for ( int i = 0; i < objects[index].grasp.size(); i++ )
+    {
+        xml_body.append( get_xml_object_grasp_string(index, i) );
+    }
+
+    xml_body.append(end_data);
+    xml_body.append(end_array);
+    xml_body.append(end_value);
+
+    xml_body.append(end_member);
+
+    return xml_body;
+}
+
 XmlRpc::XmlRpcValue QNode::get_go_to_location_param(int index)
 {
-//    /go_to_location/manipulator
+//    /go_to_location
     std::string xml_body;
 
     xml_body.append(init_value);
@@ -1196,7 +1146,7 @@ XmlRpc::XmlRpcValue QNode::get_object_grasp_param(int index, int index2)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(get_xml_string_param("tool", target_frame));
+    xml_body.append(get_xml_string_param("name", target_frame));
     xml_body.append(get_xml_position_string("position", objects[index].grasp[index2].pos));
     xml_body.append(get_xml_quaternion_string(objects[index].grasp[index2].quat));
     xml_body.append(get_xml_position_string("approach_distance", objects[index].approach[index2]));
@@ -1208,6 +1158,27 @@ XmlRpc::XmlRpcValue QNode::get_object_grasp_param(int index, int index2)
     int* offset_ptr = &offset;
     XmlRpc::XmlRpcValue param;
     param.fromXml(xml_body,offset_ptr);
+    return param;
+}
+
+XmlRpc::XmlRpcValue QNode::get_object_param(int index)
+{
+    std::string xml_body;
+
+    xml_body.append(init_value);
+    xml_body.append(init_struct);
+
+    xml_body.append( get_xml_string_param("name", objects[index].name) );
+    xml_body.append( get_xml_object_grasp_poses_string(index) );
+
+    xml_body.append(end_struct);
+    xml_body.append(end_value);
+
+    int offset = 0;
+    int* offset_ptr = &offset;
+    XmlRpc::XmlRpcValue param;
+    param.fromXml(xml_body,offset_ptr);
+
     return param;
 }
 
@@ -1258,8 +1229,8 @@ XmlRpc::XmlRpcValue QNode::get_pick_param(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(get_xml_string_param("name", pick_locations[index].name));
-    xml_body.append(get_xml_group_string("objects", pick_locations[index].objects));
+    xml_body.append(get_xml_string_param("name", pick_actions[index].name));
+    xml_body.append(get_xml_group_string("objects", pick_actions[index].objects));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1279,8 +1250,8 @@ XmlRpc::XmlRpcValue QNode::get_place_param(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(get_xml_string_param("name", place_locations[index].name));
-    xml_body.append(get_xml_group_string("groups", place_locations[index].groups));
+    xml_body.append(get_xml_string_param("name", place_actions[index].name));
+    xml_body.append(get_xml_group_string("groups", place_actions[index].groups));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1307,6 +1278,78 @@ XmlRpc::XmlRpcValue QNode::get_slot_param(int index)
     xml_body.append(get_xml_position_string("position", manipulation_slots[index].location_.pos));
     xml_body.append(get_xml_quaternion_string( manipulation_slots[index].location_.quat));
     xml_body.append(get_xml_position_string("approach_distance", manipulation_slots[index].approach));
+
+    xml_body.append(end_struct);
+    xml_body.append(end_value);
+
+    int offset = 0;
+    int* offset_ptr = &offset;
+    XmlRpc::XmlRpcValue param;
+    param.fromXml(xml_body,offset_ptr);
+
+    return param;
+}
+
+XmlRpc::XmlRpcValue QNode::get_go_to_param_(int index)
+{
+    std::string xml_body;
+
+    xml_body.append(init_value);
+    xml_body.append(init_struct);
+
+    xml_body.append(get_xml_string_param("name", go_to_actions[index].name));
+    xml_body.append(get_xml_string_param("description", go_to_actions[index].description));
+    xml_body.append(get_xml_string_param("type", "goto"));
+    xml_body.append(get_xml_string_param("agent", "robot"));
+    xml_body.append(get_xml_group_string("goal", go_to_actions[index].locations));
+
+    xml_body.append(end_struct);
+    xml_body.append(end_value);
+
+    int offset = 0;
+    int* offset_ptr = &offset;
+    XmlRpc::XmlRpcValue param;
+    param.fromXml(xml_body,offset_ptr);
+
+    return param;
+}
+
+XmlRpc::XmlRpcValue QNode::get_pick_param_(int index)
+{
+    std::string xml_body;
+
+    xml_body.append(init_value);
+    xml_body.append(init_struct);
+
+    xml_body.append(get_xml_string_param("name", pick_actions[index].name));
+    xml_body.append(get_xml_string_param("description", pick_actions[index].description));
+    xml_body.append(get_xml_string_param("type", "pick"));
+    xml_body.append(get_xml_string_param("agent", "robot"));
+    xml_body.append(get_xml_group_string("goal", pick_actions[index].objects));
+
+    xml_body.append(end_struct);
+    xml_body.append(end_value);
+
+    int offset = 0;
+    int* offset_ptr = &offset;
+    XmlRpc::XmlRpcValue param;
+    param.fromXml(xml_body,offset_ptr);
+
+    return param;
+}
+
+XmlRpc::XmlRpcValue QNode::get_place_param_(int index)
+{
+    std::string xml_body;
+
+    xml_body.append(init_value);
+    xml_body.append(init_struct);
+
+    xml_body.append(get_xml_string_param("name", place_actions[index].name));
+    xml_body.append(get_xml_string_param("description", place_actions[index].description));
+    xml_body.append(get_xml_string_param("type", "place"));
+    xml_body.append(get_xml_string_param("agent", "robot"));
+    xml_body.append(get_xml_group_string("goal", place_actions[index].groups));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1364,34 +1407,34 @@ void QNode::check_other_param()
             go_to_locations.push_back( go_to_locations_compare[i] );
         }
     }
-    for ( int i = 0; i < place_locations_compare.size(); i++ )
+    for ( int i = 0; i < place_actions_compare.size(); i++ )
     {
         bool presence = false;
-        for ( int j = 0; j < place_locations.size(); j++)
+        for ( int j = 0; j < place_actions.size(); j++)
         {
-            if ( place_locations[j].name == place_locations_compare[i].name )
+            if ( place_actions[j].name == place_actions_compare[i].name )
             {
                 presence = true;
             }
         }
         if ( presence == false )
         {
-            place_locations.push_back( place_locations_compare[i] );
+            place_actions.push_back( place_actions_compare[i] );
         }
     }
-    for ( int i = 0; i < pick_locations_compare.size(); i++ )
+    for ( int i = 0; i < pick_actions_compare.size(); i++ )
     {
         bool presence = false;
-        for ( int j = 0; j < pick_locations.size(); j++)
+        for ( int j = 0; j < pick_actions.size(); j++)
         {
-            if ( pick_locations[j].name == pick_locations_compare[i].name )
+            if ( pick_actions[j].name == pick_actions_compare[i].name )
             {
                 presence = true;
             }
         }
         if ( presence == false )
         {
-            pick_locations.push_back( pick_locations_compare[i] );
+            pick_actions.push_back( pick_actions_compare[i] );
         }
     }
     for ( int i = 0; i < slots_compare.size(); i++ )
@@ -1471,20 +1514,6 @@ bool QNode::save_components()
     n.setParam("/outbound/slots_group", param);
     param.clear();
 
-    for ( int i = 0; i < pick_locations.size(); i++)
-    {
-        param[i] = get_pick_param(i);
-    }
-    n.setParam("/picks_param", param);
-    param.clear();
-
-    for ( int i = 0; i < place_locations.size(); i++)
-    {
-        param[i] = get_place_param(i);
-    }
-    n.setParam("/places_param", param);
-    param.clear();
-
     for ( int i = 0; i < manipulation_slots.size(); i++)
     {
         param[i] = get_slot_param( i );
@@ -1506,7 +1535,29 @@ bool QNode::save_components()
         param.clear();
     }
 
-    ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("save_initial_param_on_mongo");
+    for ( int i = 0; i < objects.size(); i++ )
+    {
+        param [i] = get_object_param(i);
+    }
+    n.setParam("/manipulation/objects", param);
+    param.clear();
+
+    for ( int i = 0; i < go_to_actions.size(); i++)
+    {
+        param[i] = get_go_to_param_(i);
+    }
+    for ( int i = 0; i < pick_actions.size(); i++)
+    {
+        param[ i + go_to_actions.size() ] = get_pick_param_(i);
+    }
+    for ( int i = 0; i < place_actions.size(); i++)
+    {
+        param[ i + go_to_actions.size() + pick_actions.size() ] = get_place_param_(i);
+    }
+    n.setParam("/multi_skills/tasks", param);
+    param.clear();
+
+    ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("/save_components_params_on_mongo");
     manipulation_interface_mongo::SaveParam srv;
     client.call(srv);
     return true;
@@ -1650,7 +1701,7 @@ void QNode::load_param()
     readSlotsGroupFromParam();
     readSlotsFromParam();
     readLocationsFromParam();
-    readPickAndPlaceFromParam();
+    readGotoPickAndPlaceFromParam();
 }
 
 void QNode::write_param()
@@ -1720,46 +1771,61 @@ void QNode::write_param()
     for ( int i = 0; i < go_to_locations.size(); i++)
     {
         bool presence = false;
-        for ( int j = 0; j < logging_model_go_to.rowCount(); j++)
+        for ( int j = 0; j < logging_model_location.rowCount(); j++)
         {
-            if ( !go_to_locations[i].name.compare(logging_model_go_to.data( logging_model_go_to.index( j ), 0 ).toString().toStdString() ) )
+            if ( !go_to_locations[i].name.compare(logging_model_location.data( logging_model_location.index( j ), 0 ).toString().toStdString() ) )
             {
                 presence = true;
             }
         }
         if ( !presence )
         {
-            log_go_to(go_to_locations[i].name);
+            log_location(go_to_locations[i].name);
         }
     }
-    for ( int i = 0; i < place_locations.size(); i++)
+    for ( int i = 0; i < go_to_actions.size(); i++)
+    {
+        bool presence = false;
+        for ( int j = 0; j < logging_model_go_to.rowCount(); j++)
+        {
+            if ( !go_to_actions[i].name.compare(logging_model_go_to.data( logging_model_go_to.index( j ), 0 ).toString().toStdString() ) )
+            {
+                presence = true;
+            }
+        }
+        if ( !presence )
+        {
+            log_go_to(go_to_actions[i].name);
+        }
+    }
+    for ( int i = 0; i < place_actions.size(); i++)
     {
         bool presence = false;
         for ( int j = 0; j < logging_model_place.rowCount(); j++)
         {
-            if ( !place_locations[i].name.compare(logging_model_place.data( logging_model_place.index( j ), 0 ).toString().toStdString() ) )
+            if ( !place_actions[i].name.compare(logging_model_place.data( logging_model_place.index( j ), 0 ).toString().toStdString() ) )
             {
                 presence = true;
             }
         }
         if ( !presence )
         {
-            log_place(place_locations[i].name);
+            log_place(place_actions[i].name);
         }
     }
-    for ( int i = 0; i < pick_locations.size(); i++)
+    for ( int i = 0; i < pick_actions.size(); i++)
     {
         bool presence = false;
         for ( int j = 0; j < logging_model_pick.rowCount(); j++)
         {
-            if ( !pick_locations[i].name.compare(logging_model_pick.data( logging_model_pick.index( j ), 0 ).toString().toStdString() ) )
+            if ( !pick_actions[i].name.compare(logging_model_pick.data( logging_model_pick.index( j ), 0 ).toString().toStdString() ) )
             {
                 presence = true;
             }
         }
         if ( !presence )
         {
-            log_pick(pick_locations[i].name);
+            log_pick(pick_actions[i].name);
         }
     }
 }
@@ -2182,7 +2248,7 @@ bool QNode::readLocationsFromParam()
 
     for (int i=0; i < go_to_locations_param.size(); i++)
     {
-        go_to go_to_;
+        go_to_location go_to_;
         XmlRpc::XmlRpcValue single_location = go_to_locations_param[i];
         if( single_location.getType() != XmlRpc::XmlRpcValue::TypeStruct)
         {
@@ -2248,115 +2314,175 @@ bool QNode::readLocationsFromParam()
     return true;
 }
 
-bool QNode::readPickAndPlaceFromParam()
+bool QNode::readGotoPickAndPlaceFromParam()
 {
     ros::NodeHandle nh_;
 
     XmlRpc::XmlRpcValue config;
-    if ( !nh_.getParam("/places_param",config) )
+
+    if ( !nh_.getParam("/multi_skills/tasks",config) )
     {
-        ROS_ERROR("Unable to find /places_param");
+        ROS_ERROR("Unable to find /multi_skills/tasks");
         return false;
     }
-
     if (config.getType() != XmlRpc::XmlRpcValue::TypeArray)
     {
-        ROS_ERROR("The place_param is not a list of action" );
+        ROS_ERROR("The tasks param is not a list of action" );
         return false;
     }
-    ROS_INFO("There are %d place",config.size());
+    ROS_INFO("There are %d action",config.size());
 
     for ( int i = 0; i < config.size(); i++)
     {
         XmlRpc::XmlRpcValue param = config[i];
 
-        place place_;
-
-        if( !param.hasMember("name") )
+        if ( !param.hasMember("type") )
         {
-            ROS_WARN("The element place #%d has not the field 'name'", i);
+            ROS_WARN("The action #%d has not the field 'type'", i);
             return false;
         }
-        place_.name = rosparam_utilities::toString(param["name"]);
+        std::string type_ = rosparam_utilities::toString(param["type"]);
 
-        std::string what;
-        std::vector<std::string> groups_;
-        if( !rosparam_utilities::getParam(param,"groups",groups_,what) )
+        if ( !type_.compare("goto") )
         {
-            ROS_WARN("Action %d  has not the field 'groups'", i);
-            return false;
-        }
-        place_.groups = groups_;
+            go_to go_to_;
 
-        bool presence = false;
-        for ( int j = 0; j < place_locations.size(); j++)
-        {
-            if ( !place_.name.compare(place_locations[j].name) )
+            if( !param.hasMember("name") )
             {
-                presence = true;
+                ROS_WARN("The action #%d has not the field 'name'", i);
+                return false;
+            }
+            go_to_.name = rosparam_utilities::toString(param["name"]);
+
+            std::string what;
+            std::vector<std::string> locations_;
+            if( !rosparam_utilities::getParam(param,"goal",locations_,what) )
+            {
+                ROS_WARN("Action %d  has not the field 'goal'", i);
+                return false;
+            }
+            go_to_.locations = locations_;
+
+            if( !param.hasMember("description") )
+            {
+                ROS_WARN("The action #%d has not the field 'description'", i);
+                go_to_.description = " ";
+            }
+            else
+            {
+                go_to_.description = rosparam_utilities::toString(param["description"]);
+            }
+
+            bool presence = false;
+            for ( int j = 0; j < go_to_actions.size(); j++)
+            {
+                if ( !go_to_.name.compare(go_to_actions[j].name) )
+                {
+                    presence = true;
+                }
+            }
+
+            if ( !presence )
+            {
+                go_to_actions.push_back(go_to_);
+                go_to_actions_compare.push_back(go_to_);
             }
         }
 
-        if ( !presence )
+        if ( !type_.compare("place") )
         {
-            place_locations.push_back(place_);
-            place_locations_compare.push_back(place_);
-        }
-    }
+            place place_;
 
-    if (!nh_.getParam("/picks_param",config))
-    {
-        ROS_ERROR("Unable to find /picks_param");
-        return false;
-    }
-
-    if (config.getType() != XmlRpc::XmlRpcValue::TypeArray)
-    {
-        ROS_ERROR("The recipe_param is not a list of action" );
-        return false;
-    }
-    ROS_INFO("There are %d pick",config.size());
-
-    for ( int i = 0; i < config.size(); i++)
-    {
-        XmlRpc::XmlRpcValue param = config[i];
-
-        pick pick_;
-
-        if( !param.hasMember("name") )
-        {
-            ROS_WARN("The element pick #%d has not the field 'name'", i);
-            return false;
-        }
-        pick_.name = rosparam_utilities::toString(param["name"]);
-
-        std::string what;
-        std::vector<std::string> objects_;
-        if( !rosparam_utilities::getParam(param,"objects",objects_,what) )
-        {
-            ROS_WARN("Action %d  has not the field 'objects'", i);
-            return false;
-        }
-        pick_.objects = objects_;
-
-        bool presence = false;
-        for ( int j = 0; j < pick_locations.size(); j++)
-        {
-            if ( !pick_.name.compare(pick_locations[j].name) )
+            if( !param.hasMember("name") )
             {
-                presence = true;
+                ROS_WARN("The element place #%d has not the field 'name'", i);
+                return false;
+            }
+            place_.name = rosparam_utilities::toString(param["name"]);
+
+            std::string what;
+            std::vector<std::string> groups_;
+            if( !rosparam_utilities::getParam(param,"goal",groups_,what) )
+            {
+                ROS_WARN("Action %d  has not the field 'goal'", i);
+                return false;
+            }
+            place_.groups = groups_;
+
+            if( !param.hasMember("description") )
+            {
+                ROS_WARN("The action #%d has not the field 'description'", i);
+                place_.description = " ";
+            }
+            else
+            {
+                place_.description = rosparam_utilities::toString(param["description"]);
+            }
+
+            bool presence = false;
+            for ( int j = 0; j < place_actions.size(); j++)
+            {
+                if ( !place_.name.compare(place_actions[j].name) )
+                {
+                    presence = true;
+                }
+            }
+
+            if ( !presence )
+            {
+                place_actions.push_back(place_);
+                place_actions_compare.push_back(place_);
             }
         }
 
-        if ( !presence )
+        if ( !type_.compare("pick") )
         {
-            pick_locations.push_back(pick_);
-            pick_locations_compare.push_back(pick_);
+            pick pick_;
+
+            if( !param.hasMember("name") )
+            {
+                ROS_WARN("The element pick #%d has not the field 'name'", i);
+                return false;
+            }
+            pick_.name = rosparam_utilities::toString(param["name"]);
+
+            std::string what;
+            std::vector<std::string> objects_;
+            if( !rosparam_utilities::getParam(param,"goal",objects_,what) )
+            {
+                ROS_WARN("Action %d  has not the field 'goal'", i);
+                return false;
+            }
+            pick_.objects = objects_;
+
+            if( !param.hasMember("description") )
+            {
+                ROS_WARN("The action #%d has not the field 'description'", i);
+                pick_.description = " ";
+            }
+            else
+            {
+                pick_.description = rosparam_utilities::toString(param["description"]);
+            }
+
+            bool presence = false;
+            for ( int j = 0; j < pick_actions.size(); j++)
+            {
+                if ( !pick_.name.compare(pick_actions[j].name) )
+                {
+                    presence = true;
+                }
+            }
+
+            if ( !presence )
+            {
+                pick_actions.push_back(pick_);
+                pick_actions_compare.push_back(pick_);
+            }
         }
     }
 
     return true;
-
 }
 
 bool QNode::compare(std::vector<std::string> &v1, std::vector<std::string> &v2)

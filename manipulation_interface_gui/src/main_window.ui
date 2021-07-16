@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1552</width>
-    <height>783</height>
+    <width>1507</width>
+    <height>778</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -73,30 +73,10 @@
              </item>
             </layout>
            </item>
-           <item row="0" column="9">
-            <widget class="QComboBox" name="robot_list"/>
-           </item>
-           <item row="3" column="6">
-            <widget class="QListView" name="object_list"/>
-           </item>
            <item row="0" column="2">
             <widget class="QPushButton" name="button_load">
              <property name="text">
               <string>Load Param</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QPushButton" name="button_remove_go_to">
-             <property name="text">
-              <string> Remove go to</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="6">
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>Object types</string>
              </property>
             </widget>
            </item>
@@ -111,13 +91,6 @@
             <widget class="QLabel" name="label_18">
              <property name="text">
               <string>                  Select base frame:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="9">
-            <widget class="QLabel" name="label_15">
-             <property name="text">
-              <string>Boxes</string>
              </property>
             </widget>
            </item>
@@ -159,16 +132,6 @@
              </item>
             </layout>
            </item>
-           <item row="3" column="0">
-            <widget class="QListView" name="go_to_list"/>
-           </item>
-           <item row="4" column="9">
-            <widget class="QPushButton" name="button_remove_box">
-             <property name="text">
-              <string>Remove box</string>
-             </property>
-            </widget>
-           </item>
            <item row="3" column="2">
             <layout class="QVBoxLayout" name="verticalLayout_10">
              <item>
@@ -197,13 +160,6 @@
             <widget class="QLabel" name="label_3">
              <property name="text">
               <string>Place</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="6">
-            <widget class="QPushButton" name="button_remove_object">
-             <property name="text">
-              <string>Remove type</string>
              </property>
             </widget>
            </item>
@@ -249,8 +205,80 @@
              </item>
             </layout>
            </item>
-           <item row="3" column="9">
-            <widget class="QListView" name="box_list"/>
+           <item row="3" column="0">
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QListView" name="go_to_list"/>
+             </item>
+             <item>
+              <widget class="QPushButton" name="button_remove_go_to">
+               <property name="text">
+                <string> Remove go to</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListView" name="list_locations_goto"/>
+             </item>
+            </layout>
+           </item>
+           <item row="0" column="7">
+            <widget class="QComboBox" name="robot_list"/>
+           </item>
+           <item row="3" column="7">
+            <layout class="QVBoxLayout" name="verticalLayout_14">
+             <item>
+              <widget class="QListView" name="object_list"/>
+             </item>
+             <item>
+              <widget class="QPushButton" name="button_remove_object">
+               <property name="text">
+                <string>Remove type</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_15">
+               <property name="text">
+                <string>Boxes</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListView" name="box_list"/>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="7">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Object types</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="7">
+            <widget class="QPushButton" name="button_remove_box">
+             <property name="text">
+              <string>Remove box</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="6">
+            <widget class="QPushButton" name="pushButton">
+             <property name="text">
+              <string>Remove location</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="6">
+            <widget class="QListView" name="locations_list"/>
+           </item>
+           <item row="2" column="6">
+            <widget class="QLabel" name="label_30">
+             <property name="text">
+              <string>Locations</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -261,7 +289,7 @@
            <widget class="QTabWidget" name="tabWidget">
             <property name="minimumSize">
              <size>
-              <width>300</width>
+              <width>325</width>
               <height>0</height>
              </size>
             </property>
@@ -270,7 +298,7 @@
             </property>
             <widget class="QWidget" name="tab">
              <attribute name="title">
-              <string>Position</string>
+              <string>Action</string>
              </attribute>
              <layout class="QHBoxLayout" name="horizontalLayout_11">
               <item>
@@ -280,19 +308,19 @@
                   <item>
                    <widget class="QLabel" name="label">
                     <property name="text">
-                     <string>Go To position name</string>
+                     <string>Task name</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="edit_position_name"/>
+                   <widget class="QLineEdit" name="edit_action_name"/>
                   </item>
                  </layout>
                 </item>
                 <item>
                  <widget class="QPushButton" name="button_add_go_to">
                   <property name="text">
-                   <string>Add Go To position</string>
+                   <string>Add Go To</string>
                   </property>
                  </widget>
                 </item>
@@ -311,7 +339,7 @@
                  </widget>
                 </item>
                 <item>
-                 <spacer name="verticalSpacer_2">
+                 <spacer name="verticalSpacer_5">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
                   </property>
@@ -324,6 +352,47 @@
                  </spacer>
                 </item>
                </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_6">
+             <attribute name="title">
+              <string>Location</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_20">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_28">
+                <item>
+                 <widget class="QLabel" name="label_44">
+                  <property name="text">
+                   <string>TextLabel</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="edit_location"/>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QPushButton" name="button_add_location">
+                <property name="text">
+                 <string>Add Location</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>
@@ -858,7 +927,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1552</width>
+     <width>1507</width>
      <height>22</height>
     </rect>
    </property>

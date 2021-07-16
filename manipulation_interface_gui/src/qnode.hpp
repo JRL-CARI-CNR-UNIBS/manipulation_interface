@@ -54,7 +54,7 @@ struct location
     quaternion quat;
 };
 
-struct go_to
+struct go_to_location
 {
     std::string name;
     std::string frame;
@@ -65,12 +65,14 @@ struct place
 {
     std::string name;
     std::vector<std::string> groups;
+    std::string description;
 };
 
 struct pick
 {
     std::string name;
     std::vector<std::string> objects;
+    std::string description;
 };
 
 struct object_type
@@ -107,16 +109,24 @@ struct box
     std::string frame;
 };
 
-struct go__to
+struct go_to
 {
-    std::string frame;
     std::string name;
+    std::vector<std::string> locations;
+    std::string description;
 };
 
 struct action
 {
+    std::string name;
     std::string type;
     int index;
+};
+
+struct recipe
+{
+    std::string name;
+    std::vector<std::string> recipe_;
 };
 
 /*****************************************************************************
@@ -137,20 +147,24 @@ public:
     void add_slot_groups (int ind);
     std::vector<std::string> load_recipe(bool init, std::string name_recipe);
     bool save_recipe(std::string recipe_name);
-    XmlRpc::XmlRpcValue set_recipe();
+    bool set_recipe();
+    XmlRpc::XmlRpcValue get_recipe_param(int index);
     XmlRpc::XmlRpcValue get_action_go_to_param (int index);
     XmlRpc::XmlRpcValue get_action_place_param (int index);
     XmlRpc::XmlRpcValue get_action_pick_param  (int index);
     //
 
-    bool add_go_to (std::string position_name);
+    bool add_go_to (std::string go_to_name, std::vector<std::string> locations_);
     bool add_place (std::string position_name, std::vector<std::string> groups_);
     bool add_pick  (std::string position_name, std::vector<std::string> objects_);
+    bool add_location (std::string location_name);
     bool add_objects_pick ( int ind );
     bool add_groups_place ( int ind );
+    bool add_locations_go_to ( int ind );
 
     location    return_position( std::string base_frame, std::string target_frame );
-    std::string return_group_list_text(    int ind);
+    std::string return_location_list_text (int ind);
+    std::string return_group_list_text    (int ind);
     std::string return_object_list_text   (int ind);
     std::string return_obj_dist_list_text (int ind);
     std::string return_box_list_text      (int ind);
@@ -161,15 +175,20 @@ public:
     std::string get_xml_position_string   ( std::string name_pos,  position pos );
     std::string get_xml_quaternion_string ( quaternion quat );
     std::string get_xml_group_string      ( std::string name, std::vector<std::string> string_group );
-    XmlRpc::XmlRpcValue get_object_grasp_param  (int index, int index2);
-    XmlRpc::XmlRpcValue get_go_to_location_param(int index);
-    XmlRpc::XmlRpcValue get_box_param           (int index);
-    XmlRpc::XmlRpcValue get_group_param         (int index);
-    XmlRpc::XmlRpcValue get_object_name_param   (int index);
-    XmlRpc::XmlRpcValue get_pick_param          (int index);
-    XmlRpc::XmlRpcValue get_place_param         (int index);
-    XmlRpc::XmlRpcValue get_slot_param          (int index);
-
+    std::string get_xml_object_grasp_string( int index, int index2 );
+    std::string get_xml_object_grasp_poses_string( int index );
+    XmlRpc::XmlRpcValue get_object_grasp_param   (int index, int index2);
+    XmlRpc::XmlRpcValue get_object_param         (int index);
+    XmlRpc::XmlRpcValue get_go_to_location_param (int index);
+    XmlRpc::XmlRpcValue get_box_param            (int index);
+    XmlRpc::XmlRpcValue get_group_param          (int index);
+    XmlRpc::XmlRpcValue get_object_name_param    (int index);
+    XmlRpc::XmlRpcValue get_pick_param           (int index);
+    XmlRpc::XmlRpcValue get_place_param          (int index);
+    XmlRpc::XmlRpcValue get_slot_param           (int index);
+    XmlRpc::XmlRpcValue get_go_to_param_         (int index);
+    XmlRpc::XmlRpcValue get_pick_param_          (int index);
+    XmlRpc::XmlRpcValue get_place_param_         (int index);
     void set_target_frame(int ind);
 
     void write_go_to_location_server();
@@ -190,7 +209,7 @@ public:
     bool readSlotsFromParam();
     bool readSlotsGroupFromParam();
     bool readLocationsFromParam();
-    bool readPickAndPlaceFromParam();
+    bool readGotoPickAndPlaceFromParam();
 
     /*********************
 	** Logging
@@ -203,16 +222,18 @@ public:
 	         Fatal
 	 };
 
-    QStringListModel* loggingModelGoTo()    { return &logging_model_go_to; }
-    QStringListModel* loggingModelPlace()   { return &logging_model_place; }
-    QStringListModel* loggingModelPick()    { return &logging_model_pick; }
-    QStringListModel* loggingModelObject()  { return &logging_model_object; }
-    QStringListModel* loggingModelSlot()    { return &logging_model_slot; }
-    QStringListModel* loggingModelBox()     { return &logging_model_box; }
-    QStringListModel* loggingModelGroup()   { return &logging_model_group; }
-    QStringListModel* loggingModelObjDist() { return &logging_model_obj_dist; }
-    QStringListModel* loggingModelGrpPlace(){ return &logging_model_grp_place; }
-    QStringListModel* loggingModelObjPick() { return &logging_model_obj_pick; }
+    QStringListModel* loggingModelGoTo()         { return &logging_model_go_to; }
+    QStringListModel* loggingModelPlace()        { return &logging_model_place; }
+    QStringListModel* loggingModelPick()         { return &logging_model_pick; }
+    QStringListModel* loggingModelObject()       { return &logging_model_object; }
+    QStringListModel* loggingModelSlot()         { return &logging_model_slot; }
+    QStringListModel* loggingModelBox()          { return &logging_model_box; }
+    QStringListModel* loggingModelGroup()        { return &logging_model_group; }
+    QStringListModel* loggingModelObjDist()      { return &logging_model_obj_dist; }
+    QStringListModel* loggingModelGrpPlace()     { return &logging_model_grp_place; }
+    QStringListModel* loggingModelObjPick()      { return &logging_model_obj_pick; }
+    QStringListModel* loggingModelLocation()     { return &logging_model_location; }
+    QStringListModel* loggingModelLocationGoTo() { return &logging_model_location_go_to; }
 
     //
     QStringListModel* loggingModelSecondGoto()   { return &logging_model_second_go_to; }
@@ -223,16 +244,18 @@ public:
     QStringListModel* loggingModelRecipe()       { return &logging_model_recipe; }
     //
 
-    void log_go_to     ( const std::string &msg);
-    void log_place     ( const std::string &msg);
-    void log_pick      ( const std::string &msg);
-    void log_object    ( const std::string &msg);
-    void log_slot      ( const std::string &msg);
-    void log_box       ( const std::string &msg);
-    void log_group     ( const std::string &msg);
-    void log_obj_dist  ( const std::string &msg);
-    void log_grp_place ( const std::string &msg);
-    void log_obj_pick  ( const std::string &msg);
+    void log_go_to         ( const std::string &msg);
+    void log_place         ( const std::string &msg);
+    void log_pick          ( const std::string &msg);
+    void log_object        ( const std::string &msg);
+    void log_slot          ( const std::string &msg);
+    void log_box           ( const std::string &msg);
+    void log_group         ( const std::string &msg);
+    void log_obj_dist      ( const std::string &msg);
+    void log_grp_place     ( const std::string &msg);
+    void log_obj_pick      ( const std::string &msg);
+    void log_location      ( const std::string &msg);
+    void log_location_goto ( const std::string &msg);
 
     //
     void log_second_go_to  (const std::string &msg);
@@ -282,7 +305,8 @@ private:
     QStringListModel logging_model_obj_dist;
     QStringListModel logging_model_grp_place;
     QStringListModel logging_model_obj_pick;
-
+    QStringListModel logging_model_location;
+    QStringListModel logging_model_location_go_to;
 
     QStringListModel logging_model_second_go_to;
     QStringListModel logging_model_second_place;
@@ -292,26 +316,30 @@ private:
     QStringListModel logging_model_recipe;
 
 
-    std::vector<go_to>       go_to_locations;
-    std::vector<place>       place_locations;
-    std::vector<pick>        pick_locations;
-    std::vector<object_type> objects;
-    std::vector<slot>        manipulation_slots;
-    std::vector<std::string> groups;
-    std::vector<box>         boxes;
-    std::vector<go_to>       go_to_locations_compare;
-    std::vector<place>       place_locations_compare;
-    std::vector<pick>        pick_locations_compare;
-    std::vector<object_type> objects_compare;
-    std::vector<slot>        slots_compare;
-    std::vector<std::string> groups_compare;
-    std::vector<box>         boxes_compare;
+    std::vector<go_to_location> go_to_locations;
+    std::vector<go_to>          go_to_actions;
+    std::vector<place>          place_actions;
+    std::vector<pick>           pick_actions;
+    std::vector<object_type>    objects;
+    std::vector<slot>           manipulation_slots;
+    std::vector<std::string>    groups;
+    std::vector<box>            boxes;
+    std::vector<recipe>         recipes;
+    std::vector<go_to_location> go_to_locations_compare;
+    std::vector<go_to>          go_to_actions_compare;
+    std::vector<place>          place_actions_compare;
+    std::vector<pick>           pick_actions_compare;
+    std::vector<object_type>    objects_compare;
+    std::vector<slot>           slots_compare;
+    std::vector<std::string>    groups_compare;
+    std::vector<box>            boxes_compare;
+    std::vector<recipe>         recipes_compare;
 
     //
-    std::vector<go__to> go_to_actions;
-    std::vector<place> place_actions;
-    std::vector<pick>  pick_actions;
-    std::vector<action> action_list;
+    std::vector<go_to>        second_go_to_actions;
+    std::vector<place>        second_place_actions;
+    std::vector<pick>         second_pick_actions;
+    std::vector<action>       action_list;
     //
 
     std::vector<std::string> param_names;
