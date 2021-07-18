@@ -163,6 +163,10 @@ public:
     bool add_locations_go_to ( int ind );
 
     location    return_position( std::string base_frame, std::string target_frame );
+    go_to_location return_location_info( int ind);
+    object_type return_object_info( int ind);
+    box return_box_info( int ind);
+    slot return_slot_info( int ind);
     std::string return_location_list_text (int ind);
     std::string return_group_list_text    (int ind);
     std::string return_object_list_text   (int ind);
@@ -197,9 +201,13 @@ public:
     void check_other_param();
 
     bool save_components();
-    bool save_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp);
+    bool save_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools);
     bool save_slot  (std::string slot_name, location slot_approach, location slot_final_pos, std::string goup_name, int max_number);
     bool save_box   (std::string box_name, location approach_position, location final_position);
+    bool save_location_changes(int ind, location new_location);
+    bool save_slot_changes(int ind, slot new_slot);
+    bool save_box_changes(int ind, box new_box);
+    bool save_object_changes(int ind, int ind2, location new_loc, position new_appr);
 
     void load_TF();
     void load_param();
@@ -222,18 +230,22 @@ public:
 	         Fatal
 	 };
 
-    QStringListModel* loggingModelGoTo()         { return &logging_model_go_to; }
-    QStringListModel* loggingModelPlace()        { return &logging_model_place; }
-    QStringListModel* loggingModelPick()         { return &logging_model_pick; }
-    QStringListModel* loggingModelObject()       { return &logging_model_object; }
-    QStringListModel* loggingModelSlot()         { return &logging_model_slot; }
-    QStringListModel* loggingModelBox()          { return &logging_model_box; }
-    QStringListModel* loggingModelGroup()        { return &logging_model_group; }
-    QStringListModel* loggingModelObjDist()      { return &logging_model_obj_dist; }
-    QStringListModel* loggingModelGrpPlace()     { return &logging_model_grp_place; }
-    QStringListModel* loggingModelObjPick()      { return &logging_model_obj_pick; }
-    QStringListModel* loggingModelLocation()     { return &logging_model_location; }
-    QStringListModel* loggingModelLocationGoTo() { return &logging_model_location_go_to; }
+    QStringListModel* loggingModelGoTo()           { return &logging_model_go_to; }
+    QStringListModel* loggingModelPlace()          { return &logging_model_place; }
+    QStringListModel* loggingModelPick()           { return &logging_model_pick; }
+    QStringListModel* loggingModelObject()         { return &logging_model_object; }
+    QStringListModel* loggingModelSlot()           { return &logging_model_slot; }
+    QStringListModel* loggingModelBox()            { return &logging_model_box; }
+    QStringListModel* loggingModelGroup()          { return &logging_model_group; }
+    QStringListModel* loggingModelObjDist()        { return &logging_model_obj_dist; }
+    QStringListModel* loggingModelGrpPlace()       { return &logging_model_grp_place; }
+    QStringListModel* loggingModelObjPick()        { return &logging_model_obj_pick; }
+    QStringListModel* loggingModelLocation()       { return &logging_model_location; }
+    QStringListModel* loggingModelLocationGoTo()   { return &logging_model_location_go_to; }
+    QStringListModel* loggingModelObjectModify()   { return &logging_model_object_modify; }
+    QStringListModel* loggingModelSlotModify()     { return &logging_model_slot_modify; }
+    QStringListModel* loggingModelBoxModify()      { return &logging_model_box_modify; }
+    QStringListModel* loggingModelLocationModify() { return &logging_model_location_modify; }
 
     //
     QStringListModel* loggingModelSecondGoto()   { return &logging_model_second_go_to; }
@@ -266,12 +278,13 @@ public:
     void log_recipe (const std::string &msg);
     //
 
-    void remove_go_to  (const int &ind);
-    void remove_place  ( int ind);
-    void remove_pick   ( int ind);
-    void remove_object ( int ind);
-    void remove_slot   ( int ind);
-    void remove_box    ( int ind);
+    void remove_go_to    (int ind);
+    void remove_location ( int ind);
+    void remove_place    ( int ind);
+    void remove_pick     ( int ind);
+    void remove_object   ( int ind);
+    void remove_slot     ( int ind);
+    void remove_box      ( int ind);
     void active_manual_guidance( bool action );
     void close_gripper( bool action );
     std::vector<int> remove_group( int ind);
@@ -307,6 +320,10 @@ private:
     QStringListModel logging_model_obj_pick;
     QStringListModel logging_model_location;
     QStringListModel logging_model_location_go_to;
+    QStringListModel logging_model_object_modify;
+    QStringListModel logging_model_slot_modify;
+    QStringListModel logging_model_box_modify;
+    QStringListModel logging_model_location_modify;
 
     QStringListModel logging_model_second_go_to;
     QStringListModel logging_model_second_place;

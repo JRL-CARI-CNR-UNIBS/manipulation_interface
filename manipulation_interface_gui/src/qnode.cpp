@@ -593,6 +593,26 @@ location QNode::return_position( std::string base_frame, std::string target_fram
     return loc;
 }
 
+go_to_location QNode::return_location_info(int ind)
+{
+    return go_to_locations[ind];
+}
+
+object_type QNode::return_object_info( int ind)
+{
+    return objects[ind];
+}
+
+box QNode::return_box_info( int ind)
+{
+    return boxes[ind];
+}
+
+slot QNode::return_slot_info( int ind)
+{
+    return manipulation_slots[ind];
+}
+
 std::string QNode::return_location_list_text(int ind)
 {
     return logging_model_location.data( logging_model_location.index( ind ), 0 ).toString().toStdString();
@@ -648,6 +668,12 @@ void QNode::log_object(const std::string &msg) {
     QVariant new_row(QString(msg.c_str()));
     logging_model_object.setData(logging_model_object.index(logging_model_object.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+
+    logging_model_object_modify.insertRows(logging_model_object_modify.rowCount(),1);
+    ROS_DEBUG_STREAM(msg);
+    logging_model_object_modify.setData(logging_model_object_modify.index(logging_model_object_modify.rowCount()-1),new_row);
+    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+
 }
 
 void QNode::log_slot( const std::string &msg)
@@ -657,6 +683,11 @@ void QNode::log_slot( const std::string &msg)
     QVariant new_row(QString(msg.c_str()));
     logging_model_slot.setData(logging_model_slot.index(logging_model_slot.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+
+    logging_model_slot_modify.insertRows(logging_model_slot_modify.rowCount(),1);
+    ROS_DEBUG_STREAM(msg);
+    logging_model_slot_modify.setData(logging_model_slot_modify.index(logging_model_slot_modify.rowCount()-1),new_row);
+    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
 void QNode::log_box( const std::string &msg)
@@ -665,6 +696,11 @@ void QNode::log_box( const std::string &msg)
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
     logging_model_box.setData(logging_model_box.index(logging_model_box.rowCount()-1),new_row);
+    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+
+    logging_model_box_modify.insertRows(logging_model_box_modify.rowCount(),1);
+    ROS_DEBUG_STREAM(msg);
+    logging_model_box_modify.setData(logging_model_box_modify.index(logging_model_box_modify.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
@@ -710,6 +746,11 @@ void QNode::log_location  ( const std::string &msg)
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
     logging_model_location.setData(logging_model_location.index(logging_model_location.rowCount()-1),new_row);
+    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+
+    logging_model_location_modify.insertRows(logging_model_location_modify.rowCount(),1);
+    ROS_DEBUG_STREAM(msg);
+    logging_model_location_modify.setData(logging_model_location_modify.index(logging_model_location_modify.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
@@ -776,7 +817,12 @@ void QNode::log_recipe (const std::string &msg)
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::remove_go_to(const int &ind)
+void QNode::remove_go_to(int ind)
+{
+    go_to_actions.erase (go_to_actions.begin()+ind);
+}
+
+void QNode::remove_location(int ind)
 {
     go_to_locations.erase (go_to_locations.begin()+ind);
 }
@@ -1051,7 +1097,7 @@ std::string QNode::get_xml_object_grasp_string( int index, int index2 )
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(get_xml_string_param("tool", target_frame));
+    xml_body.append(get_xml_string_param("tool", objects[index].tool[index2]));
     xml_body.append(get_xml_position_string("position", objects[index].grasp[index2].pos));
     xml_body.append(get_xml_quaternion_string(objects[index].grasp[index2].quat));
     xml_body.append(get_xml_position_string("approach_distance", objects[index].approach[index2]));
@@ -1146,7 +1192,7 @@ XmlRpc::XmlRpcValue QNode::get_object_grasp_param(int index, int index2)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(get_xml_string_param("name", target_frame));
+    xml_body.append(get_xml_string_param("tool", objects[index].tool[index2]));
     xml_body.append(get_xml_position_string("position", objects[index].grasp[index2].pos));
     xml_body.append(get_xml_quaternion_string(objects[index].grasp[index2].quat));
     xml_body.append(get_xml_position_string("approach_distance", objects[index].approach[index2]));
@@ -1563,7 +1609,7 @@ bool QNode::save_components()
     return true;
 }
 
-bool QNode::save_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp)
+bool QNode::save_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools)
 {
     if ( logging_model_object.rowCount()!=0 )
     {
@@ -1581,6 +1627,7 @@ bool QNode::save_object(std::string object_name, std::vector<position> object_ap
     log_object(object_name);
     object_type obj;
     obj.name     = object_name;
+    obj.tool     = object_tools;
     obj.approach = object_approach;
     obj.grasp    = object_grasp;
     objects.push_back(obj);
@@ -1662,6 +1709,34 @@ bool QNode::save_box(std::string box_name, location approach_position, location 
     bx.frame     = base_frame;
     boxes.push_back(bx);
     return true;
+}
+
+bool QNode::save_location_changes(int ind, location new_location)
+{
+    go_to_locations[ind].location_ = new_location;
+    return save_components();
+}
+
+bool QNode::save_slot_changes(int ind, slot new_slot)
+{
+    manipulation_slots[ind].location_   = new_slot.location_;
+    manipulation_slots[ind].approach    = new_slot.approach;
+    manipulation_slots[ind].max_objects = new_slot.max_objects;
+    return save_components();
+}
+
+bool QNode::save_box_changes(int ind, box new_box)
+{
+    boxes[ind].approach  = new_box.approach;
+    boxes[ind].location_ = new_box.location_;
+    return save_components();
+}
+
+bool QNode::save_object_changes(int ind, int ind2, location new_loc, position new_appr)
+{
+    objects[ind].approach[ind2] = new_appr;
+    objects[ind].grasp[ind2]    = new_loc;
+    return save_components();
 }
 
 void QNode::load_TF()

@@ -30,7 +30,7 @@ def save_components_params(srv):
 
 	objects_collection.delete_many({})
 	objects_param = rospy.get_param("/manipulation/objects")
-	objects_collection.insert_many(objects__param)
+	objects_collection.insert_many(objects_param)
 
 	slots_collection.delete_many({})
 	slots_param = rospy.get_param("/outbound/slots")
