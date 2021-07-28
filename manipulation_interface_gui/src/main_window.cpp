@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <iostream>
 #include "main_window.hpp"
+#include <geometry_msgs/TwistStamped.h>
 
 /*****************************************************************************
 ** Namespaces
@@ -47,21 +48,20 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.slot_list            ->setModel(qnode.loggingModelSlot());
     ui.group_list           ->setModel(qnode.loggingModelGroup());
     ui.box_list             ->setModel(qnode.loggingModelBox());
-    ui.list_groups_place    ->setModel(qnode.loggingModelGrpPlace());
-    ui.list_objects_pick    ->setModel(qnode.loggingModelObjPick());
     ui.locations_list       ->setModel(qnode.loggingModelLocation());
-    ui.list_locations_goto  ->setModel(qnode.loggingModelLocationGoTo());
     ui.list_location_modify ->setModel(qnode.loggingModelLocationModify());
     ui.list_box_modify      ->setModel(qnode.loggingModelBoxModify());
     ui.list_slot_modify     ->setModel(qnode.loggingModelSlotModify());
     ui.list_object_modify   ->setModel(qnode.loggingModelObjectModify());
-
-    ui.list_go_to  ->setModel(qnode.loggingModelSecondGoto());
-    ui.list_place  ->setModel(qnode.loggingModelSecondPlace());
-    ui.list_pick   ->setModel(qnode.loggingModelSecondPick());
-    ui.list_recipe ->setModel(qnode.loggingModelRecipe());
-    ui.list_object ->setModel(qnode.loggingModelSecondObjects());
-    ui.list_slot   ->setModel(qnode.loggingModelSecondSlots());
+    ui.component_list       ->setModel(qnode.loggingModelComponents());
+    ui.list_info_action     ->setModel(qnode.loggingModelInfoAction());
+    ui.list_go_to           ->setModel(qnode.loggingModelSecondGoto());
+    ui.list_place           ->setModel(qnode.loggingModelSecondPlace());
+    ui.list_pick            ->setModel(qnode.loggingModelSecondPick());
+    ui.list_recipe          ->setModel(qnode.loggingModelRecipe());
+    ui.list_object          ->setModel(qnode.loggingModelSecondObjects());
+    ui.list_slot            ->setModel(qnode.loggingModelSecondSlots());
+    ui.list_location        ->setModel(qnode.loggingModelSecondLocations());
 
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
 
@@ -70,8 +70,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.group_list     ->setSelectionMode(QAbstractItemView::MultiSelection);
     ui.box_list       ->setSelectionMode(QAbstractItemView::MultiSelection);
     ui.locations_list ->setSelectionMode(QAbstractItemView::MultiSelection);
-    //    ui.place_list  ->setSelectionMode(QAbstractItemView::MultiSelection);
-    //    ui.pick_list   ->setSelectionMode(QAbstractItemView::MultiSelection);
+    ui.component_list ->setSelectionMode(QAbstractItemView::MultiSelection);
 
     ui.list_recipe ->setDragDropMode(QAbstractItemView::DragDrop);
 //    ui.list_recipe->model()->doSetSupportedDragActions(Qt::MoveAction);
@@ -80,50 +79,14 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.list_place->setDragEnabled(true);
     ui.list_pick ->setDragEnabled(true);
 
-    ui.button_add_approach_box           ->setEnabled(false);
-    ui.button_add_approach_object        ->setEnabled(false);
-    ui.button_add_approach_slot          ->setEnabled(false);
-    ui.button_add_final_box              ->setEnabled(false);
-    ui.button_add_final_position_slot    ->setEnabled(false);
-    ui.button_add_go_to                  ->setEnabled(false);
-    ui.button_add_grasp                  ->setEnabled(false);
-    ui.button_add_pick                   ->setEnabled(false);
-    ui.button_add_place                  ->setEnabled(false);
-    ui.button_remove_approach_object     ->setEnabled(false);
     ui.button_remove_approach_slot       ->setEnabled(false);
     ui.button_remove_final_position_slot ->setEnabled(false);
     ui.button_remove_approach_box        ->setEnabled(false);
     ui.button_remove_final_box           ->setEnabled(false);
-    ui.grasp_list                        ->setEnabled(false);
-    ui.robot_list                        ->setEnabled(false);
-    ui.TF_list                           ->setEnabled(false);
-    ui.button_remove_grasp               ->setEnabled(false);
     ui.button_save_components            ->setEnabled(false);
-    ui.button_save_box                   ->setEnabled(false);
-    ui.button_save_object                ->setEnabled(false);
-    ui.button_save_slot                  ->setEnabled(false);
-    ui.edit_action_name                  ->setEnabled(false);
-    ui.edit_box_name                     ->setEnabled(false);
-    ui.edit_group_name                   ->setEnabled(false);
-    ui.edit_max_object                   ->setEnabled(false);
-    ui.edit_object_name                  ->setEnabled(false);
-    ui.edit_slot_name                    ->setEnabled(false);
-    ui.button_remove_object              ->setEnabled(false);
-    ui.button_remove_group               ->setEnabled(false);
-    ui.button_remove_go_to               ->setEnabled(false);
-    ui.button_remove_box                 ->setEnabled(false);
-    ui.button_remove_pick                ->setEnabled(false);
-    ui.button_remove_place               ->setEnabled(false);
-    ui.button_remove_slot                ->setEnabled(false);
-    ui.button_manual_guidance            ->setEnabled(false);
-    ui.check_gripper                     ->setEnabled(false);
-    ui.check_manual_guidance             ->setEnabled(false);
-    ui.button_gripper                    ->setEnabled(false);
-    ui.button_load                       ->setEnabled(false);
-    ui.button_load_TF                    ->setEnabled(false);
-    ui.approach_list                     ->setEnabled(false);
-    ui.edit_location_name                ->setEnabled(false);
-    ui.button_add_location               ->setEnabled(false);
+    ui.lateral_tab                       ->setEnabled(false);
+    ui.check_human_info                  ->setEnabled(false);
+    ui.check_robot_info                  ->setEnabled(false);
 
     ui.go_to_list           ->setEditTriggers(QListView::NoEditTriggers);
     ui.place_list           ->setEditTriggers(QListView::NoEditTriggers);
@@ -132,27 +95,29 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.slot_list            ->setEditTriggers(QListView::NoEditTriggers);
     ui.group_list           ->setEditTriggers(QListView::NoEditTriggers);
     ui.box_list             ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_groups_place    ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_objects_pick    ->setEditTriggers(QListView::NoEditTriggers);
     ui.locations_list       ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_locations_goto  ->setEditTriggers(QListView::NoEditTriggers);
     ui.list_location_modify ->setEditTriggers(QListView::NoEditTriggers);
     ui.list_box_modify      ->setEditTriggers(QListView::NoEditTriggers);
     ui.list_slot_modify     ->setEditTriggers(QListView::NoEditTriggers);
     ui.list_object_modify   ->setEditTriggers(QListView::NoEditTriggers);
+    ui.component_list       ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_go_to           ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_place           ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_pick            ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_recipe          ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_object          ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_slot            ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_location        ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_info_action     ->setEditTriggers(QListView::NoEditTriggers);
 
-    ui.list_go_to  ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_place  ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_pick   ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_recipe ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_object ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_slot   ->setEditTriggers(QListView::NoEditTriggers);
+    ui.edit_location_frame     ->setReadOnly(true);
+    ui.edit_slot_frame         ->setReadOnly(true);
+    ui.edit_slot_group         ->setReadOnly(true);
+    ui.edit_box_frame          ->setReadOnly(true);
+    ui.edit_object_tool        ->setReadOnly(true);
+    ui.edit_action_description ->setReadOnly(true);
 
-    ui.edit_location_frame ->setReadOnly(true);
-    ui.edit_slot_frame     ->setReadOnly(true);
-    ui.edit_slot_group     ->setReadOnly(true);
-    ui.edit_box_frame      ->setReadOnly(true);
-    ui.edit_object_tool    ->setReadOnly(true);
+    ui.velocity_slider->setMaximum(100);
 
     /*********************
     ** Window connect to ROS
@@ -167,11 +132,28 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
         tf = QString::fromStdString(qnode.TFs[i]);
         ui.TF_list->addItem(tf);
         ui.world_TF_list->addItem(tf);
+        ui.combo_ref_frame->addItem(tf);
     }
     for ( int i = 0; i < qnode.robots.size(); i++)
     {
         tf = QString::fromStdString(qnode.robots[i]);
         ui.robot_list->addItem(tf);
+    }
+
+    qnode.frame_id.clear();
+    qnode.frame_id.append("/");
+    qnode.frame_id.append( ui.combo_ref_frame->currentText().toStdString() );
+
+    qnode.write_param(1);
+    qnode.write_param(2);
+    qnode.write_locations();
+    std::vector<std::string> recipes_names =qnode.load_recipes();
+    if ( !recipes_names.empty() )
+    {
+        for ( int i = 0; i < recipes_names.size(); i++)
+        {
+            ui.recipe_box->addItem( QString::fromStdString(recipes_names[i]) );
+        }
     }
 }
 
@@ -188,72 +170,190 @@ void MainWindow::showNoMasterMessage() {
 //    close();
 }
 
-void MainWindow::on_button_add_go_to_clicked(bool check)
+void MainWindow::add_go_to( int state )
 {
-    std::string go_to_name=ui.edit_action_name->text().toStdString();
+    std::string go_to_name = ui.edit_action_name->text().toStdString();
+    std::string description = ui.edit_description->toPlainText().toStdString();
     std::vector<std::string> locations;
-    QModelIndexList indexes =  ui.locations_list->selectionModel()->selectedIndexes();
-    if ( !indexes.empty() )
+    std::vector<std::string> agents_;
+
+    QModelIndexList indexes =  ui.component_list->selectionModel()->selectedIndexes();
+    if ( state != 0 )
     {
-        if ( ! go_to_name.empty() )
+        if ( state == 1 )
         {
-            for ( int i = 0; i < indexes.size(); i++)
+            agents_.push_back("robot");
+           }
+        else if ( state == 2 )
+        {
+            agents_.push_back("human");
+        }
+        else if ( state == 3 )
+        {
+            agents_.push_back("robot");
+            agents_.push_back("human");
+        }
+        if ( !indexes.empty() )
+        {
+            if ( ! go_to_name.empty() )
             {
-                locations.push_back( qnode.return_location_list_text( indexes.at(i).row() ) );
-            }
-            if ( !qnode.add_go_to(go_to_name,locations) )
-            {
-                QMessageBox msgBox;
-                msgBox.setText("There is another goto with the same name or locations.");
-                msgBox.exec();
-                ui.edit_action_name->clear();
+                for ( int i = 0; i < indexes.size(); i++)
+                {
+                    locations.push_back( qnode.return_location_list_text( indexes.at(i).row() ) );
+                }
+                if ( !qnode.add_go_to(go_to_name,locations,description,agents_) )
+                {
+                    QMessageBox msgBox;
+                    msgBox.setText("There is another goto with the same name or locations.");
+                    msgBox.exec();
+                    ui.edit_action_name->clear();
+                }
+                else
+                {
+                    ui.edit_action_name->clear();
+                    ui.edit_description->clear();
+                    ui.component_list->clearSelection();
+                }
             }
             else
             {
-                ui.edit_action_name->clear();
-                ui.locations_list->clearSelection();
+                QMessageBox msgBox;
+                msgBox.setText("Empty name");
+                msgBox.exec();
             }
         }
         else
         {
             QMessageBox msgBox;
-            msgBox.setText("Empty name");
+            msgBox.setText("There isn't any location selected.");
             msgBox.exec();
         }
     }
     else
     {
         QMessageBox msgBox;
-        msgBox.setText("There isn't any location selected.");
+        msgBox.setText("Empty agent");
         msgBox.exec();
     }
-
 }
 
-void MainWindow::on_button_add_place_clicked(bool check)
+void MainWindow::add_place( int state )
 {
     std::string place_name = ui.edit_action_name->text().toStdString();
+    std::string description = ui.edit_description->toPlainText().toStdString();
     std::vector<std::string> groups;
-    QModelIndexList indexes =  ui.group_list->selectionModel()->selectedIndexes();
-    if ( !indexes.empty() )
+    std::vector<std::string> agents_;
+
+    QModelIndexList indexes =  ui.component_list->selectionModel()->selectedIndexes();
+    if ( state != 0 )
     {
-        if ( !place_name.empty())
+        if ( state == 1 )
         {
-            for ( int i = 0; i < indexes.size(); i++)
+            agents_.push_back("robot");
+        }
+        else if ( state == 2 )
+        {
+            agents_.push_back("human");
+        }
+        else if ( state == 3 )
+        {
+            agents_.push_back("robot");
+            agents_.push_back("human");
+        }
+        if ( !indexes.empty() )
+        {
+            if ( !place_name.empty())
             {
-                groups.push_back( qnode.return_group_list_text( indexes.at(i).row() ) );
-            }
-            if ( !qnode.add_place(place_name,groups) )
-            {
-                QMessageBox msgBox;
-                msgBox.setText("There is another place with the same name or groups.");
-                msgBox.exec();
-                ui.edit_action_name->clear();
+                for ( int i = 0; i < indexes.size(); i++)
+                {
+                    groups.push_back( qnode.return_group_list_text( indexes.at(i).row() ) );
+                }
+                if ( !qnode.add_place(place_name,groups,description,agents_) )
+                {
+                    QMessageBox msgBox;
+                    msgBox.setText("There is another place with the same name or groups.");
+                    msgBox.exec();
+                    ui.edit_action_name->clear();
+                }
+                else
+                {
+                    ui.edit_action_name->clear();
+                    ui.edit_description->clear();
+                    ui.component_list->clearSelection();
+                }
             }
             else
             {
-                ui.edit_action_name->clear();
-                ui.group_list->clearSelection();
+                QMessageBox msgBox;
+                msgBox.setText("Empty name");
+                msgBox.exec();
+            }
+        }
+        else
+        {
+            QMessageBox msgBox;
+            msgBox.setText("There isn't any slot group selected.");
+            msgBox.exec();
+        }
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Empty agent");
+        msgBox.exec();
+    }
+}
+
+void MainWindow::add_pick( int state )
+{
+    std::string pick_name = ui.edit_action_name->text().toStdString();
+    std::string description = ui.edit_description->toPlainText().toStdString();
+    std::vector<std::string> objects;
+    std::vector<std::string> agents_;
+
+    QModelIndexList indexes =  ui.component_list->selectionModel()->selectedIndexes();
+    if ( state != 0 )
+    {
+        if ( state == 1 )
+        {
+            agents_.push_back("robot");
+        }
+        else if ( state == 2 )
+        {
+            agents_.push_back("human");
+        }
+        else if ( state == 3 )
+        {
+            agents_.push_back("robot");
+            agents_.push_back("human");
+        }
+        if ( !pick_name.empty())
+        {
+            if ( !indexes.empty())
+            {
+                for ( int i = 0; i < indexes.size(); i++)
+                {
+                    objects.push_back(qnode.return_object_list_text( indexes.at(i).row() ) );
+                }
+                if ( !qnode.add_pick(pick_name,objects,description,agents_) )
+                {
+                    QMessageBox msgBox;
+                    msgBox.setText("There is another pick with the same name or objects.");
+                    msgBox.exec();
+                    ui.edit_action_name->clear();
+                }
+                else
+                {
+                    ui.edit_action_name->clear();
+                    ui.edit_description->clear();
+                    ui.component_list->clearSelection();
+                }
+            }
+            else
+            {
+                QMessageBox msgBox;
+                msgBox.setText("There isn't any selected object type");
+                msgBox.exec();
             }
         }
         else
@@ -266,49 +366,42 @@ void MainWindow::on_button_add_place_clicked(bool check)
     else
     {
         QMessageBox msgBox;
-        msgBox.setText("There isn't any slot group selected.");
+        msgBox.setText("Empty agent");
         msgBox.exec();
     }
 }
 
-void MainWindow::on_button_add_pick_clicked(bool check)
+void MainWindow::on_button_add_action_clicked(bool check)
 {
-    std::string pick_name = ui.edit_action_name->text().toStdString();
-    std::vector<std::string> objects;
-    QModelIndexList indexes =  ui.object_list->selectionModel()->selectedIndexes();
-    if ( !pick_name.empty())
+    std::string type = ui.combo_action_type->currentText().toStdString();
+    int state = 0;
+    if ( ui.check_robot->checkState() == Qt::Checked && ui.check_human->checkState() == Qt::Checked )
     {
-        if ( !indexes.empty())
-        {
-            for ( int i = 0; i < indexes.size(); i++)
-            {
-                objects.push_back(qnode.return_object_list_text( indexes.at(i).row() ) );
-            }
-            if ( !qnode.add_pick(pick_name,objects) )
-            {
-                QMessageBox msgBox;
-                msgBox.setText("There is another pick with the same name or objects.");
-                msgBox.exec();
-                ui.edit_action_name->clear();
-            }
-            else
-            {
-                ui.edit_action_name->clear();
-                ui.object_list->clearSelection();
-            }
-        }
-        else
-        {
-            QMessageBox msgBox;
-            msgBox.setText("There isn't any selected object type");
-            msgBox.exec();
-        }
+        state = 3;
+    }
+    else if ( ui.check_robot->checkState() == Qt::Checked )
+    {
+        state = 1;
+    }
+    else if ( ui.check_human->checkState() == Qt::Checked )
+    {
+        state = 2;
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("Empty name");
-        msgBox.exec();
+        state = 0;
+    }
+    if ( !type.compare("Go to"))
+    {
+        add_go_to( state );
+    }
+    else if ( !type.compare("Pick"))
+    {
+        add_pick( state );
+    }
+    else if ( !type.compare("Place") )
+    {
+        add_place( state );
     }
 }
 
@@ -407,14 +500,20 @@ void MainWindow::on_button_remove_go_to_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model = ui.go_to_list->model();
+        QAbstractItemModel* model  = ui.go_to_list->model();
+        QAbstractItemModel* model_ = ui.list_go_to->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.at(i);
             qnode.remove_go_to(index.row());
-            model->removeRow(index.row());
+            model ->removeRow(index.row());
+            model_->removeRow(index.row());
             indexes =  ui.go_to_list->selectionModel()->selectedIndexes();
         }
+        ui.edit_action_description->clear();
+        ui.list_info_action->model()->removeRows( 0, ui.list_info_action->model()->rowCount() );
+        ui.go_to_list->clearSelection();
+
         return;
     }
 
@@ -430,8 +529,8 @@ void MainWindow::on_button_remove_location_clicked(bool check)
     {
         QModelIndex index;
 
-        QAbstractItemModel* model = ui.locations_list->model();
-        QAbstractItemModel* model_ = ui.locations_list->model();
+        QAbstractItemModel* model  = ui.locations_list->model();
+        QAbstractItemModel* model_ = ui.list_location_modify->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.at(i);
@@ -454,15 +553,20 @@ void MainWindow::on_button_remove_place_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model = ui.place_list->model();;
+        QAbstractItemModel* model  = ui.place_list->model();;
+        QAbstractItemModel* model_ = ui.list_place->model();;
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
             qnode.remove_place(index.row());
-            model->removeRow(index.row());
+            model ->removeRow(index.row());
+            model_->removeRow(index.row());
             indexes =  ui.place_list->selectionModel()->selectedIndexes();
-            ui.list_groups_place->model()->removeRows( 0, ui.list_groups_place->model()->rowCount() );
         }
+        ui.edit_action_description->clear();
+        ui.list_info_action->model()->removeRows( 0, ui.list_info_action->model()->rowCount() );
+        ui.place_list->clearSelection();
+
         return;
     }
 
@@ -477,15 +581,20 @@ void MainWindow::on_button_remove_pick_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model = ui.pick_list->model();
+        QAbstractItemModel* model  = ui.pick_list->model();
+        QAbstractItemModel* model_ = ui.list_pick->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
             qnode.remove_pick(index.row());
-            model->removeRow(index.row());
+            model ->removeRow(index.row());
+            model_->removeRow(index.row());
             indexes =  ui.pick_list->selectionModel()->selectedIndexes();
-            ui.list_objects_pick->model()->removeRows( 0, ui.list_objects_pick->model()->rowCount() );
         }
+        ui.edit_action_description->clear();
+        ui.list_info_action->model()->removeRows( 0, ui.list_info_action->model()->rowCount() );
+        ui.pick_list->clearSelection();
+
         return;
     }
 
@@ -500,12 +609,14 @@ void MainWindow::on_button_remove_object_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model = ui.object_list->model();
+        QAbstractItemModel* model  = ui.object_list->model();
+        QAbstractItemModel* model_ = ui.list_object_modify->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
             qnode.remove_object(index.row());
-            model->removeRow(index.row());
+            model ->removeRow(index.row());
+            model_->removeRow(index.row());
             indexes =  ui.object_list->selectionModel()->selectedIndexes();
         }
         return;
@@ -522,12 +633,14 @@ void MainWindow::on_button_remove_box_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model = ui.box_list->model();
+        QAbstractItemModel* model  = ui.box_list->model();
+        QAbstractItemModel* model_ = ui.list_box_modify->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
             qnode.remove_box(index.row());
-            model->removeRow(index.row());
+            model ->removeRow(index.row());
+            model_->removeRow(index.row());
             indexes =  ui.box_list->selectionModel()->selectedIndexes();
         }
         return;
@@ -544,7 +657,7 @@ void MainWindow::on_button_remove_group_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model = ui.group_list->model();
+        QAbstractItemModel* model  = ui.group_list->model();
         QAbstractItemModel* model2 = ui.slot_list->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
@@ -571,12 +684,14 @@ void MainWindow::on_button_remove_slot_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model = ui.slot_list->model();
+        QAbstractItemModel* model  = ui.slot_list->model();
+        QAbstractItemModel* model_ = ui.list_slot_modify->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
             qnode.remove_slot(index.row());
-            model->removeRow(index.row());
+            model ->removeRow(index.row());
+            model_->removeRow(index.row());
             indexes =  ui.slot_list->selectionModel()->selectedIndexes();
         }
         return;
@@ -649,11 +764,6 @@ void MainWindow::on_button_remove_final_box_clicked(bool check)
     ui.button_remove_final_box->setEnabled(false);
 }
 
-void MainWindow::on_button_manual_guidance_clicked(bool check)
-{
-    ui.check_manual_guidance->click();
-}
-
 void MainWindow::on_button_gripper_clicked(bool check)
 {
     ui.check_gripper->click();
@@ -665,7 +775,7 @@ void MainWindow::on_button_save_components_clicked(bool check)
     if ( qnode.save_components() )
     {
         QMessageBox msgBox;
-        msgBox.setText("The position are saved.");
+        msgBox.setText("The save are done.");
         msgBox.exec();
     }
     else
@@ -882,18 +992,20 @@ void MainWindow::on_button_save_box_clicked(bool check)
 
 void MainWindow::on_button_save_location_changes_clicked(bool check)
 {
-    location loc;
+    go_to_location loc;
 
     QModelIndex index = ui.list_location_modify->currentIndex();
 
     bool ok0, ok1, ok2, ok3, ok4, ok5, ok6;
-    loc.pos.origin_x    = ui.edit_location_position_x->text().toDouble(&ok0);
-    loc.pos.origin_y    = ui.edit_location_position_y->text().toDouble(&ok1);
-    loc.pos.origin_z    = ui.edit_location_position_z->text().toDouble(&ok2);
-    loc.quat.rotation_x = ui.edit_location_quaternion_x->text().toDouble(&ok3);
-    loc.quat.rotation_y = ui.edit_location_quaternion_y->text().toDouble(&ok4);
-    loc.quat.rotation_z = ui.edit_location_quaternion_z->text().toDouble(&ok5);
-    loc.quat.rotation_w = ui.edit_location_quaternion_w->text().toDouble(&ok6);
+    loc.location_.pos.origin_x    = ui.edit_location_position_x   ->text().toDouble(&ok0);
+    loc.location_.pos.origin_y    = ui.edit_location_position_y   ->text().toDouble(&ok1);
+    loc.location_.pos.origin_z    = ui.edit_location_position_z   ->text().toDouble(&ok2);
+    loc.location_.quat.rotation_x = ui.edit_location_quaternion_x ->text().toDouble(&ok3);
+    loc.location_.quat.rotation_y = ui.edit_location_quaternion_y ->text().toDouble(&ok4);
+    loc.location_.quat.rotation_z = ui.edit_location_quaternion_z ->text().toDouble(&ok5);
+    loc.location_.quat.rotation_w = ui.edit_location_quaternion_w ->text().toDouble(&ok6);
+    loc.frame                     = ui.edit_location_frame        ->text().toStdString();
+    loc.name                      = ui.edit_location_name_modify  ->text().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6)
     {
@@ -925,6 +1037,9 @@ void MainWindow::on_button_save_slot_changes_clicked(bool check)
     slt.approach.origin_y         = ui.edit_slot_approach_y   ->text().toDouble(&ok8);
     slt.approach.origin_z         = ui.edit_slot_approach_z   ->text().toDouble(&ok9);
     slt.max_objects               = ui.edit_slot_max_objects  ->text().toInt(&ok10);
+    slt.frame                     = ui.edit_slot_frame        ->text().toStdString();
+    slt.group                     = ui.edit_slot_group        ->text().toStdString();
+    slt.name                      = ui.edit_slot_name_modify  ->text().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 )
     {
@@ -955,6 +1070,8 @@ void MainWindow::on_button_save_box_changes_clicked(bool check)
     bx.approach.origin_x         = ui.edit_box_approach_x   ->text().toDouble(&ok7);
     bx.approach.origin_y         = ui.edit_box_approach_y   ->text().toDouble(&ok8);
     bx.approach.origin_z         = ui.edit_box_approach_z   ->text().toDouble(&ok9);
+    bx.frame                     = ui.edit_box_frame        ->text().toStdString();
+    bx.name                      = ui.edit_box_name_modify  ->text().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 )
     {
@@ -970,23 +1087,25 @@ void MainWindow::on_button_save_box_changes_clicked(bool check)
 
 void MainWindow::on_button_save_object_changes_clicked(bool check)
 {
-    location loc;
-    position appr;
-
     QModelIndex index = ui.list_object_modify->currentIndex();
     int index2 = ui.combo_grasp_number->currentIndex();
 
+    object_type obj = qnode.return_object_info( index.row() );
+
     bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9;
-    loc.pos.origin_x    = ui.edit_object_position_x   ->text().toDouble(&ok0);
-    loc.pos.origin_y    = ui.edit_object_position_y   ->text().toDouble(&ok1);
-    loc.pos.origin_z    = ui.edit_object_position_z   ->text().toDouble(&ok2);
-    loc.quat.rotation_x = ui.edit_object_quaternion_x ->text().toDouble(&ok3);
-    loc.quat.rotation_y = ui.edit_object_quaternion_y ->text().toDouble(&ok4);
-    loc.quat.rotation_z = ui.edit_object_quaternion_z ->text().toDouble(&ok5);
-    loc.quat.rotation_w = ui.edit_object_quaternion_w ->text().toDouble(&ok6);
-    appr.origin_x       = ui.edit_object_approach_x   ->text().toDouble(&ok7);
-    appr.origin_y       = ui.edit_object_approach_y   ->text().toDouble(&ok8);
-    appr.origin_z       = ui.edit_object_approach_z   ->text().toDouble(&ok9);
+
+    obj.approach[index2].origin_x     = ui.edit_object_approach_x   ->text().toDouble(&ok7);
+    obj.approach[index2].origin_y     = ui.edit_object_approach_y   ->text().toDouble(&ok8);
+    obj.approach[index2].origin_z     = ui.edit_object_approach_z   ->text().toDouble(&ok9);
+    obj.grasp[index2].pos.origin_x    = ui.edit_object_position_x   ->text().toDouble(&ok0);
+    obj.grasp[index2].pos.origin_y    = ui.edit_object_position_y   ->text().toDouble(&ok1);
+    obj.grasp[index2].pos.origin_z    = ui.edit_object_position_z   ->text().toDouble(&ok2);
+    obj.grasp[index2].quat.rotation_x = ui.edit_object_quaternion_x ->text().toDouble(&ok3);
+    obj.grasp[index2].quat.rotation_y = ui.edit_object_quaternion_y ->text().toDouble(&ok4);
+    obj.grasp[index2].quat.rotation_z = ui.edit_object_quaternion_z ->text().toDouble(&ok5);
+    obj.grasp[index2].quat.rotation_w = ui.edit_object_quaternion_w ->text().toDouble(&ok6);
+    obj.name                          = ui.edit_object_name_modify  ->text().toStdString();
+    obj.tool[index2]                  = ui.edit_object_tool         ->text().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 )
     {
@@ -996,8 +1115,44 @@ void MainWindow::on_button_save_object_changes_clicked(bool check)
     }
     else
     {
-        qnode.save_object_changes( index.row(), index2, loc, appr);
+        qnode.save_object_changes( index.row(), obj);
     }
+}
+
+void MainWindow::on_button_save_actions_clicked(bool check)
+{
+    if ( qnode.save_actions() )
+    {
+        QMessageBox msgBox;
+        msgBox.setText("The save are done.");
+        msgBox.exec();
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("There is some problem with the save");
+        msgBox.exec();
+    }
+}
+
+void MainWindow::on_button_save_all_changes0_clicked(bool check)
+{
+    qnode.save_components();
+}
+
+void MainWindow::on_button_save_all_changes1_clicked(bool check)
+{
+    qnode.save_components();
+}
+
+void MainWindow::on_button_save_all_changes2_clicked(bool check)
+{
+    qnode.save_components();
+}
+
+void MainWindow::on_button_save_all_changes3_clicked(bool check)
+{
+    qnode.save_components();
 }
 
 void MainWindow::on_button_load_TF_clicked(bool chack)
@@ -1015,57 +1170,418 @@ void MainWindow::on_button_load_TF_clicked(bool chack)
 
 void MainWindow::on_button_load_clicked(bool chack)
 {
-    qnode.write_param();
+    qnode.write_param(1);
+}
+
+void MainWindow::on_button_copy_grasp_clicked(bool chack)
+{
+    int index  = ui.list_object_modify->currentIndex().row();
+    int index2 = ui.combo_grasp_number->currentIndex();
+
+    qnode.add_object_copy_grasp( index, index2);
+    QString qstr = QString::fromStdString( std::to_string( ui.combo_grasp_number->count() ) );
+    ui.combo_grasp_number->addItem( qstr );
+    actual_object_to_modify = qnode.return_object_info(index);
+}
+
+void MainWindow::on_button_reset_location_info_clicked(bool chack)
+{
+    reset_location( ui.list_location_modify->currentIndex().row() );
+}
+
+void MainWindow::reset_location(int index)
+{
+    ui.edit_location_frame        ->clear();
+    ui.edit_location_position_x   ->clear();
+    ui.edit_location_position_y   ->clear();
+    ui.edit_location_position_z   ->clear();
+    ui.edit_location_quaternion_w ->clear();
+    ui.edit_location_quaternion_x ->clear();
+    ui.edit_location_quaternion_y ->clear();
+    ui.edit_location_quaternion_z ->clear();
+    ui.edit_location_name_modify  ->clear();
+
+    go_to_location loc = qnode.return_location_info(index);
+    QString frame_ = QString::fromStdString( loc.frame);
+    QString pos_x  = QString::fromStdString( std::to_string(loc.location_.pos.origin_x) );
+    QString pos_y  = QString::fromStdString( std::to_string(loc.location_.pos.origin_y) );
+    QString pos_z  = QString::fromStdString( std::to_string(loc.location_.pos.origin_z) );
+    QString quat_x = QString::fromStdString( std::to_string(loc.location_.quat.rotation_x) );
+    QString quat_y = QString::fromStdString( std::to_string(loc.location_.quat.rotation_y) );
+    QString quat_z = QString::fromStdString( std::to_string(loc.location_.quat.rotation_z) );
+    QString quat_w = QString::fromStdString( std::to_string(loc.location_.quat.rotation_w) );
+    QString name_  = QString::fromStdString( loc.name );
+
+    ui.edit_location_frame        ->insert(frame_);
+    ui.edit_location_position_x   ->insert(pos_x);
+    ui.edit_location_position_y   ->insert(pos_y);
+    ui.edit_location_position_z   ->insert(pos_z);
+    ui.edit_location_quaternion_w ->insert(quat_w);
+    ui.edit_location_quaternion_x ->insert(quat_x);
+    ui.edit_location_quaternion_y ->insert(quat_y);
+    ui.edit_location_quaternion_z ->insert(quat_z);
+    ui.edit_location_name_modify  ->insert(name_);
+}
+
+void MainWindow::on_button_reset_slot_info_clicked(bool chack)
+{
+    reset_slot( ui.list_slot_modify->currentIndex().row() );
+}
+
+void MainWindow::reset_slot(int index)
+{
+    ui.edit_slot_frame        ->clear();
+    ui.edit_slot_position_x   ->clear();
+    ui.edit_slot_position_y   ->clear();
+    ui.edit_slot_position_z   ->clear();
+    ui.edit_slot_quaternion_w ->clear();
+    ui.edit_slot_quaternion_x ->clear();
+    ui.edit_slot_quaternion_y ->clear();
+    ui.edit_slot_quaternion_z ->clear();
+    ui.edit_slot_approach_x   ->clear();
+    ui.edit_slot_approach_y   ->clear();
+    ui.edit_slot_approach_z   ->clear();
+    ui.edit_slot_group        ->clear();
+    ui.edit_slot_max_objects  ->clear();
+    ui.edit_slot_name_modify  ->clear();
+
+    slot sl = qnode.return_slot_info(index);
+    QString frame_ = QString::fromStdString( sl.frame);
+    QString group_ = QString::fromStdString( sl.group);
+    QString pos_x  = QString::fromStdString( std::to_string(sl.location_.pos.origin_x) );
+    QString pos_y  = QString::fromStdString( std::to_string(sl.location_.pos.origin_y) );
+    QString pos_z  = QString::fromStdString( std::to_string(sl.location_.pos.origin_z) );
+    QString quat_x = QString::fromStdString( std::to_string(sl.location_.quat.rotation_x) );
+    QString quat_y = QString::fromStdString( std::to_string(sl.location_.quat.rotation_y) );
+    QString quat_z = QString::fromStdString( std::to_string(sl.location_.quat.rotation_z) );
+    QString quat_w = QString::fromStdString( std::to_string(sl.location_.quat.rotation_w) );
+    QString appr_x = QString::fromStdString( std::to_string(sl.approach.origin_x) );
+    QString appr_y = QString::fromStdString( std::to_string(sl.approach.origin_y) );
+    QString appr_z = QString::fromStdString( std::to_string(sl.approach.origin_z) );
+    QString max_ob = QString::fromStdString( std::to_string(sl.max_objects) );
+    QString name_  = QString::fromStdString( sl.name );
+
+    ui.edit_slot_frame        ->insert(frame_);
+    ui.edit_slot_group        ->insert(group_);
+    ui.edit_slot_position_x   ->insert(pos_x);
+    ui.edit_slot_position_y   ->insert(pos_y);
+    ui.edit_slot_position_z   ->insert(pos_z);
+    ui.edit_slot_quaternion_w ->insert(quat_w);
+    ui.edit_slot_quaternion_x ->insert(quat_x);
+    ui.edit_slot_quaternion_y ->insert(quat_y);
+    ui.edit_slot_quaternion_z ->insert(quat_z);
+    ui.edit_slot_approach_x   ->insert(appr_x);
+    ui.edit_slot_approach_y   ->insert(appr_y);
+    ui.edit_slot_approach_z   ->insert(appr_z);
+    ui.edit_slot_max_objects  ->insert(max_ob);
+    ui.edit_slot_name_modify  ->insert( name_ );
+}
+
+void MainWindow::on_button_reset_box_info_clicked(bool chack)
+{
+    reset_box( ui.list_box_modify->currentIndex().row() );
+}
+
+void MainWindow::on_button_up_pressed      ()
+{
+    std::vector<float> twist_move;
+    float vel = max_vel*perc_vel/100;
+
+    twist_move = { 0, 0, vel, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_down_pressed    ()
+{
+    std::vector<float> twist_move;
+    float vel = max_vel*perc_vel/100;
+
+    twist_move = { 0, 0, -vel, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_left_pressed    ()
+{
+    std::vector<float> twist_move;
+    float vel = max_vel*perc_vel/100;
+
+    twist_move = { 0, -vel, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_right_pressed   ()
+{
+    std::vector<float> twist_move;
+    float vel = max_vel*perc_vel/100;
+
+    twist_move = { 0, vel, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_front_pressed   ()
+{
+    std::vector<float> twist_move;
+    float vel = max_vel*perc_vel/100;
+
+    twist_move = { -vel, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_back_pressed    ()
+{
+    std::vector<float> twist_move;
+    float vel = max_vel*perc_vel/100;
+
+    twist_move = { vel, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_clock_x_pressed ()
+{
+    std::vector<float> twist_move;
+    float rot = max_rot*perc_vel/100;
+
+    twist_move = { 0, 0, 0, rot, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_clock_y_pressed ()
+{
+    std::vector<float> twist_move;
+    float rot = max_rot*perc_vel/100;
+
+    twist_move = { 0, 0, 0, 0, rot, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_clock_z_pressed ()
+{
+    std::vector<float> twist_move;
+    float rot = max_rot*perc_vel/100;
+
+    twist_move = { 0, 0, 0, 0, 0, rot };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_anti_x_pressed  ()
+{
+    std::vector<float> twist_move;
+    float rot = max_rot*perc_vel/100;
+
+    twist_move = { 0, 0, 0, -rot, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_anti_y_pressed  ()
+{
+    std::vector<float> twist_move;
+    float rot = max_rot*perc_vel/100;
+
+    twist_move = { 0, 0, 0, 0, -rot, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_anti_z_pressed  ()
+{
+    std::vector<float> twist_move;
+    float rot = max_rot*perc_vel/100;
+
+    twist_move = { 0, 0, 0, 0, 0, -rot };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_up_released      ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_down_released    ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_left_released    ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_right_released   ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_front_released   ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_back_released    ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_clock_x_released ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_clock_y_released ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_clock_z_released ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_anti_x_released  ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_anti_y_released  ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::on_button_anti_z_released  ()
+{
+    std::vector<float> twist_move;
+    twist_move = { 0, 0, 0, 0, 0, 0 };
+    qnode.cartMove ( twist_move );
+}
+
+void MainWindow::reset_box(int index)
+{
+    ui.edit_box_frame        ->clear();
+    ui.edit_box_position_x   ->clear();
+    ui.edit_box_position_y   ->clear();
+    ui.edit_box_position_z   ->clear();
+    ui.edit_box_quaternion_w ->clear();
+    ui.edit_box_quaternion_x ->clear();
+    ui.edit_box_quaternion_y ->clear();
+    ui.edit_box_quaternion_z ->clear();
+    ui.edit_box_approach_x   ->clear();
+    ui.edit_box_approach_y   ->clear();
+    ui.edit_box_approach_z   ->clear();
+    ui.edit_box_name_modify  ->clear();
+
+    box bx = qnode.return_box_info(index);
+    QString frame_ = QString::fromStdString( bx.frame);
+    QString pos_x  = QString::fromStdString( std::to_string(bx.location_.pos.origin_x) );
+    QString pos_y  = QString::fromStdString( std::to_string(bx.location_.pos.origin_y) );
+    QString pos_z  = QString::fromStdString( std::to_string(bx.location_.pos.origin_z) );
+    QString quat_x = QString::fromStdString( std::to_string(bx.location_.quat.rotation_x) );
+    QString quat_y = QString::fromStdString( std::to_string(bx.location_.quat.rotation_y) );
+    QString quat_z = QString::fromStdString( std::to_string(bx.location_.quat.rotation_z) );
+    QString quat_w = QString::fromStdString( std::to_string(bx.location_.quat.rotation_w) );
+    QString appr_x = QString::fromStdString( std::to_string(bx.approach.origin_x) );
+    QString appr_y = QString::fromStdString( std::to_string(bx.approach.origin_y) );
+    QString appr_z = QString::fromStdString( std::to_string(bx.approach.origin_z) );
+    QString name_  = QString::fromStdString( bx.name );
+
+    ui.edit_box_frame         ->insert(frame_);
+    ui.edit_box_position_x    ->insert(pos_x);
+    ui.edit_box_position_y    ->insert(pos_y);
+    ui.edit_box_position_z    ->insert(pos_z);
+    ui.edit_box_quaternion_w  ->insert(quat_w);
+    ui.edit_box_quaternion_x  ->insert(quat_x);
+    ui.edit_box_quaternion_y  ->insert(quat_y);
+    ui.edit_box_quaternion_z  ->insert(quat_z);
+    ui.edit_box_approach_x    ->insert(appr_x);
+    ui.edit_box_approach_y    ->insert(appr_y);
+    ui.edit_box_approach_z    ->insert(appr_z);
+    ui.edit_box_name_modify   ->insert(name_);
+}
+
+void MainWindow::on_button_reset_object_info_clicked(bool chack)
+{
+    reset_object( ui.list_object_modify->currentIndex().row() );
+}
+
+void MainWindow::reset_object(int index)
+{
+    init_objects = false;
+    ui.combo_grasp_number->clear();
+
+    ui.edit_object_position_x   ->clear();
+    ui.edit_object_position_y   ->clear();
+    ui.edit_object_position_z   ->clear();
+    ui.edit_object_quaternion_w ->clear();
+    ui.edit_object_quaternion_x ->clear();
+    ui.edit_object_quaternion_y ->clear();
+    ui.edit_object_quaternion_z ->clear();
+    ui.edit_object_approach_x   ->clear();
+    ui.edit_object_approach_y   ->clear();
+    ui.edit_object_approach_z   ->clear();
+    ui.edit_object_tool         ->clear();
+    ui.edit_object_name_modify  ->clear();
+
+    actual_object_to_modify = qnode.return_object_info(index);
+
+    for ( int i = 0; i < actual_object_to_modify.grasp.size(); i++ )
+    {
+        ui.combo_grasp_number->addItem( QString::fromStdString( std::to_string(i) ) );
+    }
+    init_objects = true;
+
+    int i = ui.combo_grasp_number->currentIndex();
+    QString pos_x  = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].pos.origin_x) );
+    QString pos_y  = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].pos.origin_y) );
+    QString pos_z  = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].pos.origin_z) );
+    QString quat_x = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].quat.rotation_x) );
+    QString quat_y = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].quat.rotation_y) );
+    QString quat_z = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].quat.rotation_z) );
+    QString quat_w = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].quat.rotation_w) );
+    QString appr_x = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_x) );
+    QString appr_y = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_y) );
+    QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_z) );
+    QString tool   = QString::fromStdString( actual_object_to_modify.tool[i] );
+    QString name_  = QString::fromStdString( actual_object_to_modify.name );
+
+    ui.edit_object_position_x   ->insert(pos_x);
+    ui.edit_object_position_y   ->insert(pos_y);
+    ui.edit_object_position_z   ->insert(pos_z);
+    ui.edit_object_quaternion_w ->insert(quat_w);
+    ui.edit_object_quaternion_x ->insert(quat_x);
+    ui.edit_object_quaternion_y ->insert(quat_y);
+    ui.edit_object_quaternion_z ->insert(quat_z);
+    ui.edit_object_approach_x   ->insert(appr_x);
+    ui.edit_object_approach_y   ->insert(appr_y);
+    ui.edit_object_approach_z   ->insert(appr_z);
+    ui.edit_object_tool         ->insert(tool);
+    ui.edit_object_name_modify  ->insert(name_);
 }
 
 void MainWindow::on_check_robot_TF_stateChanged(int state)
 {
     if ( ! state == 0 )
     {
-        ui.button_add_approach_box        ->setEnabled(true);
-        ui.button_add_approach_object     ->setEnabled(true);
-        ui.button_add_approach_slot       ->setEnabled(true);
-        ui.button_add_final_box           ->setEnabled(true);
-        ui.button_add_final_position_slot ->setEnabled(true);
-        ui.button_add_go_to               ->setEnabled(true);
-        ui.button_add_grasp               ->setEnabled(true);
-        ui.button_add_pick                ->setEnabled(true);
-        ui.button_add_place               ->setEnabled(true);
         ui.button_save_components         ->setEnabled(true);
-        ui.button_save_box                ->setEnabled(true);
-        ui.button_save_object             ->setEnabled(true);
-        ui.button_save_slot               ->setEnabled(true);
-        ui.button_save_box                ->setEnabled(true);
-        ui.button_save_object             ->setEnabled(true);
-        ui.button_save_slot               ->setEnabled(true);
-        ui.edit_action_name               ->setEnabled(true);
-        ui.edit_box_name                  ->setEnabled(true);
-        ui.edit_group_name                ->setEnabled(true);
-        ui.edit_max_object                ->setEnabled(true);
-        ui.edit_object_name               ->setEnabled(true);
-        ui.edit_slot_name                 ->setEnabled(true);
-        ui.button_remove_object           ->setEnabled(true);
-        ui.button_remove_group            ->setEnabled(true);
-        ui.button_remove_go_to            ->setEnabled(true);
-        ui.button_remove_box              ->setEnabled(true);
-        ui.button_remove_pick             ->setEnabled(true);
-        ui.button_remove_place            ->setEnabled(true);
-        ui.button_remove_slot             ->setEnabled(true);
-        ui.grasp_list                     ->setEnabled(true);
-        ui.robot_list                     ->setEnabled(true);
-        ui.button_remove_grasp            ->setEnabled(true);
-        ui.TF_list                        ->setEnabled(true);
-        ui.button_remove_approach_object  ->setEnabled(true);
-        ui.button_manual_guidance         ->setEnabled(true);
-        ui.button_gripper                 ->setEnabled(true);
-        ui.check_gripper                  ->setEnabled(true);
-        ui.check_manual_guidance          ->setEnabled(true);
-        ui.button_load                    ->setEnabled(true);
-        ui.button_load_TF                 ->setEnabled(true);
-        ui.approach_list                  ->setEnabled(true);
-        ui.edit_location_name             ->setEnabled(true);
-        ui.button_add_location            ->setEnabled(true);
-
+        ui.lateral_tab                    ->setEnabled(true);
 
         ui.check_robot_TF ->setEnabled(false);
         ui.world_TF_list  ->setEnabled(false);
@@ -1085,18 +1601,6 @@ void MainWindow::on_check_gripper_stateChanged(int state)
         qnode.close_gripper(false);
     }
     return;
-}
-
-void MainWindow::on_check_manual_guidance_stateChanged(int state)
-{
-    if ( ! state == 0 )
-    {
-        qnode.active_manual_guidance(true);
-    }
-    else
-    {
-        qnode.active_manual_guidance(false);
-    }
 }
 
 void MainWindow::on_robot_list_currentIndexChanged(int index)
@@ -1146,208 +1650,81 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
     }
 }
 
-
-void MainWindow::on_place_list_pressed(const QModelIndex &index)
+void MainWindow::on_combo_action_type_currentIndexChanged(int index)
 {
-////    for multiselection
-//    if ( ui.place_list->selectionModel()->selectedIndexes().size() == 1 )
-//    {
-//        qnode.add_groups_place( ui.place_list->selectionModel()->selectedIndexes().at(0).row() );
-//    }
-//    else
-//    {
-//        ui.list_groups_place->model()->removeRows( 0, ui.list_groups_place->model()->rowCount() );
-//    }
-//    for simpleselection
-    ui.list_groups_place->model()->removeRows( 0, ui.list_groups_place->model()->rowCount() );
-    qnode.add_groups_place( ui.place_list->selectionModel()->selectedIndexes().at(0).row() );
+    if ( index == 0 )
+    {
+        qnode.write_locations();
+    }
+    else if ( index == 1)
+    {
+        qnode.write_objects();
+    }
+    else if ( index == 2 )
+    {
+        qnode.write_groups();
+    }
 }
 
-void MainWindow::on_pick_list_pressed(const QModelIndex &index)
+void MainWindow::on_combo_configuration_currentIndexChanged(int index)
 {
-////    for multiselection
-//    if ( ui.pick_list->selectionModel()->selectedIndexes().size() == 1 )
-//    {
-//        qnode.add_objects_pick ( ui.pick_list->selectionModel()->selectedIndexes().at(0).row() );
-//    }
-//    else
-//    {
-//        ui.list_objects_pick->model()->removeRows( 0, ui.list_objects_pick->model()->rowCount() );
-//    }
-//    for simpleselection
-    ui.list_objects_pick->model()->removeRows( 0, ui.list_objects_pick->model()->rowCount() );
-    qnode.add_objects_pick ( ui.pick_list->selectionModel()->selectedIndexes().at(0).row() );
+    if ( index == 0 )
+    {
+        qnode.active_watch_configuration();
+    }
+    else if ( index == 1 )
+    {
+        qnode.active_manual_guidance();
+    }
+    else if ( index == 2 )
+    {
+        qnode.active_cart_teleop();
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("There is a problem with configuration");
+        msgBox.exec();
+    }
 }
 
-void MainWindow::on_go_to_list_pressed(const QModelIndex &index)
+void MainWindow::on_combo_configuration__currentIndexChanged(int index)
 {
-    ui.list_locations_goto->model()->removeRows( 0, ui.list_locations_goto->model()->rowCount() );
-    qnode.add_locations_go_to ( ui.go_to_list->selectionModel()->selectedIndexes().at(0).row() );
+    ui.combo_configuration->setCurrentIndex( index );
+}
+
+void MainWindow::on_combo_ref_frame_currentIndexChanged(int index)
+{
+    qnode.frame_id.clear();
+    qnode.frame_id.append("/");
+    qnode.frame_id.append( ui.combo_ref_frame->currentText().toStdString() );
 }
 
 void MainWindow::on_list_location_modify_pressed(const QModelIndex &index)
 {
-    ui.edit_location_frame        ->clear();
-    ui.edit_location_position_x   ->clear();
-    ui.edit_location_position_y   ->clear();
-    ui.edit_location_position_z   ->clear();
-    ui.edit_location_quaternion_w ->clear();
-    ui.edit_location_quaternion_x ->clear();
-    ui.edit_location_quaternion_y ->clear();
-    ui.edit_location_quaternion_z ->clear();
-
-    go_to_location loc = qnode.return_location_info(index.row());
-    QString frame_ = QString::fromStdString( loc.frame);
-    QString pos_x  = QString::fromStdString( std::to_string(loc.location_.pos.origin_x) );
-    QString pos_y  = QString::fromStdString( std::to_string(loc.location_.pos.origin_y) );
-    QString pos_z  = QString::fromStdString( std::to_string(loc.location_.pos.origin_z) );
-    QString quat_x = QString::fromStdString( std::to_string(loc.location_.quat.rotation_x) );
-    QString quat_y = QString::fromStdString( std::to_string(loc.location_.quat.rotation_y) );
-    QString quat_z = QString::fromStdString( std::to_string(loc.location_.quat.rotation_z) );
-    QString quat_w = QString::fromStdString( std::to_string(loc.location_.quat.rotation_w) );
-    ui.edit_location_frame         ->insert(frame_);
-    ui.edit_location_position_x    ->insert(pos_x);
-    ui.edit_location_position_y    ->insert(pos_y);
-    ui.edit_location_position_z    ->insert(pos_z);
-    ui.edit_location_quaternion_w  ->insert(quat_w);
-    ui.edit_location_quaternion_x  ->insert(quat_x);
-    ui.edit_location_quaternion_y  ->insert(quat_y);
-    ui.edit_location_quaternion_z  ->insert(quat_z);
+    reset_location( index.row() );
 }
 
 void MainWindow::on_list_box_modify_pressed(const QModelIndex &index)
 {
-    ui.edit_box_frame        ->clear();
-    ui.edit_box_position_x   ->clear();
-    ui.edit_box_position_y   ->clear();
-    ui.edit_box_position_z   ->clear();
-    ui.edit_box_quaternion_w ->clear();
-    ui.edit_box_quaternion_x ->clear();
-    ui.edit_box_quaternion_y ->clear();
-    ui.edit_box_quaternion_z ->clear();
-    ui.edit_box_approach_x   ->clear();
-    ui.edit_box_approach_y   ->clear();
-    ui.edit_box_approach_z   ->clear();
-
-    box bx = qnode.return_box_info(index.row());
-    QString frame_ = QString::fromStdString( bx.frame);
-    QString pos_x  = QString::fromStdString( std::to_string(bx.location_.pos.origin_x) );
-    QString pos_y  = QString::fromStdString( std::to_string(bx.location_.pos.origin_y) );
-    QString pos_z  = QString::fromStdString( std::to_string(bx.location_.pos.origin_z) );
-    QString quat_x = QString::fromStdString( std::to_string(bx.location_.quat.rotation_x) );
-    QString quat_y = QString::fromStdString( std::to_string(bx.location_.quat.rotation_y) );
-    QString quat_z = QString::fromStdString( std::to_string(bx.location_.quat.rotation_z) );
-    QString quat_w = QString::fromStdString( std::to_string(bx.location_.quat.rotation_w) );
-    QString appr_x = QString::fromStdString( std::to_string(bx.approach.origin_x) );
-    QString appr_y = QString::fromStdString( std::to_string(bx.approach.origin_y) );
-    QString appr_z = QString::fromStdString( std::to_string(bx.approach.origin_z) );
-    ui.edit_box_frame         ->insert(frame_);
-    ui.edit_box_position_x    ->insert(pos_x);
-    ui.edit_box_position_y    ->insert(pos_y);
-    ui.edit_box_position_z    ->insert(pos_z);
-    ui.edit_box_quaternion_w  ->insert(quat_w);
-    ui.edit_box_quaternion_x  ->insert(quat_x);
-    ui.edit_box_quaternion_y  ->insert(quat_y);
-    ui.edit_box_quaternion_z  ->insert(quat_z);
-    ui.edit_box_approach_x         ->insert(appr_x);
-    ui.edit_box_approach_y         ->insert(appr_y);
-    ui.edit_box_approach_z         ->insert(appr_z);
+    reset_box( index.row() );
 }
 void MainWindow::on_list_slot_modify_pressed(const QModelIndex &index)
 {
-    ui.edit_slot_frame        ->clear();
-    ui.edit_slot_position_x   ->clear();
-    ui.edit_slot_position_y   ->clear();
-    ui.edit_slot_position_z   ->clear();
-    ui.edit_slot_quaternion_w ->clear();
-    ui.edit_slot_quaternion_x ->clear();
-    ui.edit_slot_quaternion_y ->clear();
-    ui.edit_slot_quaternion_z ->clear();
-    ui.edit_slot_approach_x   ->clear();
-    ui.edit_slot_approach_y   ->clear();
-    ui.edit_slot_approach_z   ->clear();
-    ui.edit_slot_group        ->clear();
-    ui.edit_slot_max_objects  ->clear();
-
-    slot sl = qnode.return_slot_info(index.row());
-    QString frame_ = QString::fromStdString( sl.frame);
-    QString group_ = QString::fromStdString( sl.group);
-    QString pos_x  = QString::fromStdString( std::to_string(sl.location_.pos.origin_x) );
-    QString pos_y  = QString::fromStdString( std::to_string(sl.location_.pos.origin_y) );
-    QString pos_z  = QString::fromStdString( std::to_string(sl.location_.pos.origin_z) );
-    QString quat_x = QString::fromStdString( std::to_string(sl.location_.quat.rotation_x) );
-    QString quat_y = QString::fromStdString( std::to_string(sl.location_.quat.rotation_y) );
-    QString quat_z = QString::fromStdString( std::to_string(sl.location_.quat.rotation_z) );
-    QString quat_w = QString::fromStdString( std::to_string(sl.location_.quat.rotation_w) );
-    QString appr_x = QString::fromStdString( std::to_string(sl.approach.origin_x) );
-    QString appr_y = QString::fromStdString( std::to_string(sl.approach.origin_y) );
-    QString appr_z = QString::fromStdString( std::to_string(sl.approach.origin_z) );
-    QString max_ob = QString::fromStdString( std::to_string(sl.max_objects) );
-
-    ui.edit_slot_frame        ->insert(frame_);
-    ui.edit_slot_group        ->insert(group_);
-    ui.edit_slot_position_x   ->insert(pos_x);
-    ui.edit_slot_position_y   ->insert(pos_y);
-    ui.edit_slot_position_z   ->insert(pos_z);
-    ui.edit_slot_quaternion_w ->insert(quat_w);
-    ui.edit_slot_quaternion_x ->insert(quat_x);
-    ui.edit_slot_quaternion_y ->insert(quat_y);
-    ui.edit_slot_quaternion_z ->insert(quat_z);
-    ui.edit_slot_approach_x   ->insert(appr_x);
-    ui.edit_slot_approach_y   ->insert(appr_y);
-    ui.edit_slot_approach_z   ->insert(appr_z);
-    ui.edit_slot_max_objects  ->insert(max_ob);
+    reset_slot( index.row() );
 }
 
 void MainWindow::on_list_object_modify_pressed(const QModelIndex &index)
 {
-    init_objects = false;
-    ui.combo_grasp_number->clear();
+    reset_object( index.row() );
+}
 
-    ui.edit_object_position_x   ->clear();
-    ui.edit_object_position_y   ->clear();
-    ui.edit_object_position_z   ->clear();
-    ui.edit_object_quaternion_w ->clear();
-    ui.edit_object_quaternion_x ->clear();
-    ui.edit_object_quaternion_y ->clear();
-    ui.edit_object_quaternion_z ->clear();
-    ui.edit_object_approach_x   ->clear();
-    ui.edit_object_approach_y   ->clear();
-    ui.edit_object_approach_z   ->clear();
-    ui.edit_object_tool         ->clear();
-
-    actual_object_to_modify = qnode.return_object_info(index.row());
-
-    for ( int i = 0; i < actual_object_to_modify.grasp.size(); i++ )
-    {
-        ui.combo_grasp_number->addItem( QString::fromStdString( std::to_string(i) ) );
-    }
-    init_objects = true;
-
-    int i = ui.combo_grasp_number->currentIndex();
-    QString pos_x  = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].pos.origin_x) );
-    QString pos_y  = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].pos.origin_y) );
-    QString pos_z  = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].pos.origin_z) );
-    QString quat_x = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].quat.rotation_x) );
-    QString quat_y = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].quat.rotation_y) );
-    QString quat_z = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].quat.rotation_z) );
-    QString quat_w = QString::fromStdString( std::to_string(actual_object_to_modify.grasp[i].quat.rotation_w) );
-    QString appr_x = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_x) );
-    QString appr_y = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_y) );
-    QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_z) );
-    QString tool   = QString::fromStdString( actual_object_to_modify.tool[i] );
-
-    ui.edit_object_position_x   ->insert(pos_x);
-    ui.edit_object_position_y   ->insert(pos_y);
-    ui.edit_object_position_z   ->insert(pos_z);
-    ui.edit_object_quaternion_w ->insert(quat_w);
-    ui.edit_object_quaternion_x ->insert(quat_x);
-    ui.edit_object_quaternion_y ->insert(quat_y);
-    ui.edit_object_quaternion_z ->insert(quat_z);
-    ui.edit_object_approach_x   ->insert(appr_x);
-    ui.edit_object_approach_y   ->insert(appr_y);
-    ui.edit_object_approach_z   ->insert(appr_z);
-    ui.edit_object_tool         ->insert(tool);
+void MainWindow::on_velocity_slider_valueChanged(int value)
+{
+    std::string str = std::to_string(value);
+    QString qstr = QString::fromStdString(str);
+    ui.velocity_label->setText(qstr);
+    perc_vel = value;
 }
 
 void MainWindow::on_button_remove_element_clicked(bool check )
@@ -1375,7 +1752,7 @@ void MainWindow::on_button_load_recipe_clicked(bool check)
 {
     if ( ui.recipe_box->count() == 0 )
     {
-        std::vector<std::string> recipes_names = qnode.load_recipe(false, " ");
+        std::vector<std::string> recipes_names = qnode.load_recipes();
         if ( recipes_names.empty() )
         {
             QMessageBox msgBox;
@@ -1390,14 +1767,13 @@ void MainWindow::on_button_load_recipe_clicked(bool check)
     }
     else
     {
-        std::string name_recipe = ui.recipe_box->currentText().toStdString();
-        qnode.load_recipe(true, name_recipe);
+        qnode.load_recipe( ui.recipe_box->currentIndex() );
     }
 }
 
 void MainWindow::on_button_load_actions_clicked  ( bool check )
 {
-    qnode.load_actions();
+    qnode.write_param(2);
 }
 
 void MainWindow::on_button_save_recipe_clicked ( bool check )
@@ -1439,7 +1815,7 @@ void MainWindow::on_button_save_recipe_clicked ( bool check )
         msgBox.exec();
         return;
     }
-    std::vector<std::string> recipes_names = qnode.load_recipe(false, " ");
+    std::vector<std::string> recipes_names = qnode.load_recipes();
     if ( recipes_names.empty() )
     {
         QMessageBox msgBox;
@@ -1489,6 +1865,116 @@ void MainWindow::on_list_place_pressed(const QModelIndex &index)
 void MainWindow::on_list_pick_pressed(const QModelIndex &index)
 {
     qnode.add_object_type( index.row() );
+}
+
+void MainWindow::on_list_go_to_pressed(const QModelIndex &index)
+{
+    qnode.add_location_info( index.row() );
+}
+
+void MainWindow::on_go_to_list_pressed(const QModelIndex &index)
+{
+    qnode.add_second_location_info( index.row() );
+    go_to gt = qnode.return_go_to_info( index.row() );
+    QString qstr = QString::fromStdString( gt.description );
+    ui.edit_action_description->setText( qstr );
+    ui.place_list->clearSelection();
+    ui.pick_list->clearSelection();
+    if ( gt.agents.size() == 2 )
+    {
+        ui.check_human_info->setChecked(true);
+        ui.check_robot_info->setChecked(true);
+    }
+    else if ( gt.agents.size() == 0 )
+    {
+        ui.check_human_info->setChecked(false);
+        ui.check_robot_info->setChecked(false);
+    }
+    else if ( gt.agents[0] == "robot" )
+    {
+        ui.check_human_info->setChecked(false);
+        ui.check_robot_info->setChecked(true);
+    }
+    else if ( gt.agents[0] == "human" )
+    {
+        ui.check_human_info->setChecked(true);
+        ui.check_robot_info->setChecked(false);
+    }
+    else
+    {
+        ui.check_human_info->setChecked(false);
+        ui.check_robot_info->setChecked(false);
+    }
+}
+
+void MainWindow::on_place_list_pressed(const QModelIndex &index)
+{
+    qnode.add_second_slot_groups( index.row() );
+    place pl = qnode.return_place_info( index.row() );
+    QString qstr = QString::fromStdString( pl.description );
+    ui.edit_action_description->setText( qstr );
+    ui.go_to_list->clearSelection();
+    ui.pick_list->clearSelection();
+    if ( pl.agents.size() == 2 )
+    {
+        ui.check_human_info->setChecked(true);
+        ui.check_robot_info->setChecked(true);
+    }
+    else if ( pl.agents.size() == 0 )
+    {
+        ui.check_human_info->setChecked(false);
+        ui.check_robot_info->setChecked(false);
+    }
+    else if ( pl.agents[0] == "robot" )
+    {
+        ui.check_human_info->setChecked(false);
+        ui.check_robot_info->setChecked(true);
+    }
+    else if ( pl.agents[0] == "human" )
+    {
+        ui.check_human_info->setChecked(true);
+        ui.check_robot_info->setChecked(false);
+    }
+    else
+    {
+        ui.check_human_info->setChecked(false);
+        ui.check_robot_info->setChecked(false);
+    }
+}
+
+void MainWindow::on_pick_list_pressed (const QModelIndex &index)
+{
+    qnode.add_second_object_type( index.row() );
+    pick pk = qnode.return_pick_info( index.row() );
+    QString qstr = QString::fromStdString( pk.description );
+    ui.edit_action_description->setText( qstr );
+    ui.place_list->clearSelection();
+    ui.go_to_list->clearSelection();
+    if ( pk.agents.size() == 2 )
+    {
+        ui.check_human_info->setChecked(true);
+        ui.check_robot_info->setChecked(true);
+    }
+    else if ( pk.agents.size() == 0 )
+    {
+        ui.check_human_info->setChecked(false);
+        ui.check_robot_info->setChecked(false);
+    }
+    else if ( pk.agents[0] == "robot" )
+    {
+        ui.check_human_info->setChecked(false);
+        ui.check_robot_info->setChecked(true);
+    }
+    else if ( pk.agents[0] == "human" )
+    {
+        ui.check_human_info->setChecked(true);
+        ui.check_robot_info->setChecked(false);
+    }
+    else
+    {
+        ui.check_human_info->setChecked(false);
+        ui.check_robot_info->setChecked(false);
+    }
 }
 
 /*****************************************************************************

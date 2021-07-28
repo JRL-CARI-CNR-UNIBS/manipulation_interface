@@ -101,9 +101,15 @@ if __name__ == '__main__':
 
 	rospy.set_param("/outbound/slots_group", groups)
 
-	objects = []
+	objects_ = []
 	for data in objects_mongo:
 		del data['_id']
+		objects_.append( data )
+
+	rospy.set_param("/manipulation/objects", objects_)
+
+	objects = []
+	for data in objects_mongo:
 		str = '/manipulation_objects/'
 		str = str + data['name']
 		del data['name']

@@ -22,7 +22,8 @@
   <build_depend>manipulation_interface_mongo</build_depend>
   <build_depend>rosparam_utilities</build_depend>
   <build_depend>tf</build_depend>
-  <run_depend>qt_build</run_depend>
+	<build_depend>geometry_msgs</build_depend>
+	<run_depend>qt_build</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>libqt4-dev</run_depend>
   <run_depend>manipulation_msgs</run_depend>
@@ -30,6 +31,6 @@
   <run_depend>manipulation_interface_mongo</run_depend>
   <run_depend>rosparam_utilities</run_depend>
   <run_depend>tf</run_depend>
-
+	<run_depend>geometry_msgs</run_depend>
 
 </package>

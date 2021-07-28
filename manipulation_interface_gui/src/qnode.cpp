@@ -55,6 +55,7 @@ bool QNode::init() {
 	ros::start(); // explicitly needed since our nodehandle is going out of scope.
     ros::NodeHandle n;
 
+    twist_pub=n.advertise<geometry_msgs::TwistStamped>("/target_cart_twist",1);
     set_ctrl_srv = n.serviceClient<configuration_msgs::StartConfiguration>("/configuration_manager/start_configuration");
     gripper_srv = n.serviceClient<manipulation_msgs::JobExecution>("/robotiq_gripper");
 
@@ -77,31 +78,25 @@ bool QNode::init() {
     ROS_INFO("Controller %s started.",start_ctrl_req.request.start_configuration.c_str());
 
     load_TF();
-    load_param();
+    load_robots();
 
 	return true;
 }
 
-void QNode::load_actions()
+void QNode::cartMove (std::vector<float> twist_move)
 {
-    logging_model_second_go_to.removeRows (0, logging_model_second_go_to.rowCount());
-    logging_model_second_place.removeRows (0, logging_model_second_place.rowCount());
-    logging_model_second_pick.removeRows  (0, logging_model_second_pick.rowCount());
+    geometry_msgs::TwistStamped twist_command;
 
-    load_param();
+    twist_command.header.frame_id=frame_id;
+    twist_command.twist.linear.x=twist_move.at(0);
+    twist_command.twist.linear.y=twist_move.at(1);
+    twist_command.twist.linear.z=twist_move.at(2);
+    twist_command.twist.angular.x=twist_move.at(3);
+    twist_command.twist.angular.y=twist_move.at(4);
+    twist_command.twist.angular.z=twist_move.at(5);
 
-    for ( int i = 0; i < go_to_actions.size(); i++ )
-    {
-        log_second_go_to( go_to_actions[i].name );
-    }
-    for ( int i = 0; i < pick_actions.size(); i++ )
-    {
-        log_second_pick( pick_actions[i].name );
-    }
-    for ( int i = 0; i < place_actions.size(); i++ )
-    {
-        log_second_place( place_actions[i].name );
-    }
+    twist_command.header.stamp=ros::Time::now();
+    twist_pub.publish(twist_command);
 }
 
 void QNode::add_object_type (int ind)
@@ -134,7 +129,73 @@ void QNode::add_slot_groups (int ind)
     }
 }
 
-std::vector<std::string> QNode::load_recipe ( bool init, std::string name_recipe)
+void QNode::add_location_info (int ind)
+{
+    if ( logging_model_second_locations.rowCount() != 0 )
+    {
+        logging_model_second_locations.removeRows(0,logging_model_second_locations.rowCount());
+    }
+    if ( ind != 1000)
+    {
+        for ( int i = 0; i < go_to_actions[ind].locations.size(); i++)
+        {
+            log_second_locations( go_to_actions[ind].locations[i] );
+        }
+    }
+}
+
+bool QNode::add_second_location_info( int ind )
+{
+    if ( logging_model_info_action.rowCount() != 0 )
+    {
+        logging_model_info_action.removeRows(0,logging_model_info_action.rowCount());
+    }
+    for ( int i = 0; i < go_to_actions[ind].locations.size(); i++)
+    {
+        log_info_action( go_to_actions[ind].locations[i] );
+    }
+
+}
+
+bool QNode::add_second_slot_groups  ( int ind )
+{
+    if ( logging_model_info_action.rowCount() != 0 )
+    {
+        logging_model_info_action.removeRows(0,logging_model_info_action.rowCount());
+    }
+    for ( int i = 0; i < place_actions[ind].groups.size(); i++)
+    {
+        log_info_action( place_actions[ind].groups[i] );
+    }
+}
+
+bool QNode::add_second_object_type  ( int ind )
+{
+    if ( logging_model_info_action.rowCount() != 0 )
+    {
+        logging_model_info_action.removeRows(0,logging_model_info_action.rowCount());
+    }
+    for ( int i = 0; i < pick_actions[ind].objects.size(); i++)
+    {
+        log_info_action( pick_actions[ind].objects[i] );
+    }
+}
+
+bool QNode::add_object_copy_grasp   ( int index, int index2 )
+{
+    objects[index].approach.push_back( objects[index].approach[index2] );
+    objects[index].grasp.push_back   ( objects[index].grasp[index2] );
+    objects[index].tool.push_back    ( objects[index].tool[index2] );
+}
+void QNode::load_recipe ( int index)
+{
+    for ( int i = 0; i < recipes[index].recipe_.size(); i++ )
+    {
+        log_recipe( recipes[index].recipe_[i] );
+    }
+}
+
+std::vector<std::string> QNode::load_recipes ()
 {
     ros::NodeHandle n;
 
@@ -188,17 +249,6 @@ std::vector<std::string> QNode::load_recipe ( bool init, std::string name_recipe
             recipes_compare.push_back(single_recipe);
             recipes_names.push_back(single_recipe.name);
         }
-        if ( init )
-        {
-            if ( !name_recipe.compare( single_recipe.name ) )
-            {
-                for ( int j = 0; j < description.size(); j++ )
-                {
-                    log_recipe( description[j] );
-                }
-            }
-        }
-
     }
 
     return recipes_names;
@@ -209,8 +259,6 @@ bool QNode::save_recipe( std::string recipe_name )
     ros::NodeHandle n;
     XmlRpc::XmlRpcValue param;
 
-    ROS_ERROR("in ingresso %zu", recipes.size());
-
     for ( int i = 0; i < recipes.size(); i++ )
     {
         if ( !recipe_name.compare( recipes[i].name ) )
@@ -218,8 +266,6 @@ bool QNode::save_recipe( std::string recipe_name )
             recipes.erase( recipes.begin()+i );
         }
     }
-
-    ROS_ERROR("dopo eliminazione %zu", recipes.size());
 
     recipe recipe_;
     recipe_.name = recipe_name;
@@ -231,16 +277,12 @@ bool QNode::save_recipe( std::string recipe_name )
 
     recipes.push_back(recipe_);
 
-    ROS_ERROR("dopo aggiunta %zu", recipes.size());
-
     for ( int i = 0; i < recipes.size(); i++)
     {
         param[i] = get_recipe_param(i);
     }
     n.setParam("/multi_skills/recipes", param);
     param.clear();
-
-    ROS_ERROR("dopo pubblicazione %zu", recipes.size());
 
     ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("save_recipe_param_on_mongo");
     manipulation_interface_mongo::SaveParam srv;
@@ -419,7 +461,7 @@ XmlRpc::XmlRpcValue QNode::get_action_pick_param(int index)
     return param;
 }
 
-bool QNode::add_go_to(std::string go_to_name, std::vector<std::string> locations_)
+bool QNode::add_go_to(std::string go_to_name, std::vector<std::string> locations_, std::string description, std::vector<std::string> agents_)
 {
     if ( logging_model_go_to.rowCount()!=0 )
     {
@@ -440,17 +482,19 @@ bool QNode::add_go_to(std::string go_to_name, std::vector<std::string> locations
         }
     }
     log_go_to(go_to_name);
+    log_second_go_to(go_to_name);
 
     go_to gt;
+    gt.agents      = agents_;
     gt.name = go_to_name;
     gt.locations = locations_;
+    gt.description = description;
     go_to_actions.push_back(gt);
 
     return true;
-
 }
 
-bool QNode::add_place(std::string place_name, std::vector<std::string> groups_)
+bool QNode::add_place(std::string place_name, std::vector<std::string> groups_, std::string description, std::vector<std::string> agents_)
 {
     if ( logging_model_place.rowCount()!=0 )
     {
@@ -471,17 +515,21 @@ bool QNode::add_place(std::string place_name, std::vector<std::string> groups_)
         }
     }
     log_place(place_name);
+    log_second_place(place_name);
+
     place plc;
-    plc.name   = place_name;
-    plc.groups = groups_;
+    plc.agents      = agents_;
+    plc.name        = place_name;
+    plc.groups      = groups_;
+    plc.description = description;
     place_actions.push_back(plc);
 
     return true;
 }
 
-bool QNode::add_pick(std::string position_name, std::vector<std::string> objects_)
+bool QNode::add_pick(std::string pick_name, std::vector<std::string> objects_, std::string description, std::vector<std::string> agents_)
 {
-    if ( !position_name.empty())
+    if ( !pick_name.empty())
     {
         if ( logging_model_pick.rowCount()!=0 )
         {
@@ -490,7 +538,7 @@ bool QNode::add_pick(std::string position_name, std::vector<std::string> objects
             {
 //                ROS_ERROR("sei entrato nell for");
                 ros::Duration(0.1);
-                if ( !position_name.compare( logging_model_pick.data( logging_model_pick.index( i ), 0 ).toString().toStdString() ) )
+                if ( !pick_name.compare( logging_model_pick.data( logging_model_pick.index( i ), 0 ).toString().toStdString() ) )
                 {
                     return false;
                 }
@@ -503,10 +551,14 @@ bool QNode::add_pick(std::string position_name, std::vector<std::string> objects
                 }
             }
         }
-        log_pick(position_name);
+        log_pick(pick_name);
+        log_second_pick(pick_name);
+
         pick pck;
-        pck.name    = position_name;
-        pck.objects = objects_;
+        pck.agents      = agents_;
+        pck.name        = pick_name;
+        pck.objects     = objects_;
+        pck.description = description;
         pick_actions.push_back(pck);
         return true;
     }
@@ -532,6 +584,7 @@ bool QNode::add_location(std::string location_name)
         }
     }
     log_location(location_name);
+    log_location_modify(location_name);
 
     location loc = return_position(base_frame, target_frame);
     go_to_location gt;
@@ -541,30 +594,6 @@ bool QNode::add_location(std::string location_name)
     go_to_locations.push_back(gt);
 
     return true;
-}
-
-bool QNode::add_objects_pick ( int ind )
-{
-    for ( int i = 0; i < pick_actions[ind].objects.size(); i++ )
-    {
-        log_obj_pick(pick_actions[ind].objects[i]);
-    }
-}
-
-bool QNode::add_groups_place ( int ind )
-{
-    for ( int i = 0; i < place_actions[ind].groups.size(); i++ )
-    {
-        log_grp_place(place_actions[ind].groups[i]);
-    }
-}
-
-bool QNode::add_locations_go_to ( int ind )
-{
-    for ( int i = 0; i < go_to_actions[ind].locations.size(); i++ )
-    {
-        log_location_goto(go_to_actions[ind].locations[i]);
-    }
 }
 
 location QNode::return_position( std::string base_frame, std::string target_frame )
@@ -593,6 +622,21 @@ location QNode::return_position( std::string base_frame, std::string target_fram
     return loc;
 }
 
+go_to QNode::return_go_to_info(int ind)
+{
+    return go_to_actions[ind];
+}
+
+pick QNode::return_pick_info(int ind)
+{
+    return pick_actions[ind];
+}
+
+place QNode::return_place_info(int ind)
+{
+    return place_actions[ind];
+}
+
 go_to_location QNode::return_location_info(int ind)
 {
     return go_to_locations[ind];
@@ -615,22 +659,17 @@ slot QNode::return_slot_info( int ind)
 
 std::string QNode::return_location_list_text(int ind)
 {
-    return logging_model_location.data( logging_model_location.index( ind ), 0 ).toString().toStdString();
+    return logging_model_components.data( logging_model_components.index( ind ), 0 ).toString().toStdString();
 }
 
 std::string QNode::return_group_list_text(int ind)
 {
-    return logging_model_group.data( logging_model_group.index( ind ), 0 ).toString().toStdString();
+    return logging_model_components.data( logging_model_components.index( ind ), 0 ).toString().toStdString();
 }
 
 std::string QNode::return_object_list_text(int ind)
 {
-    return logging_model_object.data( logging_model_object.index( ind ), 0 ).toString().toStdString();
-}
-
-std::string QNode::return_obj_dist_list_text(int ind)
-{
-    return logging_model_obj_dist.data( logging_model_obj_dist.index( ind ), 0 ).toString().toStdString();
+    return logging_model_components.data( logging_model_components.index( ind ), 0 ).toString().toStdString();
 }
 
 std::string QNode::return_box_list_text(int ind)
@@ -638,7 +677,8 @@ std::string QNode::return_box_list_text(int ind)
     return logging_model_box.data( logging_model_box.index( ind ), 0 ).toString().toStdString();
 }
 
-void QNode::log_go_to(const std::string &msg) {
+void QNode::log_go_to(const std::string &msg)
+{
     logging_model_go_to.insertRows(logging_model_go_to.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
@@ -646,7 +686,8 @@ void QNode::log_go_to(const std::string &msg) {
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::log_place(const std::string &msg) {
+void QNode::log_place(const std::string &msg)
+{
     logging_model_place.insertRows(logging_model_place.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
@@ -654,7 +695,8 @@ void QNode::log_place(const std::string &msg) {
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::log_pick(const std::string &msg) {
+void QNode::log_pick(const std::string &msg)
+{
     logging_model_pick.insertRows(logging_model_pick.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
@@ -662,18 +704,23 @@ void QNode::log_pick(const std::string &msg) {
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::log_object(const std::string &msg) {
+void QNode::log_object(const std::string &msg)
+{
     logging_model_object.insertRows(logging_model_object.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
     logging_model_object.setData(logging_model_object.index(logging_model_object.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+}
 
+
+void QNode::log_object_modify(const std::string &msg)
+{
     logging_model_object_modify.insertRows(logging_model_object_modify.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
+    QVariant new_row(QString(msg.c_str()));
     logging_model_object_modify.setData(logging_model_object_modify.index(logging_model_object_modify.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
-
 }
 
 void QNode::log_slot( const std::string &msg)
@@ -683,9 +730,13 @@ void QNode::log_slot( const std::string &msg)
     QVariant new_row(QString(msg.c_str()));
     logging_model_slot.setData(logging_model_slot.index(logging_model_slot.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+}
 
+void QNode::log_slot_modify( const std::string &msg)
+{
     logging_model_slot_modify.insertRows(logging_model_slot_modify.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
+    QVariant new_row(QString(msg.c_str()));
     logging_model_slot_modify.setData(logging_model_slot_modify.index(logging_model_slot_modify.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
@@ -697,9 +748,13 @@ void QNode::log_box( const std::string &msg)
     QVariant new_row(QString(msg.c_str()));
     logging_model_box.setData(logging_model_box.index(logging_model_box.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+}
 
+void QNode::log_box_modify( const std::string &msg)
+{
     logging_model_box_modify.insertRows(logging_model_box_modify.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
+    QVariant new_row(QString(msg.c_str()));
     logging_model_box_modify.setData(logging_model_box_modify.index(logging_model_box_modify.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
@@ -713,33 +768,6 @@ void QNode::log_group( const std::string &msg)
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::log_obj_dist( const std::string &msg)
-{
-    logging_model_obj_dist.insertRows(logging_model_obj_dist.rowCount(),1);
-    ROS_DEBUG_STREAM(msg);
-    QVariant new_row(QString(msg.c_str()));
-    logging_model_obj_dist.setData(logging_model_obj_dist.index(logging_model_obj_dist.rowCount()-1),new_row);
-    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
-}
-
-void QNode::log_grp_place ( const std::string &msg)
-{
-    logging_model_grp_place.insertRows(logging_model_grp_place.rowCount(),1);
-    ROS_DEBUG_STREAM(msg);
-    QVariant new_row(QString(msg.c_str()));
-    logging_model_grp_place.setData(logging_model_grp_place.index(logging_model_grp_place.rowCount()-1),new_row);
-    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
-}
-
-void QNode::log_obj_pick  ( const std::string &msg)
-{
-    logging_model_obj_pick.insertRows(logging_model_obj_pick.rowCount(),1);
-    ROS_DEBUG_STREAM(msg);
-    QVariant new_row(QString(msg.c_str()));
-    logging_model_obj_pick.setData(logging_model_obj_pick.index(logging_model_obj_pick.rowCount()-1),new_row);
-    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
-}
-
 void QNode::log_location  ( const std::string &msg)
 {
     logging_model_location.insertRows(logging_model_location.rowCount(),1);
@@ -747,19 +775,32 @@ void QNode::log_location  ( const std::string &msg)
     QVariant new_row(QString(msg.c_str()));
     logging_model_location.setData(logging_model_location.index(logging_model_location.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+}
 
+void QNode::log_location_modify  ( const std::string &msg)
+{
     logging_model_location_modify.insertRows(logging_model_location_modify.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
+    QVariant new_row(QString(msg.c_str()));
     logging_model_location_modify.setData(logging_model_location_modify.index(logging_model_location_modify.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::log_location_goto  ( const std::string &msg)
+void QNode::log_components( const std::string &msg)
 {
-    logging_model_location_go_to.insertRows(logging_model_location_go_to.rowCount(),1);
+    logging_model_components.insertRows(logging_model_components.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
-    logging_model_location_go_to.setData(logging_model_location_go_to.index(logging_model_location_go_to.rowCount()-1),new_row);
+    logging_model_components.setData(logging_model_components.index(logging_model_components.rowCount()-1),new_row);
+    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+}
+
+void QNode::log_info_action( const std::string &msg)
+{
+    logging_model_info_action.insertRows(logging_model_info_action.rowCount(),1);
+    ROS_DEBUG_STREAM(msg);
+    QVariant new_row(QString(msg.c_str()));
+    logging_model_info_action.setData(logging_model_info_action.index(logging_model_info_action.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
@@ -805,6 +846,15 @@ void QNode::log_second_slots (const std::string &msg)
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
     logging_model_second_slots.setData(logging_model_second_slots.index(logging_model_second_slots.rowCount()-1),new_row);
+    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
+}
+
+void QNode::log_second_locations (const std::string &msg)
+{
+    logging_model_second_locations.insertRows(logging_model_second_locations.rowCount(),1);
+    ROS_DEBUG_STREAM(msg);
+    QVariant new_row(QString(msg.c_str()));
+    logging_model_second_locations.setData(logging_model_second_locations.index(logging_model_second_locations.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
@@ -870,48 +920,67 @@ std::vector<int> QNode::remove_group(int ind)
     return indexes;
 }
 
-void QNode::active_manual_guidance( bool action )
+void QNode::active_manual_guidance()
 {
-    if ( action )
+    start_ctrl_req.request.start_configuration = "rot_xyz_manual_guidance";
+    start_ctrl_req.request.strictness = 1;
+
+    set_ctrl_srv.waitForExistence();
+
+    if ( !set_ctrl_srv.call(start_ctrl_req) )
     {
-        start_ctrl_req.request.start_configuration = "rot_xyz_manual_guidance";
-        start_ctrl_req.request.strictness = 1;
-
-        set_ctrl_srv.waitForExistence();
-
-        if ( !set_ctrl_srv.call(start_ctrl_req) )
-        {
-            ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_srv.getService().c_str(),start_ctrl_req.request.start_configuration.c_str());
-            return;
-        }
-
-        if (!start_ctrl_req.response.ok)
-        {
-            ROS_ERROR("Error on service %s response", set_ctrl_srv.getService().c_str());
-            return;
-        }
-        ROS_INFO("Controller %s started.",start_ctrl_req.request.start_configuration.c_str());
+        ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_srv.getService().c_str(),start_ctrl_req.request.start_configuration.c_str());
+        return;
     }
-    else
+
+    if (!start_ctrl_req.response.ok)
     {
-        start_ctrl_req.request.start_configuration = "watch";
-        start_ctrl_req.request.strictness = 1;
-
-        set_ctrl_srv.waitForExistence();
-
-        if ( !set_ctrl_srv.call(start_ctrl_req) )
-        {
-            ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_srv.getService().c_str(),start_ctrl_req.request.start_configuration.c_str());
-            return;
-        }
-
-        if (!start_ctrl_req.response.ok)
-        {
-            ROS_ERROR("Error on service %s response", set_ctrl_srv.getService().c_str());
-            return;
-        }
-        ROS_INFO("Controller %s started.",start_ctrl_req.request.start_configuration.c_str());
+        ROS_ERROR("Error on service %s response", set_ctrl_srv.getService().c_str());
+        return;
     }
+    ROS_INFO("Controller %s started.",start_ctrl_req.request.start_configuration.c_str());
+}
+
+void QNode::active_watch_configuration()
+{
+    start_ctrl_req.request.start_configuration = "watch";
+    start_ctrl_req.request.strictness = 1;
+
+    set_ctrl_srv.waitForExistence();
+
+    if ( !set_ctrl_srv.call(start_ctrl_req) )
+    {
+        ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_srv.getService().c_str(),start_ctrl_req.request.start_configuration.c_str());
+        return;
+    }
+
+    if (!start_ctrl_req.response.ok)
+    {
+        ROS_ERROR("Error on service %s response", set_ctrl_srv.getService().c_str());
+        return;
+    }
+    ROS_INFO("Controller %s started.",start_ctrl_req.request.start_configuration.c_str());
+}
+
+void QNode::active_cart_teleop()
+{
+    start_ctrl_req.request.start_configuration = "cart_velocity_control";
+    start_ctrl_req.request.strictness = 1;
+
+    set_ctrl_srv.waitForExistence();
+
+    if ( !set_ctrl_srv.call(start_ctrl_req) )
+    {
+        ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_srv.getService().c_str(),start_ctrl_req.request.start_configuration.c_str());
+        return;
+    }
+
+    if (!start_ctrl_req.response.ok)
+    {
+        ROS_ERROR("Error on service %s response", set_ctrl_srv.getService().c_str());
+        return;
+    }
+    ROS_INFO("Controller %s started.",start_ctrl_req.request.start_configuration.c_str());
 }
 
 void QNode::close_gripper( bool action )
@@ -1346,7 +1415,7 @@ XmlRpc::XmlRpcValue QNode::get_go_to_param_(int index)
     xml_body.append(get_xml_string_param("name", go_to_actions[index].name));
     xml_body.append(get_xml_string_param("description", go_to_actions[index].description));
     xml_body.append(get_xml_string_param("type", "goto"));
-    xml_body.append(get_xml_string_param("agent", "robot"));
+    xml_body.append(get_xml_group_string("agent", go_to_actions[index].agents));
     xml_body.append(get_xml_group_string("goal", go_to_actions[index].locations));
 
     xml_body.append(end_struct);
@@ -1370,7 +1439,7 @@ XmlRpc::XmlRpcValue QNode::get_pick_param_(int index)
     xml_body.append(get_xml_string_param("name", pick_actions[index].name));
     xml_body.append(get_xml_string_param("description", pick_actions[index].description));
     xml_body.append(get_xml_string_param("type", "pick"));
-    xml_body.append(get_xml_string_param("agent", "robot"));
+    xml_body.append(get_xml_group_string("agent", pick_actions[index].agents));
     xml_body.append(get_xml_group_string("goal", pick_actions[index].objects));
 
     xml_body.append(end_struct);
@@ -1394,7 +1463,7 @@ XmlRpc::XmlRpcValue QNode::get_place_param_(int index)
     xml_body.append(get_xml_string_param("name", place_actions[index].name));
     xml_body.append(get_xml_string_param("description", place_actions[index].description));
     xml_body.append(get_xml_string_param("type", "place"));
-    xml_body.append(get_xml_string_param("agent", "robot"));
+    xml_body.append(get_xml_group_string("agent", place_actions[index].agents));
     xml_body.append(get_xml_group_string("goal", place_actions[index].groups));
 
     xml_body.append(end_struct);
@@ -1434,6 +1503,8 @@ void QNode::check_objects_param()
             objects.push_back( objects_compare[i] );
         }
     }
+
+    objects_compare = objects;
 }
 
 void QNode::check_other_param()
@@ -1453,6 +1524,7 @@ void QNode::check_other_param()
             go_to_locations.push_back( go_to_locations_compare[i] );
         }
     }
+    go_to_locations_compare = go_to_locations;
     for ( int i = 0; i < place_actions_compare.size(); i++ )
     {
         bool presence = false;
@@ -1468,6 +1540,7 @@ void QNode::check_other_param()
             place_actions.push_back( place_actions_compare[i] );
         }
     }
+    place_actions_compare = place_actions;
     for ( int i = 0; i < pick_actions_compare.size(); i++ )
     {
         bool presence = false;
@@ -1483,6 +1556,7 @@ void QNode::check_other_param()
             pick_actions.push_back( pick_actions_compare[i] );
         }
     }
+    pick_actions_compare = pick_actions;
     for ( int i = 0; i < slots_compare.size(); i++ )
     {
         bool presence = false;
@@ -1498,6 +1572,7 @@ void QNode::check_other_param()
             manipulation_slots.push_back( slots_compare[i] );
         }
     }
+    slots_compare = manipulation_slots;
     for ( int i = 0; i < groups_compare.size(); i++ )
     {
         bool presence = false;
@@ -1513,6 +1588,7 @@ void QNode::check_other_param()
             groups.push_back( groups_compare[i] );
         }
     }
+    groups_compare = groups;
     for ( int i = 0; i < boxes_compare.size(); i++ )
     {
         bool presence = false;
@@ -1528,6 +1604,7 @@ void QNode::check_other_param()
             boxes.push_back( boxes_compare[i] );
         }
     }
+    boxes_compare = boxes;
 }
 
 bool QNode::save_components()
@@ -1588,6 +1665,24 @@ bool QNode::save_components()
     n.setParam("/manipulation/objects", param);
     param.clear();
 
+    ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("/save_components_params_on_mongo");
+    manipulation_interface_mongo::SaveParam srv;
+    client.call(srv);
+
+    write_param(1);
+
+    return true;
+}
+
+bool QNode::save_actions()
+{
+    ros::NodeHandle n;
+
+    XmlRpc::XmlRpcValue param;
+
+    check_objects_param();
+    check_other_param();
+
     for ( int i = 0; i < go_to_actions.size(); i++)
     {
         param[i] = get_go_to_param_(i);
@@ -1606,6 +1701,9 @@ bool QNode::save_components()
     ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("/save_components_params_on_mongo");
     manipulation_interface_mongo::SaveParam srv;
     client.call(srv);
+
+    write_param(2);
+
     return true;
 }
 
@@ -1622,9 +1720,9 @@ bool QNode::save_object(std::string object_name, std::vector<position> object_ap
             }
         }
     }
-
-
     log_object(object_name);
+    log_object_modify(object_name);
+
     object_type obj;
     obj.name     = object_name;
     obj.tool     = object_tools;
@@ -1674,6 +1772,7 @@ bool QNode::save_slot(std::string slot_name, location slot_approach, location sl
     approach.origin_z = slot_approach.pos.origin_z-slot_final_pos.pos.origin_z;
 
     log_slot(slot_name);
+    log_slot_modify(slot_name);
     slot slt;
     slt.name           = slot_name;
     slt.group          = group_name;
@@ -1702,6 +1801,7 @@ bool QNode::save_box(std::string box_name, location approach_position, location 
     approach.origin_y = approach_position.pos.origin_y-final_position.pos.origin_y;
     approach.origin_z = approach_position.pos.origin_z-final_position.pos.origin_z;
     log_box(box_name);
+    log_box_modify(box_name);
     box bx;
     bx.name      = box_name;
     bx.location_ = final_position;
@@ -1711,32 +1811,56 @@ bool QNode::save_box(std::string box_name, location approach_position, location 
     return true;
 }
 
-bool QNode::save_location_changes(int ind, location new_location)
+bool QNode::save_location_changes(int ind, go_to_location new_location)
 {
-    go_to_locations[ind].location_ = new_location;
-    return save_components();
+    if ( !go_to_locations[ind].name.compare( new_location.name ) )
+    {
+        go_to_locations[ind] = new_location;
+    }
+    else
+    {
+        go_to_locations.push_back( new_location );
+    }
+    return true;
 }
 
 bool QNode::save_slot_changes(int ind, slot new_slot)
 {
-    manipulation_slots[ind].location_   = new_slot.location_;
-    manipulation_slots[ind].approach    = new_slot.approach;
-    manipulation_slots[ind].max_objects = new_slot.max_objects;
-    return save_components();
+    if ( !manipulation_slots[ind].name.compare( new_slot.name ) )
+    {
+        manipulation_slots[ind] = new_slot;
+    }
+    else
+    {
+        manipulation_slots.push_back(new_slot);
+    }
+    return true;
 }
 
 bool QNode::save_box_changes(int ind, box new_box)
 {
-    boxes[ind].approach  = new_box.approach;
-    boxes[ind].location_ = new_box.location_;
-    return save_components();
+    if ( !boxes[ind].name.compare( new_box.name ) )
+    {
+        boxes[ind] = new_box;
+    }
+    else
+    {
+        boxes.push_back( new_box );
+    }
+    return true;
 }
 
-bool QNode::save_object_changes(int ind, int ind2, location new_loc, position new_appr)
+bool QNode::save_object_changes(int ind, object_type new_object)
 {
-    objects[ind].approach[ind2] = new_appr;
-    objects[ind].grasp[ind2]    = new_loc;
-    return save_components();
+    if ( !objects[ind].name.compare( new_object.name ) )
+    {
+        objects[ind] = new_object;
+    }
+    else
+    {
+        objects.push_back( new_object );
+    }
+    return true;
 }
 
 void QNode::load_TF()
@@ -1746,7 +1870,35 @@ void QNode::load_TF()
     listener.getFrameStrings(TFs);
 }
 
-void QNode::load_param()
+void QNode::load_param( int ind )
+{
+    ros::NodeHandle n;
+
+    if (!n.getParamNames(param_names))
+    {
+        ROS_ERROR("Empty robot parameter");
+        return;
+    }
+
+    if ( ind == 1 )
+    {
+        load_robots();
+
+        set_target_frame(0);
+
+        readBoxesFromParam();
+        readObjectFromParam();
+        readSlotsGroupFromParam();
+        readSlotsFromParam();
+        readLocationsFromParam();
+    }
+    else if ( ind == 2 )
+    {
+        readGotoPickAndPlaceFromParam();
+    }
+}
+
+void QNode::load_robots()
 {
     ros::NodeHandle n;
 
@@ -1769,139 +1921,278 @@ void QNode::load_param()
             robot_name_params.push_back( param_names[i] );
         }
     }
-    set_target_frame(0);
-
-    readBoxesFromParam();
-    readObjectFromParam();
-    readSlotsGroupFromParam();
-    readSlotsFromParam();
-    readLocationsFromParam();
-    readGotoPickAndPlaceFromParam();
 }
 
-void QNode::write_param()
+void QNode::write_param(int ind)
 {
-    load_param();
+    load_param( ind );
 
-    for ( int i = 0; i < boxes.size(); i++)
+    if ( ind == 1)
     {
-        bool presence = false;
-        for ( int j = 0; j < logging_model_box.rowCount(); j++)
+        for ( int i = 0; i < boxes.size(); i++)
         {
-            if ( !boxes[i].name.compare(logging_model_box.data( logging_model_box.index( j ), 0 ).toString().toStdString() ) )
+            bool presence = false;
+            for ( int j = 0; j < logging_model_box.rowCount(); j++)
             {
-                presence = true;
+                if ( !boxes[i].name.compare(logging_model_box.data( logging_model_box.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_box(boxes[i].name);
             }
         }
-        if ( !presence )
+        for ( int i = 0; i < boxes.size(); i++)
         {
-            log_box(boxes[i].name);
+            bool presence = false;
+            for ( int j = 0; j < logging_model_box_modify.rowCount(); j++)
+            {
+                if ( !boxes[i].name.compare(logging_model_box_modify.data( logging_model_box_modify.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_box_modify(boxes[i].name);
+            }
+        }
+        for ( int i = 0; i < objects.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_object.rowCount(); j++)
+            {
+                if ( !objects[i].name.compare(logging_model_object.data( logging_model_object.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_object(objects[i].name);
+            }
+        }
+        for ( int i = 0; i < objects.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_object_modify.rowCount(); j++)
+            {
+                if ( !objects[i].name.compare(logging_model_object_modify.data( logging_model_object_modify.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_object_modify(objects[i].name);
+            }
+        }
+        for ( int i = 0; i < groups.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_group.rowCount(); j++)
+            {
+                if ( !groups[i].compare(logging_model_group.data( logging_model_group.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_group( groups[i] );
+            }
+        }
+        for ( int i = 0; i < manipulation_slots.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_slot.rowCount(); j++)
+            {
+                if ( !manipulation_slots[i].name.compare(logging_model_slot.data( logging_model_slot.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_slot(manipulation_slots[i].name);
+            }
+        }
+        for ( int i = 0; i < manipulation_slots.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_slot_modify.rowCount(); j++)
+            {
+                if ( !manipulation_slots[i].name.compare(logging_model_slot_modify.data( logging_model_slot_modify.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_slot_modify(manipulation_slots[i].name);
+            }
+        }
+        for ( int i = 0; i < go_to_locations.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_location.rowCount(); j++)
+            {
+                if ( !go_to_locations[i].name.compare(logging_model_location.data( logging_model_location.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_location(go_to_locations[i].name);
+            }
+        }
+        for ( int i = 0; i < go_to_locations.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_location_modify.rowCount(); j++)
+            {
+                if ( !go_to_locations[i].name.compare(logging_model_location_modify.data( logging_model_location_modify.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_location_modify(go_to_locations[i].name);
+            }
         }
     }
-    for ( int i = 0; i < objects.size(); i++)
+    else if ( ind == 2)
     {
-        bool presence = false;
-        for ( int j = 0; j < logging_model_object.rowCount(); j++)
+        for ( int i = 0; i < go_to_actions.size(); i++)
         {
-            if ( !objects[i].name.compare(logging_model_object.data( logging_model_object.index( j ), 0 ).toString().toStdString() ) )
+            bool presence = false;
+            for ( int j = 0; j < logging_model_go_to.rowCount(); j++)
             {
-                presence = true;
+                if ( !go_to_actions[i].name.compare(logging_model_go_to.data( logging_model_go_to.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_go_to(go_to_actions[i].name);
             }
         }
-        if ( !presence )
+        for ( int i = 0; i < go_to_actions.size(); i++)
         {
-            log_object(objects[i].name);
+            bool presence = false;
+            for ( int j = 0; j < logging_model_second_go_to.rowCount(); j++)
+            {
+                if ( !go_to_actions[i].name.compare(logging_model_second_go_to.data( logging_model_second_go_to.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_second_go_to(go_to_actions[i].name);
+            }
+        }
+        for ( int i = 0; i < place_actions.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_place.rowCount(); j++)
+            {
+                if ( !place_actions[i].name.compare(logging_model_place.data( logging_model_place.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_place(place_actions[i].name);
+            }
+        }
+        for ( int i = 0; i < place_actions.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_second_place.rowCount(); j++)
+            {
+                if ( !place_actions[i].name.compare(logging_model_second_place.data( logging_model_second_place.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_second_place(place_actions[i].name);
+            }
+        }
+        for ( int i = 0; i < pick_actions.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_pick.rowCount(); j++)
+            {
+                if ( !pick_actions[i].name.compare(logging_model_pick.data( logging_model_pick.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_pick(pick_actions[i].name);
+            }
+        }
+        for ( int i = 0; i < pick_actions.size(); i++)
+        {
+            bool presence = false;
+            for ( int j = 0; j < logging_model_second_pick.rowCount(); j++)
+            {
+                if ( !pick_actions[i].name.compare(logging_model_second_pick.data( logging_model_second_pick.index( j ), 0 ).toString().toStdString() ) )
+                {
+                    presence = true;
+                }
+            }
+            if ( !presence )
+            {
+                log_second_pick(pick_actions[i].name);
+            }
         }
     }
-    for ( int i = 0; i < groups.size(); i++)
+}
+
+void QNode::write_locations()
+{
+    if ( logging_model_components.rowCount() != 0 )
     {
-        bool presence = false;
-        for ( int j = 0; j < logging_model_group.rowCount(); j++)
-        {
-            if ( !groups[i].compare(logging_model_group.data( logging_model_group.index( j ), 0 ).toString().toStdString() ) )
-            {
-                presence = true;
-            }
-        }
-        if ( !presence )
-        {
-            log_group( groups[i] );
-        }
-    }
-    for ( int i = 0; i < manipulation_slots.size(); i++)
-    {
-        bool presence = false;
-        for ( int j = 0; j < logging_model_slot.rowCount(); j++)
-        {
-            if ( !manipulation_slots[i].name.compare(logging_model_slot.data( logging_model_slot.index( j ), 0 ).toString().toStdString() ) )
-            {
-                presence = true;
-            }
-        }
-        if ( !presence )
-        {
-            log_slot(manipulation_slots[i].name);
-        }
+        logging_model_components.removeRows( 0, logging_model_components.rowCount() );
     }
     for ( int i = 0; i < go_to_locations.size(); i++)
     {
-        bool presence = false;
-        for ( int j = 0; j < logging_model_location.rowCount(); j++)
-        {
-            if ( !go_to_locations[i].name.compare(logging_model_location.data( logging_model_location.index( j ), 0 ).toString().toStdString() ) )
-            {
-                presence = true;
-            }
-        }
-        if ( !presence )
-        {
-            log_location(go_to_locations[i].name);
-        }
+        log_components(go_to_locations[i].name);
     }
-    for ( int i = 0; i < go_to_actions.size(); i++)
+}
+
+void QNode::write_objects()
+{
+    if ( logging_model_components.rowCount() != 0 )
     {
-        bool presence = false;
-        for ( int j = 0; j < logging_model_go_to.rowCount(); j++)
-        {
-            if ( !go_to_actions[i].name.compare(logging_model_go_to.data( logging_model_go_to.index( j ), 0 ).toString().toStdString() ) )
-            {
-                presence = true;
-            }
-        }
-        if ( !presence )
-        {
-            log_go_to(go_to_actions[i].name);
-        }
+        logging_model_components.removeRows( 0, logging_model_components.rowCount() );
     }
-    for ( int i = 0; i < place_actions.size(); i++)
+    for ( int i = 0; i < objects.size(); i++)
     {
-        bool presence = false;
-        for ( int j = 0; j < logging_model_place.rowCount(); j++)
-        {
-            if ( !place_actions[i].name.compare(logging_model_place.data( logging_model_place.index( j ), 0 ).toString().toStdString() ) )
-            {
-                presence = true;
-            }
-        }
-        if ( !presence )
-        {
-            log_place(place_actions[i].name);
-        }
+        log_components(objects[i].name);
     }
-    for ( int i = 0; i < pick_actions.size(); i++)
+}
+
+void QNode::write_groups()
+{
+    if ( logging_model_components.rowCount() != 0 )
     {
-        bool presence = false;
-        for ( int j = 0; j < logging_model_pick.rowCount(); j++)
-        {
-            if ( !pick_actions[i].name.compare(logging_model_pick.data( logging_model_pick.index( j ), 0 ).toString().toStdString() ) )
-            {
-                presence = true;
-            }
-        }
-        if ( !presence )
-        {
-            log_pick(pick_actions[i].name);
-        }
+        logging_model_components.removeRows( 0, logging_model_components.rowCount() );
+    }
+    for ( int i = 0; i < groups.size(); i++)
+    {
+        log_components(groups[i]);
     }
 }
 
@@ -1942,7 +2233,6 @@ bool QNode::readBoxesFromParam()
             continue;
         }
         box_.name = rosparam_utilities::toString(param["name"]);
-        ROS_INFO("Found box named: %s",box_.name.c_str());
 
         if( !param.hasMember("frame") )
         {
@@ -1950,7 +2240,6 @@ bool QNode::readBoxesFromParam()
             continue;
         }
         box_.frame = rosparam_utilities::toString(param["frame"]);
-        ROS_INFO("Found box frame name: %s",box_.frame.c_str());
 
         std::string what;
         std::vector<double> pos;
@@ -2438,6 +2727,14 @@ bool QNode::readGotoPickAndPlaceFromParam()
             }
             go_to_.locations = locations_;
 
+            std::vector<std::string> agents_;
+            if( !rosparam_utilities::getParam(param,"agent",agents_,what) )
+            {
+                ROS_WARN("Action %d  has not the field 'goal'", i);
+                return false;
+            }
+            go_to_.agents = agents_;
+
             if( !param.hasMember("description") )
             {
                 ROS_WARN("The action #%d has not the field 'description'", i);
@@ -2484,6 +2781,14 @@ bool QNode::readGotoPickAndPlaceFromParam()
             }
             place_.groups = groups_;
 
+            std::vector<std::string> agents_;
+            if( !rosparam_utilities::getParam(param,"agent",agents_,what) )
+            {
+                ROS_WARN("Action %d  has not the field 'goal'", i);
+                return false;
+            }
+            place_.agents = agents_;
+
             if( !param.hasMember("description") )
             {
                 ROS_WARN("The action #%d has not the field 'description'", i);
@@ -2529,6 +2834,14 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 return false;
             }
             pick_.objects = objects_;
+
+            std::vector<std::string> agents_;
+            if( !rosparam_utilities::getParam(param,"agent",agents_,what) )
+            {
+                ROS_WARN("Action %d  has not the field 'goal'", i);
+                return false;
+            }
+            pick_.agents = agents_;
 
             if( !param.hasMember("description") )
             {

@@ -53,6 +53,13 @@
            <string/>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
+           <item row="5" column="6">
+            <widget class="QPushButton" name="button_remove_slot">
+             <property name="text">
+              <string>Remove slot</string>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_6">
              <item>
@@ -73,113 +80,19 @@
              </item>
             </layout>
            </item>
-           <item row="0" column="2">
-            <widget class="QPushButton" name="button_load">
-             <property name="text">
-              <string>Load Param</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>Go to</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_18">
-             <property name="text">
-              <string>                  Select base frame:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="10">
+           <item row="2" column="6">
             <widget class="QLabel" name="label_11">
              <property name="text">
               <string>Slots</string>
              </property>
             </widget>
            </item>
-           <item row="4" column="10">
-            <widget class="QPushButton" name="button_remove_group">
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_30">
              <property name="text">
-              <string>Remove group</string>
+              <string>Locations</string>
              </property>
             </widget>
-           </item>
-           <item row="3" column="10">
-            <layout class="QVBoxLayout" name="verticalLayout_8">
-             <item>
-              <widget class="QListView" name="slot_list"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="button_remove_slot">
-               <property name="text">
-                <string>Remove slot</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_25">
-               <property name="text">
-                <string>Slot groups</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QListView" name="group_list"/>
-             </item>
-            </layout>
-           </item>
-           <item row="3" column="2">
-            <layout class="QVBoxLayout" name="verticalLayout_10">
-             <item>
-              <widget class="QListView" name="place_list"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="button_remove_place">
-               <property name="text">
-                <string> Remove place</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QListView" name="list_groups_place"/>
-             </item>
-            </layout>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>Pick</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="2">
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string>Place</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="10">
-            <layout class="QHBoxLayout" name="horizontalLayout_8">
-             <item>
-              <widget class="QPushButton" name="button_manual_guidance">
-               <property name="text">
-                <string>Manual guidance:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="check_manual_guidance">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-            </layout>
            </item>
            <item row="0" column="6">
             <widget class="QLabel" name="label_17">
@@ -188,105 +101,120 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <layout class="QVBoxLayout" name="verticalLayout_9">
-             <item>
-              <widget class="QListView" name="pick_list"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="button_remove_pick">
-               <property name="text">
-                <string> Remove pick</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QListView" name="list_objects_pick"/>
-             </item>
-            </layout>
+           <item row="4" column="7">
+            <widget class="QListView" name="group_list"/>
            </item>
-           <item row="3" column="0">
-            <layout class="QVBoxLayout" name="verticalLayout_2">
-             <item>
-              <widget class="QListView" name="go_to_list"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="button_remove_go_to">
-               <property name="text">
-                <string> Remove go to</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QListView" name="list_locations_goto"/>
-             </item>
-            </layout>
+           <item row="4" column="1">
+            <widget class="QListView" name="object_list"/>
            </item>
-           <item row="0" column="7">
-            <widget class="QComboBox" name="robot_list"/>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>                  Select base frame:</string>
+             </property>
+            </widget>
            </item>
-           <item row="3" column="7">
-            <layout class="QVBoxLayout" name="verticalLayout_14">
-             <item>
-              <widget class="QListView" name="object_list"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="button_remove_object">
-               <property name="text">
-                <string>Remove type</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_15">
-               <property name="text">
-                <string>Boxes</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QListView" name="box_list"/>
-             </item>
-            </layout>
+           <item row="2" column="2">
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>Boxes</string>
+             </property>
+            </widget>
            </item>
-           <item row="2" column="7">
+           <item row="4" column="2">
+            <widget class="QListView" name="box_list"/>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="button_load">
+             <property name="text">
+              <string>Load components</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
             <widget class="QLabel" name="label_6">
              <property name="text">
               <string>Object types</string>
              </property>
             </widget>
            </item>
-           <item row="4" column="7">
-            <widget class="QPushButton" name="button_remove_box">
+           <item row="5" column="7">
+            <widget class="QPushButton" name="button_remove_group">
              <property name="text">
-              <string>Remove box</string>
+              <string>Remove group</string>
              </property>
             </widget>
            </item>
-           <item row="4" column="6">
+           <item row="5" column="0">
             <widget class="QPushButton" name="button_remove_location">
              <property name="text">
               <string>Remove location</string>
              </property>
             </widget>
            </item>
-           <item row="3" column="6">
+           <item row="4" column="0">
             <widget class="QListView" name="locations_list"/>
            </item>
-           <item row="2" column="6">
-            <widget class="QLabel" name="label_30">
+           <item row="4" column="6">
+            <widget class="QListView" name="slot_list"/>
+           </item>
+           <item row="2" column="7">
+            <widget class="QLabel" name="label_25">
              <property name="text">
-              <string>Locations</string>
+              <string>Slot groups</string>
              </property>
+            </widget>
+           </item>
+           <item row="5" column="2">
+            <widget class="QPushButton" name="button_remove_box">
+             <property name="text">
+              <string>Remove box</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QPushButton" name="button_remove_object">
+             <property name="text">
+              <string>Remove type</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="6">
+            <widget class="QComboBox" name="robot_list"/>
+           </item>
+           <item row="0" column="7">
+            <widget class="QLabel" name="label_115">
+             <property name="text">
+              <string>Robot configuration:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="7">
+            <widget class="QComboBox" name="combo_configuration">
+             <item>
+              <property name="text">
+               <string>Watch</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Manual guidance</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Cart teleop</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
+         <layout class="QVBoxLayout" name="lateral_layout">
           <item>
-           <widget class="QTabWidget" name="tabWidget">
+           <widget class="QTabWidget" name="lateral_tab">
             <property name="minimumSize">
              <size>
               <width>325</width>
@@ -294,67 +222,8 @@
              </size>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
-            <widget class="QWidget" name="tab">
-             <attribute name="title">
-              <string>Action</string>
-             </attribute>
-             <layout class="QHBoxLayout" name="horizontalLayout_11">
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_4">
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout">
-                  <item>
-                   <widget class="QLabel" name="label">
-                    <property name="text">
-                     <string>Task name</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="edit_action_name"/>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="button_add_go_to">
-                  <property name="text">
-                   <string>Add Go To</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="button_add_place">
-                  <property name="text">
-                   <string>Add Place</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="button_add_pick">
-                  <property name="text">
-                   <string>Add Pick</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="verticalSpacer_5">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
             <widget class="QWidget" name="tab_6">
              <attribute name="title">
               <string>Location</string>
@@ -523,7 +392,7 @@
                 <item>
                  <widget class="QPushButton" name="button_save_object">
                   <property name="text">
-                   <string>Save object</string>
+                   <string>Add object</string>
                   </property>
                  </widget>
                 </item>
@@ -634,7 +503,7 @@
                 <item>
                  <widget class="QPushButton" name="button_save_slot">
                   <property name="text">
-                   <string>Save Slot</string>
+                   <string>Add Slot</string>
                   </property>
                  </widget>
                 </item>
@@ -714,7 +583,7 @@
                 <item>
                  <widget class="QPushButton" name="button_save_box">
                   <property name="text">
-                   <string>Save Box</string>
+                   <string>Add Box</string>
                   </property>
                  </widget>
                 </item>
@@ -734,201 +603,11 @@
           <item>
            <widget class="QPushButton" name="button_save_components">
             <property name="text">
-             <string>Save All</string>
+             <string>Save Components</string>
             </property>
            </widget>
           </item>
          </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="tab_5">
-       <attribute name="title">
-        <string>Recipe setting </string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout">
-        <item row="0" column="0">
-         <widget class="QGroupBox" name="groupBox_13">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="title">
-           <string/>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_4">
-           <item row="2" column="4">
-            <widget class="QLabel" name="label_21">
-             <property name="text">
-              <string>Recipe</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QListView" name="list_go_to"/>
-           </item>
-           <item row="4" column="4">
-            <widget class="QListView" name="list_recipe"/>
-           </item>
-           <item row="2" column="2">
-            <widget class="QLabel" name="label_23">
-             <property name="text">
-              <string>Pick list</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="2">
-            <widget class="QListView" name="list_pick"/>
-           </item>
-           <item row="2" column="3">
-            <widget class="QLabel" name="label_24">
-             <property name="text">
-              <string>Place list</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="4">
-            <widget class="QPushButton" name="button_remove_element">
-             <property name="text">
-              <string>Remove element</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_26">
-             <property name="text">
-              <string>Go_to list</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="3">
-            <widget class="QListView" name="list_place"/>
-           </item>
-           <item row="0" column="0">
-            <widget class="QPushButton" name="button_load_actions">
-             <property name="text">
-              <string>Load actions</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <widget class="QPushButton" name="button_load_recipe">
-             <property name="text">
-              <string>Load recipe</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="4">
-            <widget class="QComboBox" name="recipe_box"/>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QFrame" name="frame">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>600</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>800</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_11">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_10">
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_15">
-               <item>
-                <widget class="QLabel" name="label_42">
-                 <property name="text">
-                  <string>Locations</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QListView" name="listView"/>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_12">
-               <item>
-                <widget class="QLabel" name="label_28">
-                 <property name="text">
-                  <string>Object types:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QListView" name="list_object"/>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_13">
-               <item>
-                <widget class="QLabel" name="label_29">
-                 <property name="text">
-                  <string>Slot groups:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QListView" name="list_slot"/>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_16">
-             <item>
-              <widget class="QLabel" name="label_27">
-               <property name="text">
-                <string>Recipe name: </string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="edit_recipe_name"/>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QPushButton" name="button_save_recipe">
-             <property name="text">
-              <string>Save recipe</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="button_set_recipe">
-             <property name="text">
-              <string>Set recipe param</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
         </item>
        </layout>
       </widget>
@@ -940,7 +619,7 @@
         <item>
          <widget class="QTabWidget" name="tabWidget_2">
           <property name="currentIndex">
-           <number>1</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="tab_12">
            <attribute name="title">
@@ -962,6 +641,13 @@
             </item>
             <item row="0" column="1">
              <layout class="QGridLayout" name="gridLayout_2">
+              <item row="8" column="0">
+               <widget class="QLabel" name="label_101">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
               <item row="4" column="2">
                <widget class="QLineEdit" name="edit_location_position_z"/>
               </item>
@@ -1088,15 +774,78 @@
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_31">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>25</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string/>
                 </property>
                </widget>
               </item>
+              <item row="10" column="0">
+               <widget class="QLabel" name="label_103">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>25</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="0">
+               <widget class="QLabel" name="label_102">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="0">
+               <widget class="QLabel" name="label_104">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>25</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_110">
+                <property name="text">
+                 <string>Name:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLineEdit" name="edit_location_name_modify"/>
+              </item>
              </layout>
             </item>
             <item row="1" column="1">
              <layout class="QGridLayout" name="gridLayout_5">
+              <item row="1" column="2">
+               <widget class="QPushButton" name="button_reset_location_info">
+                <property name="text">
+                 <string>Reset</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="button_save_location_changes">
+                <property name="text">
+                 <string>Add changes</string>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="1">
                <spacer name="horizontalSpacer_2">
                 <property name="orientation">
@@ -1110,13 +859,6 @@
                 </property>
                </spacer>
               </item>
-              <item row="1" column="0">
-               <widget class="QPushButton" name="button_save_location_changes">
-                <property name="text">
-                 <string>Save changes</string>
-                </property>
-               </widget>
-              </item>
               <item row="2" column="0">
                <spacer name="verticalSpacer_6">
                 <property name="orientation">
@@ -1129,6 +871,13 @@
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item row="3" column="0">
+               <widget class="QPushButton" name="button_save_all_changes0">
+                <property name="text">
+                 <string>Save all changes</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
@@ -1164,25 +913,19 @@
             </item>
             <item row="1" column="1">
              <layout class="QGridLayout" name="gridLayout_8">
-              <item row="0" column="0">
-               <widget class="QPushButton" name="button_save_object_changes">
+              <item row="0" column="2">
+               <widget class="QPushButton" name="button_reset_object_info">
                 <property name="text">
-                 <string>Save changes</string>
+                 <string>Reset</string>
                 </property>
                </widget>
               </item>
-              <item row="0" column="1">
-               <spacer name="horizontalSpacer_4">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
+              <item row="0" column="0">
+               <widget class="QPushButton" name="button_save_object_changes">
+                <property name="text">
+                 <string>Add changes</string>
                 </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
+               </widget>
               </item>
               <item row="1" column="0">
                <spacer name="verticalSpacer_7">
@@ -1197,10 +940,33 @@
                 </property>
                </spacer>
               </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="button_save_all_changes1">
+                <property name="text">
+                 <string>Save all changes</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </item>
             <item row="0" column="1">
              <layout class="QGridLayout" name="gridLayout_7">
+              <item row="4" column="2">
+               <widget class="QLineEdit" name="edit_object_position_z"/>
+              </item>
               <item row="9" column="0">
                <widget class="QLabel" name="label_58">
                 <property name="maximumSize">
@@ -1348,9 +1114,6 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="2">
-               <widget class="QLineEdit" name="edit_object_position_z"/>
-              </item>
               <item row="9" column="2">
                <widget class="QLabel" name="label_60">
                 <property name="text">
@@ -1396,6 +1159,36 @@
               </item>
               <item row="0" column="3">
                <widget class="QComboBox" name="combo_grasp_number"/>
+              </item>
+              <item row="11" column="0">
+               <widget class="QLabel" name="label_100">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>25</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLineEdit" name="edit_object_name_modify"/>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_111">
+                <property name="text">
+                 <string>Name:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QPushButton" name="button_copy_grasp">
+                <property name="text">
+                 <string>Add a copy of grasp</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
@@ -1523,6 +1316,12 @@
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_66">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>25</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -1630,14 +1429,37 @@
               <item row="11" column="1">
                <widget class="QLineEdit" name="edit_slot_max_objects"/>
               </item>
+              <item row="2" column="3">
+               <widget class="QLineEdit" name="edit_slot_name_modify"/>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_112">
+                <property name="text">
+                 <string>Name:</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </item>
             <item row="1" column="1">
              <layout class="QGridLayout" name="gridLayout_11">
+              <item row="1" column="0">
+               <spacer name="verticalSpacer_8">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
               <item row="0" column="0">
                <widget class="QPushButton" name="button_save_slot_changes">
                 <property name="text">
-                 <string>Save changes</string>
+                 <string>Add changes</string>
                 </property>
                </widget>
               </item>
@@ -1654,18 +1476,19 @@
                 </property>
                </spacer>
               </item>
-              <item row="1" column="0">
-               <spacer name="verticalSpacer_8">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
+              <item row="0" column="2">
+               <widget class="QPushButton" name="button_reset_slot_info">
+                <property name="text">
+                 <string>Reset</string>
                 </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="button_save_all_changes2">
+                <property name="text">
+                 <string>Save all changes</string>
                 </property>
-               </spacer>
+               </widget>
               </item>
              </layout>
             </item>
@@ -1714,6 +1537,12 @@
             </item>
             <item row="0" column="1">
              <layout class="QGridLayout" name="gridLayout_13">
+              <item row="4" column="2">
+               <widget class="QLineEdit" name="edit_box_position_z"/>
+              </item>
+              <item row="10" column="1">
+               <widget class="QLineEdit" name="edit_box_approach_y"/>
+              </item>
               <item row="6" column="0">
                <widget class="QLabel" name="label_82">
                 <property name="maximumSize">
@@ -1799,9 +1628,6 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="2">
-               <widget class="QLineEdit" name="edit_box_position_z"/>
-              </item>
               <item row="9" column="2">
                <widget class="QLabel" name="label_92">
                 <property name="text">
@@ -1821,9 +1647,6 @@
                  <string>Quaternion</string>
                 </property>
                </widget>
-              </item>
-              <item row="10" column="1">
-               <widget class="QLineEdit" name="edit_box_approach_y"/>
               </item>
               <item row="3" column="2">
                <widget class="QLabel" name="label_94">
@@ -1889,6 +1712,12 @@
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_84">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>25</height>
+                 </size>
+                </property>
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -1900,17 +1729,33 @@
                 </property>
                </widget>
               </item>
+              <item row="11" column="0">
+               <widget class="QLabel" name="label_99">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>25</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLineEdit" name="edit_box_name_modify"/>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_113">
+                <property name="text">
+                 <string>Name:</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </item>
             <item row="1" column="1">
              <layout class="QGridLayout" name="gridLayout_14">
-              <item row="0" column="0">
-               <widget class="QPushButton" name="button_save_box_changes">
-                <property name="text">
-                 <string>Save changes</string>
-                </property>
-               </widget>
-              </item>
               <item row="0" column="1">
                <spacer name="horizontalSpacer_6">
                 <property name="orientation">
@@ -1924,6 +1769,20 @@
                 </property>
                </spacer>
               </item>
+              <item row="0" column="2">
+               <widget class="QPushButton" name="button_reset_box_info">
+                <property name="text">
+                 <string>Reset</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QPushButton" name="button_save_box_changes">
+                <property name="text">
+                 <string>Add changes</string>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="0">
                <spacer name="verticalSpacer_9">
                 <property name="orientation">
@@ -1936,6 +1795,13 @@
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="button_save_all_changes3">
+                <property name="text">
+                 <string>Save all changes</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
@@ -1955,10 +1821,846 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_13">
+       <attribute name="title">
+        <string>Actions setting</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_19">
+        <item row="0" column="5">
+         <spacer name="horizontalSpacer_11">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_37">
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Go to</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Place</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QListView" name="pick_list"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QListView" name="go_to_list"/>
+           </item>
+           <item row="2" column="3">
+            <widget class="QListView" name="place_list"/>
+           </item>
+           <item row="3" column="0">
+            <widget class="QPushButton" name="button_remove_go_to">
+             <property name="text">
+              <string> Remove go to</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="QPushButton" name="button_remove_place">
+             <property name="text">
+              <string> Remove place</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLabel" name="label_213">
+             <property name="text">
+              <string>Pick</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QPushButton" name="button_remove_pick">
+             <property name="text">
+              <string> Remove pick</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="button_load_actions">
+             <property name="text">
+              <string>Load actions</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_38">
+           <item row="1" column="0">
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout">
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>Task name:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="edit_action_name"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_18">
+               <item>
+                <widget class="QLabel" name="label_45">
+                 <property name="text">
+                  <string>Description:</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QTextEdit" name="edit_description"/>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_20">
+               <item>
+                <widget class="QLabel" name="label_4">
+                 <property name="text">
+                  <string>Action type:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="combo_action_type">
+                 <item>
+                  <property name="text">
+                   <string>Go to</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Pick</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Place</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QListView" name="component_list"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_118">
+               <property name="text">
+                <string>Agent:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_8">
+               <item>
+                <widget class="QLabel" name="label_116">
+                 <property name="text">
+                  <string>Robot</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="check_robot">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_117">
+                 <property name="text">
+                  <string>Human</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="check_human">
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QPushButton" name="button_add_action">
+               <property name="text">
+                <string>Add action</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_5">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="0">
+            <widget class="QPushButton" name="button_save_actions">
+             <property name="text">
+              <string>Save actions</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QLabel" name="label_109">
+             <property name="text">
+              <string>Info action:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_119">
+             <property name="text">
+              <string>Goals</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListView" name="list_info_action"/>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_108">
+             <property name="text">
+              <string>Description</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTextEdit" name="edit_action_description"/>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_11">
+             <item>
+              <widget class="QLabel" name="label_121">
+               <property name="text">
+                <string>Robot</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="check_robot_info">
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_120">
+               <property name="text">
+                <string>Human</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="check_human_info">
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_5">
+       <attribute name="title">
+        <string>Recipe setting </string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_13">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="2" column="4">
+            <widget class="QLabel" name="label_21">
+             <property name="text">
+              <string>Recipe</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QListView" name="list_go_to"/>
+           </item>
+           <item row="4" column="4">
+            <widget class="QListView" name="list_recipe"/>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="label_23">
+             <property name="text">
+              <string>Pick list</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QListView" name="list_pick"/>
+           </item>
+           <item row="2" column="3">
+            <widget class="QLabel" name="label_24">
+             <property name="text">
+              <string>Place list</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="4">
+            <widget class="QPushButton" name="button_remove_element">
+             <property name="text">
+              <string>Remove element</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_26">
+             <property name="text">
+              <string>Go_to list</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="3">
+            <widget class="QListView" name="list_place"/>
+           </item>
+           <item row="0" column="3">
+            <widget class="QPushButton" name="button_load_recipe">
+             <property name="text">
+              <string>Load recipe</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="4">
+            <widget class="QComboBox" name="recipe_box"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QFrame" name="frame">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>600</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>800</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_10">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_15">
+               <item>
+                <widget class="QLabel" name="label_42">
+                 <property name="text">
+                  <string>Locations</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListView" name="list_location"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_12">
+               <item>
+                <widget class="QLabel" name="label_28">
+                 <property name="text">
+                  <string>Object types:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListView" name="list_object"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_13">
+               <item>
+                <widget class="QLabel" name="label_29">
+                 <property name="text">
+                  <string>Slot groups:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QListView" name="list_slot"/>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_16">
+             <item>
+              <widget class="QLabel" name="label_27">
+               <property name="text">
+                <string>Recipe name: </string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="edit_recipe_name"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QPushButton" name="button_save_recipe">
+             <property name="text">
+              <string>Save recipe</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="button_set_recipe">
+             <property name="text">
+              <string>Set recipe param</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="tab_9">
        <attribute name="title">
-        <string>Page</string>
+        <string>Joystick</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout_17">
+        <item row="1" column="2">
+         <spacer name="horizontalSpacer_10">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="1">
+         <spacer name="verticalSpacer_10">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="1">
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_18">
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="gridLayout_16">
+             <item row="1" column="1">
+              <widget class="QComboBox" name="combo_ref_frame">
+               <property name="minimumSize">
+                <size>
+                 <width>150</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="7">
+              <widget class="QPushButton" name="button_clock_x">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Clockwise</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="9">
+              <widget class="QPushButton" name="button_anti_z">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>AntiClockwise</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="8">
+              <widget class="QLabel" name="label_95">
+               <property name="text">
+                <string>          y</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="QLabel" name="label_97">
+               <property name="text">
+                <string>Traslation</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="7">
+              <widget class="QPushButton" name="button_anti_x">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>AntiClockwise</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="4">
+              <widget class="QPushButton" name="button_right">
+               <property name="minimumSize">
+                <size>
+                 <width>90</width>
+                 <height>80</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Right</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="8">
+              <widget class="QLabel" name="label_98">
+               <property name="text">
+                <string>Rotation</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="2">
+              <widget class="QPushButton" name="button_left">
+               <property name="minimumSize">
+                <size>
+                 <width>90</width>
+                 <height>80</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Left</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="7">
+              <widget class="QLabel" name="label_79">
+               <property name="text">
+                <string>          x</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="8">
+              <widget class="QPushButton" name="button_clock_y">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Clockwise</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="6">
+              <widget class="QLabel" name="label_61">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="9">
+              <widget class="QPushButton" name="button_clock_z">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Clockwise</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="8">
+              <widget class="QPushButton" name="button_anti_y">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>AntiClockwise</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="9">
+              <widget class="QLabel" name="label_96">
+               <property name="text">
+                <string>          z</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_105">
+               <property name="text">
+                <string>Reference frame:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="combo_configuration_">
+               <item>
+                <property name="text">
+                 <string>Watch</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Manual guidance</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Cart teleop</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_114">
+               <property name="text">
+                <string>Robot configuration:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="5">
+              <widget class="QPushButton" name="button_down">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Down</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="5">
+              <widget class="QPushButton" name="button_up">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Up</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QPushButton" name="button_front">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Front</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="3">
+              <widget class="QPushButton" name="button_back">
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>90</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Back</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_19">
+             <item>
+              <widget class="QLabel" name="label_106">
+               <property name="text">
+                <string>Robot velocity:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSlider" name="velocity_slider">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="velocity_label">
+               <property name="minimumSize">
+                <size>
+                 <width>25</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>18</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_107">
+               <property name="text">
+                <string>%</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <spacer name="horizontalSpacer_9">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="2" column="1">
+         <spacer name="verticalSpacer_11">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>

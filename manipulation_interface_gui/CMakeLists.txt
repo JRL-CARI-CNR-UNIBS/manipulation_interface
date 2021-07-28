@@ -14,7 +14,7 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
 endif()
 
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
-find_package(catkin REQUIRED COMPONENTS roscpp tf rosparam_utilities manipulation_interface_mongo configuration_msgs manipulation_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp tf rosparam_utilities manipulation_interface_mongo configuration_msgs manipulation_msgs geometry_msgs)
 catkin_package()
 
 include_directories(

@@ -42,10 +42,12 @@ public Q_SLOTS:
 	/******************************************
 	** Auto-connections (connectSlotsByName())
 	*******************************************/
-	void on_actionAbout_triggered();
-    void on_button_add_go_to_clicked(bool check);
-    void on_button_add_place_clicked(bool check);
-    void on_button_add_pick_clicked(bool check);
+    void add_go_to(int state);
+    void add_place(int state);
+    void add_pick(int state);
+
+    void on_actionAbout_triggered();
+    void on_button_add_action_clicked(bool check);
     void on_button_add_approach_object_clicked(bool check);
     void on_button_add_grasp_clicked(bool check);
     void on_button_add_approach_slot_clicked(bool check);
@@ -67,7 +69,6 @@ public Q_SLOTS:
     void on_button_remove_final_position_slot_clicked(bool check);
     void on_button_remove_approach_box_clicked(bool check);
     void on_button_remove_final_box_clicked(bool check);
-    void on_button_manual_guidance_clicked(bool check);
     void on_button_gripper_clicked(bool check);
     void on_button_save_components_clicked(bool check);
     void on_button_save_object_clicked(bool check);
@@ -77,28 +78,70 @@ public Q_SLOTS:
     void on_button_save_slot_changes_clicked(bool check);
     void on_button_save_box_changes_clicked(bool check);
     void on_button_save_object_changes_clicked(bool check);
+    void on_button_save_actions_clicked(bool check);
+    void on_button_save_all_changes0_clicked(bool check);
+    void on_button_save_all_changes1_clicked(bool check);
+    void on_button_save_all_changes2_clicked(bool check);
+    void on_button_save_all_changes3_clicked(bool check);
     void on_button_load_TF_clicked(bool chack);
     void on_button_load_clicked(bool chack);
+    void on_button_copy_grasp_clicked(bool chack);
+    void on_button_reset_location_info_clicked(bool chack);
+    void on_button_up_pressed       ();
+    void on_button_down_pressed     ();
+    void on_button_left_pressed     ();
+    void on_button_right_pressed    ();
+    void on_button_front_pressed    ();
+    void on_button_back_pressed     ();
+    void on_button_clock_x_pressed  ();
+    void on_button_clock_y_pressed  ();
+    void on_button_clock_z_pressed  ();
+    void on_button_anti_x_pressed   ();
+    void on_button_anti_y_pressed   ();
+    void on_button_anti_z_pressed   ();
+    void on_button_up_released      ();
+    void on_button_down_released    ();
+    void on_button_left_released    ();
+    void on_button_right_released   ();
+    void on_button_front_released   ();
+    void on_button_back_released    ();
+    void on_button_clock_x_released ();
+    void on_button_clock_y_released ();
+    void on_button_clock_z_released ();
+    void on_button_anti_x_released  ();
+    void on_button_anti_y_released  ();
+    void on_button_anti_z_released  ();
+    void reset_location(int index);
+    void on_button_reset_slot_info_clicked(bool chack);
+    void reset_slot(int index);
+    void on_button_reset_box_info_clicked(bool chack);
+    void reset_box(int index);
+    void on_button_reset_object_info_clicked(bool chack);
+    void reset_object(int index);
     void on_check_robot_TF_stateChanged(int state);
     void on_check_gripper_stateChanged(int state);
-    void on_check_manual_guidance_stateChanged(int state);
     void on_robot_list_currentIndexChanged(int index);
     void on_combo_grasp_number_currentIndexChanged(int index);
-    void on_place_list_pressed(const QModelIndex &index);
-    void on_pick_list_pressed(const QModelIndex &index);
-    void on_go_to_list_pressed(const QModelIndex &index);
+    void on_combo_action_type_currentIndexChanged(int index);
+    void on_combo_configuration_currentIndexChanged(int index);
+    void on_combo_configuration__currentIndexChanged(int index);
+    void on_combo_ref_frame_currentIndexChanged(int index);
     void on_list_location_modify_pressed(const QModelIndex &index);
     void on_list_box_modify_pressed(const QModelIndex &index);
     void on_list_slot_modify_pressed(const QModelIndex &index);
     void on_list_object_modify_pressed(const QModelIndex &index);
-
+    void on_velocity_slider_valueChanged(int value);
     void on_button_remove_element_clicked( bool check );
     void on_button_load_recipe_clicked   ( bool check );
     void on_button_load_actions_clicked  ( bool check );
     void on_button_save_recipe_clicked   ( bool check );
     void on_button_set_recipe_clicked    ( bool check );
-    void on_list_place_pressed ( const QModelIndex &index );
-    void on_list_pick_pressed  ( const QModelIndex &index );
+    void on_list_place_pressed    ( const QModelIndex &index );
+    void on_list_pick_pressed     ( const QModelIndex &index );
+    void on_list_go_to_pressed ( const QModelIndex &index );
+    void on_go_to_list_pressed(const QModelIndex &index);
+    void on_place_list_pressed(const QModelIndex &index);
+    void on_pick_list_pressed (const QModelIndex &index);
 
     /******************************************
     ** Manual connections
@@ -124,6 +167,9 @@ private:
     bool init_box_approach = false;
     bool init_box_final = false;
     bool init_objects = false;
+    float max_vel = 100;
+    float max_rot = 3.14;
+    int perc_vel = 0;
 };
 
 }  // namespace manipulation_interface_gui
