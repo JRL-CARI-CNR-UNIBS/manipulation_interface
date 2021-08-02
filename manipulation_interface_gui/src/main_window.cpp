@@ -41,27 +41,26 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
 	/*********************
 	** Logging
 	**********************/
-    ui.go_to_list           ->setModel(qnode.loggingModelGoTo());
-    ui.place_list           ->setModel(qnode.loggingModelPlace());
-    ui.pick_list            ->setModel(qnode.loggingModelPick());
-    ui.object_list          ->setModel(qnode.loggingModelObject());
-    ui.slot_list            ->setModel(qnode.loggingModelSlot());
-    ui.group_list           ->setModel(qnode.loggingModelGroup());
-    ui.box_list             ->setModel(qnode.loggingModelBox());
-    ui.locations_list       ->setModel(qnode.loggingModelLocation());
-    ui.list_location_modify ->setModel(qnode.loggingModelLocationModify());
-    ui.list_box_modify      ->setModel(qnode.loggingModelBoxModify());
-    ui.list_slot_modify     ->setModel(qnode.loggingModelSlotModify());
-    ui.list_object_modify   ->setModel(qnode.loggingModelObjectModify());
-    ui.component_list       ->setModel(qnode.loggingModelComponents());
-    ui.list_info_action     ->setModel(qnode.loggingModelInfoAction());
-    ui.list_go_to           ->setModel(qnode.loggingModelSecondGoto());
-    ui.list_place           ->setModel(qnode.loggingModelSecondPlace());
-    ui.list_pick            ->setModel(qnode.loggingModelSecondPick());
-    ui.list_recipe          ->setModel(qnode.loggingModelRecipe());
-    ui.list_object          ->setModel(qnode.loggingModelSecondObjects());
-    ui.list_slot            ->setModel(qnode.loggingModelSecondSlots());
-    ui.list_location        ->setModel(qnode.loggingModelSecondLocations());
+    ui.go_to_list             ->setModel(qnode.loggingModelGoTo());
+    ui.place_list             ->setModel(qnode.loggingModelPlace());
+    ui.pick_list              ->setModel(qnode.loggingModelPick());
+    ui.object_list            ->setModel(qnode.loggingModelObject());
+    ui.slot_list              ->setModel(qnode.loggingModelSlot());
+    ui.group_list             ->setModel(qnode.loggingModelGroup());
+    ui.box_list               ->setModel(qnode.loggingModelBox());
+    ui.locations_list         ->setModel(qnode.loggingModelLocation());
+    ui.list_location_modify   ->setModel(qnode.loggingModelLocationModify());
+    ui.list_box_modify        ->setModel(qnode.loggingModelBoxModify());
+    ui.list_slot_modify       ->setModel(qnode.loggingModelSlotModify());
+    ui.list_object_modify     ->setModel(qnode.loggingModelObjectModify());
+    ui.component_list         ->setModel(qnode.loggingModelComponents());
+    ui.list_info_action       ->setModel(qnode.loggingModelInfoAction());
+    ui.list_go_to             ->setModel(qnode.loggingModelSecondGoto());
+    ui.list_place             ->setModel(qnode.loggingModelSecondPlace());
+    ui.list_pick              ->setModel(qnode.loggingModelSecondPick());
+    ui.list_recipe            ->setModel(qnode.loggingModelRecipe());
+
+    ui.list_action_components ->setModel(qnode.loggingModelActionComponents());
 
     QObject::connect(&qnode, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
 
@@ -87,28 +86,28 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.lateral_tab                       ->setEnabled(false);
     ui.check_human_info                  ->setEnabled(false);
     ui.check_robot_info                  ->setEnabled(false);
+    ui.check_human_info_2                ->setEnabled(false);
+    ui.check_robot_info_2                ->setEnabled(false);
 
-    ui.go_to_list           ->setEditTriggers(QListView::NoEditTriggers);
-    ui.place_list           ->setEditTriggers(QListView::NoEditTriggers);
-    ui.pick_list            ->setEditTriggers(QListView::NoEditTriggers);
-    ui.object_list          ->setEditTriggers(QListView::NoEditTriggers);
-    ui.slot_list            ->setEditTriggers(QListView::NoEditTriggers);
-    ui.group_list           ->setEditTriggers(QListView::NoEditTriggers);
-    ui.box_list             ->setEditTriggers(QListView::NoEditTriggers);
-    ui.locations_list       ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_location_modify ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_box_modify      ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_slot_modify     ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_object_modify   ->setEditTriggers(QListView::NoEditTriggers);
-    ui.component_list       ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_go_to           ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_place           ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_pick            ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_recipe          ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_object          ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_slot            ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_location        ->setEditTriggers(QListView::NoEditTriggers);
-    ui.list_info_action     ->setEditTriggers(QListView::NoEditTriggers);
+    ui.go_to_list             ->setEditTriggers(QListView::NoEditTriggers);
+    ui.place_list             ->setEditTriggers(QListView::NoEditTriggers);
+    ui.pick_list              ->setEditTriggers(QListView::NoEditTriggers);
+    ui.object_list            ->setEditTriggers(QListView::NoEditTriggers);
+    ui.slot_list              ->setEditTriggers(QListView::NoEditTriggers);
+    ui.group_list             ->setEditTriggers(QListView::NoEditTriggers);
+    ui.box_list               ->setEditTriggers(QListView::NoEditTriggers);
+    ui.locations_list         ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_location_modify   ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_box_modify        ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_slot_modify       ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_object_modify     ->setEditTriggers(QListView::NoEditTriggers);
+    ui.component_list         ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_go_to             ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_place             ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_pick              ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_recipe            ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_info_action       ->setEditTriggers(QListView::NoEditTriggers);
+    ui.list_action_components ->setEditTriggers(QListView::NoEditTriggers);
 
     ui.edit_location_frame     ->setReadOnly(true);
     ui.edit_slot_frame         ->setReadOnly(true);
@@ -116,8 +115,6 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.edit_box_frame          ->setReadOnly(true);
     ui.edit_object_tool        ->setReadOnly(true);
     ui.edit_action_description ->setReadOnly(true);
-
-    ui.velocity_slider->setMaximum(100);
 
     /*********************
     ** Window connect to ROS
@@ -435,6 +432,7 @@ void MainWindow::on_button_add_grasp_clicked(bool check)
     QString grasp;
     grasp.append(str.c_str());
     ui.grasp_list->addItem(grasp);
+    ui.grasp_list->setCurrentIndex(ui.grasp_list->count()-1);
 }
 
 void MainWindow::on_button_add_approach_slot_clicked(bool check)
@@ -468,6 +466,10 @@ void MainWindow::on_button_add_location_clicked(bool check)
         else
         {
             ui.edit_location_name->clear();
+            if ( ui.combo_action_type->currentIndex() == 0)
+            {
+                qnode.write_locations();
+            }
         }
     }
     else
@@ -817,6 +819,10 @@ void MainWindow::on_button_save_object_clicked(bool check)
                         ui.button_add_approach_object->setEnabled(true);
                         ui.button_remove_approach_object->setEnabled(false);
                         actual_object_grasp.clear();
+                        if ( ui.combo_action_type->currentIndex() == 1 )
+                        {
+                            qnode.write_objects();
+                        }
                     }
                 }
                 else
@@ -888,6 +894,10 @@ void MainWindow::on_button_save_slot_clicked(bool check)
                                 ui.button_remove_approach_slot->setEnabled(false);
                                 ui.button_add_final_position_slot->setEnabled(true);
                                 ui.button_remove_final_position_slot->setEnabled(false);
+                                if ( ui.combo_action_type->currentIndex() == 2 )
+                                {
+                                    qnode.write_groups();
+                                }
                             }
                         }
                         else
@@ -1686,6 +1696,7 @@ void MainWindow::on_combo_configuration_currentIndexChanged(int index)
         msgBox.setText("There is a problem with configuration");
         msgBox.exec();
     }
+    ui.combo_configuration_->setCurrentIndex( index );
 }
 
 void MainWindow::on_combo_configuration__currentIndexChanged(int index)
@@ -1860,16 +1871,106 @@ void MainWindow::on_button_set_recipe_clicked ( bool check )
 void MainWindow::on_list_place_pressed(const QModelIndex &index)
 {
     qnode.add_slot_groups( index.row() );
+    place pl = qnode.return_place_info( index.row() );
+    QString qstr = QString::fromStdString( pl.description );
+    ui.edit_action_description_2->setText( qstr );
+    ui.list_go_to->clearSelection();
+    ui.list_pick->clearSelection();
+    if ( pl.agents.size() == 2 )
+    {
+        ui.check_human_info_2->setChecked(true);
+        ui.check_robot_info_2->setChecked(true);
+    }
+    else if ( pl.agents.size() == 0 )
+    {
+        ui.check_human_info_2->setChecked(false);
+        ui.check_robot_info_2->setChecked(false);
+    }
+    else if ( pl.agents[0] == "robot" )
+    {
+        ui.check_human_info_2->setChecked(false);
+        ui.check_robot_info_2->setChecked(true);
+    }
+    else if ( pl.agents[0] == "human" )
+    {
+        ui.check_human_info_2->setChecked(true);
+        ui.check_robot_info_2->setChecked(false);
+    }
+    else
+    {
+        ui.check_human_info_2->setChecked(false);
+        ui.check_robot_info_2->setChecked(false);
+    }
 }
 
 void MainWindow::on_list_pick_pressed(const QModelIndex &index)
 {
     qnode.add_object_type( index.row() );
+    pick pk = qnode.return_pick_info( index.row() );
+    QString qstr = QString::fromStdString( pk.description );
+    ui.edit_action_description_2->setText( qstr );
+    ui.list_place->clearSelection();
+    ui.list_go_to->clearSelection();
+    if ( pk.agents.size() == 2 )
+    {
+        ui.check_human_info_2->setChecked(true);
+        ui.check_robot_info_2->setChecked(true);
+    }
+    else if ( pk.agents.size() == 0 )
+    {
+        ui.check_human_info_2->setChecked(false);
+        ui.check_robot_info_2->setChecked(false);
+    }
+    else if ( pk.agents[0] == "robot" )
+    {
+        ui.check_human_info_2->setChecked(false);
+        ui.check_robot_info_2->setChecked(true);
+    }
+    else if ( pk.agents[0] == "human" )
+    {
+        ui.check_human_info_2->setChecked(true);
+        ui.check_robot_info_2->setChecked(false);
+    }
+    else
+    {
+        ui.check_human_info_2->setChecked(false);
+        ui.check_robot_info_2->setChecked(false);
+    }
 }
 
 void MainWindow::on_list_go_to_pressed(const QModelIndex &index)
 {
     qnode.add_location_info( index.row() );
+    go_to gt = qnode.return_go_to_info( index.row() );
+    QString qstr = QString::fromStdString( gt.description );
+    ui.edit_action_description_2->setText( qstr );
+    ui.list_place->clearSelection();
+    ui.list_pick->clearSelection();
+    if ( gt.agents.size() == 2 )
+    {
+        ui.check_human_info_2->setChecked(true);
+        ui.check_robot_info_2->setChecked(true);
+    }
+    else if ( gt.agents.size() == 0 )
+    {
+        ui.check_human_info_2->setChecked(false);
+        ui.check_robot_info_2->setChecked(false);
+    }
+    else if ( gt.agents[0] == "robot" )
+    {
+        ui.check_human_info_2->setChecked(false);
+        ui.check_robot_info_2->setChecked(true);
+    }
+    else if ( gt.agents[0] == "human" )
+    {
+        ui.check_human_info_2->setChecked(true);
+        ui.check_robot_info_2->setChecked(false);
+    }
+    else
+    {
+        ui.check_human_info_2->setChecked(false);
+        ui.check_robot_info_2->setChecked(false);
+    }
 }
 
 void MainWindow::on_go_to_list_pressed(const QModelIndex &index)

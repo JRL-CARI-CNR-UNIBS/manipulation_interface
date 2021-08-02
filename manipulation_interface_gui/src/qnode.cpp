@@ -101,46 +101,37 @@ void QNode::cartMove (std::vector<float> twist_move)
 
 void QNode::add_object_type (int ind)
 {
-    if ( logging_model_second_objects.rowCount() != 0 )
+    if ( logging_model_action_components.rowCount() != 0 )
     {
-        logging_model_second_objects.removeRows(0,logging_model_second_objects.rowCount());
+        logging_model_action_components.removeRows(0,logging_model_action_components.rowCount());
     }
-    if ( ind != 1000)
+    for ( int i = 0; i < pick_actions[ind].objects.size(); i++)
     {
-        for ( int i = 0; i < pick_actions[ind].objects.size(); i++)
-        {
-            log_second_objects( pick_actions[ind].objects[i] );
-        }
+        log_action_components( pick_actions[ind].objects[i] );
     }
 }
 
 void QNode::add_slot_groups (int ind)
 {
-    if ( logging_model_second_slots.rowCount() != 0 )
+    if ( logging_model_action_components.rowCount() != 0 )
     {
-        logging_model_second_slots.removeRows(0,logging_model_second_slots.rowCount());
+        logging_model_action_components.removeRows(0,logging_model_action_components.rowCount());
     }
-    if ( ind != 1000)
+    for ( int i = 0; i < place_actions[ind].groups.size(); i++)
     {
-        for ( int i = 0; i < place_actions[ind].groups.size(); i++)
-        {
-            log_second_slots( place_actions[ind].groups[i] );
-        }
+        log_action_components( place_actions[ind].groups[i] );
     }
 }
 
 void QNode::add_location_info (int ind)
 {
-    if ( logging_model_second_locations.rowCount() != 0 )
+    if ( logging_model_action_components.rowCount() != 0 )
     {
-        logging_model_second_locations.removeRows(0,logging_model_second_locations.rowCount());
+        logging_model_action_components.removeRows(0,logging_model_action_components.rowCount());
     }
-    if ( ind != 1000)
+    for ( int i = 0; i < go_to_actions[ind].locations.size(); i++)
     {
-        for ( int i = 0; i < go_to_actions[ind].locations.size(); i++)
-        {
-            log_second_locations( go_to_actions[ind].locations[i] );
-        }
+        log_action_components( go_to_actions[ind].locations[i] );
     }
 }
 
@@ -154,7 +145,6 @@ bool QNode::add_second_location_info( int ind )
     {
         log_info_action( go_to_actions[ind].locations[i] );
     }
-
 }
 
 bool QNode::add_second_slot_groups  ( int ind )
@@ -533,10 +523,8 @@ bool QNode::add_pick(std::string pick_name, std::vector<std::string> objects_, s
     {
         if ( logging_model_pick.rowCount()!=0 )
         {
-//            ROS_ERROR("sei entrato nell if");
             for (int i=0; i<logging_model_pick.rowCount(); i++)
             {
-//                ROS_ERROR("sei entrato nell for");
                 ros::Duration(0.1);
                 if ( !pick_name.compare( logging_model_pick.data( logging_model_pick.index( i ), 0 ).toString().toStdString() ) )
                 {
@@ -572,10 +560,8 @@ bool QNode::add_location(std::string location_name)
 {
     if ( logging_model_location.rowCount()!=0 )
     {
-        //            ROS_ERROR("sei entrato nell if");
         for (int i=0; i<logging_model_location.rowCount(); i++)
         {
-            //                ROS_ERROR("sei entrato nell for");
             ros::Duration(0.1);
             if ( !location_name.compare( logging_model_location.data( logging_model_location.index( i ), 0 ).toString().toStdString() ) )
             {
@@ -604,7 +590,6 @@ location QNode::return_position( std::string base_frame, std::string target_fram
     location loc;
     try
     {
-//        ROS_ERROR("The base frame is: %s. The target frame is: %s",base_frame.c_str(),target_frame.c_str());
         listener.lookupTransform(base_frame, target_frame, ros::Time(0), transform);
     }
     catch (tf::TransformException ex)
@@ -831,30 +816,12 @@ void QNode::log_second_pick  (const std::string &msg)
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::log_second_objects(const std::string &msg)
+void QNode::log_action_components(const std::string &msg)
 {
-    logging_model_second_objects.insertRows(logging_model_second_objects.rowCount(),1);
+    logging_model_action_components.insertRows(logging_model_action_components.rowCount(),1);
     ROS_DEBUG_STREAM(msg);
     QVariant new_row(QString(msg.c_str()));
-    logging_model_second_objects.setData(logging_model_second_objects.index(logging_model_second_objects.rowCount()-1),new_row);
-    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
-}
-
-void QNode::log_second_slots (const std::string &msg)
-{
-    logging_model_second_slots.insertRows(logging_model_second_slots.rowCount(),1);
-    ROS_DEBUG_STREAM(msg);
-    QVariant new_row(QString(msg.c_str()));
-    logging_model_second_slots.setData(logging_model_second_slots.index(logging_model_second_slots.rowCount()-1),new_row);
-    Q_EMIT loggingUpdated(); // used to readjust the scrollbar
-}
-
-void QNode::log_second_locations (const std::string &msg)
-{
-    logging_model_second_locations.insertRows(logging_model_second_locations.rowCount(),1);
-    ROS_DEBUG_STREAM(msg);
-    QVariant new_row(QString(msg.c_str()));
-    logging_model_second_locations.setData(logging_model_second_locations.index(logging_model_second_locations.rowCount()-1),new_row);
+    logging_model_action_components.setData(logging_model_action_components.index(logging_model_action_components.rowCount()-1),new_row);
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
@@ -869,37 +836,37 @@ void QNode::log_recipe (const std::string &msg)
 
 void QNode::remove_go_to(int ind)
 {
-    go_to_actions.erase (go_to_actions.begin()+ind);
+    go_to_actions.erase(go_to_actions.begin()+ind);
 }
 
 void QNode::remove_location(int ind)
 {
-    go_to_locations.erase (go_to_locations.begin()+ind);
+    go_to_locations.erase(go_to_locations.begin()+ind);
 }
 
 void QNode::remove_place(int ind)
 {
-    place_actions.erase (place_actions.begin()+ind);
+    place_actions.erase(place_actions.begin()+ind);
 }
 
 void QNode::remove_pick(int ind)
 {
-    pick_actions.erase (pick_actions.begin()+ind);
+    pick_actions.erase(pick_actions.begin()+ind);
 }
 
 void QNode::remove_object(int ind)
 {
-    objects.erase      (objects.begin()+ind);
+    objects.erase(objects.begin()+ind);
 }
 
 void QNode::remove_slot(int ind)
 {
-    manipulation_slots.erase           (manipulation_slots.begin()+ind);
+    manipulation_slots.erase(manipulation_slots.begin()+ind);
 }
 
 void QNode::remove_box(int ind)
 {
-    boxes.erase     (boxes.begin()+ind);
+    boxes.erase(boxes.begin()+ind);
 }
 
 std::vector<int> QNode::remove_group(int ind)
@@ -1820,6 +1787,8 @@ bool QNode::save_location_changes(int ind, go_to_location new_location)
     else
     {
         go_to_locations.push_back( new_location );
+        log_location(new_location.name);
+        log_location_modify(new_location.name);
     }
     return true;
 }
@@ -1833,6 +1802,8 @@ bool QNode::save_slot_changes(int ind, slot new_slot)
     else
     {
         manipulation_slots.push_back(new_slot);
+        log_slot(new_slot.name);
+        log_slot_modify(new_slot.name);
     }
     return true;
 }
@@ -1846,6 +1817,8 @@ bool QNode::save_box_changes(int ind, box new_box)
     else
     {
         boxes.push_back( new_box );
+        log_box(new_box.name);
+        log_box_modify(new_box.name);
     }
     return true;
 }
@@ -1859,6 +1832,8 @@ bool QNode::save_object_changes(int ind, object_type new_object)
     else
     {
         objects.push_back( new_object );
+        log_object_modify(new_object.name);
+        log_object(new_object.name);
     }
     return true;
 }

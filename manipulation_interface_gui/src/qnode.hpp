@@ -267,10 +267,12 @@ public:
     QStringListModel* loggingModelSecondGoto()      { return &logging_model_second_go_to; }
     QStringListModel* loggingModelSecondPlace()     { return &logging_model_second_place; }
     QStringListModel* loggingModelSecondPick()      { return &logging_model_second_pick; }
-    QStringListModel* loggingModelSecondObjects()   { return &logging_model_second_objects; }
-    QStringListModel* loggingModelSecondSlots()     { return &logging_model_second_slots; }
-    QStringListModel* loggingModelSecondLocations() { return &logging_model_second_locations; }
     QStringListModel* loggingModelRecipe()          { return &logging_model_recipe; }
+    QStringListModel* loggingModelActionComponents(){ return &logging_model_action_components; }
+
+//    QStringListModel* loggingModelSecondObjects()   { return &logging_model_second_objects; }
+//    QStringListModel* loggingModelSecondSlots()     { return &logging_model_second_slots; }
+//    QStringListModel* loggingModelSecondLocations() { return &logging_model_second_locations; }
 
     void log_go_to           ( const std::string &msg);
     void log_place           ( const std::string &msg);
@@ -293,10 +295,13 @@ public:
     void log_second_go_to     (const std::string &msg);
     void log_second_place     (const std::string &msg);
     void log_second_pick      (const std::string &msg);
+    void log_recipe           (const std::string &msg);
+    void log_action_components(const std::string &msg);
+
     void log_second_objects   (const std::string &msg);
     void log_second_slots     (const std::string &msg);
     void log_second_locations (const std::string &msg);
-    void log_recipe           (const std::string &msg);
+
     //
 
     void remove_go_to    ( int ind);
@@ -350,9 +355,12 @@ private:
     QStringListModel logging_model_second_go_to;
     QStringListModel logging_model_second_place;
     QStringListModel logging_model_second_pick;
-    QStringListModel logging_model_second_objects;
-    QStringListModel logging_model_second_slots;
-    QStringListModel logging_model_second_locations;
+    QStringListModel logging_model_action_components;
+
+//    QStringListModel logging_model_second_objects;
+//    QStringListModel logging_model_second_slots;
+//    QStringListModel logging_model_second_locations;
+
     QStringListModel logging_model_recipe;
 
     std::vector<go_to_location> go_to_locations;

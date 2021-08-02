@@ -167,9 +167,9 @@ private:
     bool init_box_approach = false;
     bool init_box_final = false;
     bool init_objects = false;
-    float max_vel = 100;
+    float max_vel = 1;
     float max_rot = 3.14;
-    int perc_vel = 0;
+    int perc_vel = 50;
 };
 
 }  // namespace manipulation_interface_gui
