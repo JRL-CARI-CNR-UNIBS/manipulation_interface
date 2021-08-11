@@ -93,14 +93,6 @@ struct object_type
     std::vector<std::string> tool;
 };
 
-struct object_distibution
-{
-    std::string name;
-    std::string type;
-    std::string box_;
-    location    location_;
-};
-
 struct slot
 {
     std::string name;
@@ -149,10 +141,11 @@ public:
     void add_slot_groups   (int ind);
     void add_location_info (int ind);
 
-    void load_recipe( int ind );
-    std::vector<std::string> load_recipes();
-    bool save_recipe(std::string recipe_name);
-    bool set_recipe();
+    void write_recipe(int ind);
+    std::vector<std::string> load_recipes_param();
+    bool add_recipe(std::string recipe_name);
+    bool remove_recipe(int ind);
+    bool save_recipe();
 
     XmlRpc::XmlRpcValue get_recipe_param(int index);
     XmlRpc::XmlRpcValue get_action_go_to_param (int index);
@@ -166,10 +159,22 @@ public:
     bool add_objects_pick        ( int ind );
     bool add_groups_place        ( int ind );
     bool add_locations_go_to     ( int ind );
+    bool add_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools);
+    bool add_slot  (std::string slot_name, location slot_approach, location slot_final_pos, std::string goup_name, int max_number);
+    bool add_box   (std::string box_name, location approach_position, location final_position);
+    bool add_location_changes(int ind, go_to_location new_location);
+    bool add_slot_changes    (int ind, slot new_slot);
+    bool add_box_changes     (int ind, box new_box);
+    bool add_object_changes  (int ind, object_type new_object);
     bool add_second_location_info( int ind );
     bool add_second_slot_groups  ( int ind );
     bool add_second_object_type  ( int ind );
     bool add_object_copy_grasp   ( int index, int index2 );
+    bool add_location_copy(go_to_location new_loc);
+    bool add_object_copy(object_type new_obj);
+    bool add_slot_copy(slot new_slot);
+    bool add_box_copy(box new_box);
+
 
     location       return_position( std::string base_frame, std::string target_frame );
     go_to          return_go_to_info         (int ind);
@@ -214,16 +219,10 @@ public:
 
     void check_objects_param();
     void check_other_param();
+    void check_recipes_param();
 
     bool save_components();
     bool save_actions();
-    bool save_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools);
-    bool save_slot  (std::string slot_name, location slot_approach, location slot_final_pos, std::string goup_name, int max_number);
-    bool save_box   (std::string box_name, location approach_position, location final_position);
-    bool save_location_changes(int ind, go_to_location new_location);
-    bool save_slot_changes    (int ind, slot new_slot);
-    bool save_box_changes     (int ind, box new_box);
-    bool save_object_changes  (int ind, object_type new_object);
 
     void load_TF();
     void load_param(int ind);

@@ -12,47 +12,60 @@ def callback(data):
 	return data.data
 
 def save_components_params(srv):
-	go_to_collection.delete_many({})
 	go_to_param = rospy.get_param("/go_to_location")
-	go_to_collection.insert_many(go_to_param)
+	if go_to_param:
+		go_to_collection.delete_many({})
+		go_to_collection.insert_many(go_to_param)
 
-	boxes_collection.delete_many({})
 	boxes_param = rospy.get_param("/inbound/boxes")
-	boxes_collection.insert_many(boxes_param)
+	if boxes_param:
+		boxes_collection.delete_many({})
+		boxes_collection.insert_many(boxes_param)
 
-	go_to_collection.delete_many({})
 	go_to_param = rospy.get_param("/go_to_location")
-	go_to_collection.insert_many(go_to_param)
+	if go_to_param:
+		go_to_collection.delete_many({})
+		go_to_collection.insert_many(go_to_param)
 
-	groups_collection.delete_many({})
 	groups_param = rospy.get_param("/outbound/slots_group")
-	groups_collection.insert_many(groups_param)
+	if groups_param:
+		groups_collection.delete_many({})
+		groups_collection.insert_many(groups_param)
 
-	objects_collection.delete_many({})
 	objects_param = rospy.get_param("/manipulation/objects")
-	objects_collection.insert_many(objects_param)
+	if objects_param:
+		objects_collection.delete_many({})
+		objects_collection.insert_many(objects_param)
 
-	slots_collection.delete_many({})
 	slots_param = rospy.get_param("/outbound/slots")
-	slots_collection.insert_many(slots_param)
-
-	tasks_collection.delete_many({})
-	tasks_param = rospy.get_param("/multi_skills/tasks")
-	tasks_collection.insert_many(tasks_param)
+	if slots_param:
+		slots_collection.delete_many({})
+		slots_collection.insert_many(slots_param)
 
 	print('components params are saved')
 	return 'true'
 
+def save_actions_params(srv):
+	tasks_param = rospy.get_param("/multi_skills/tasks")
+	if tasks_param:
+		tasks_collection.delete_many({})
+		tasks_collection.insert_many(tasks_param)
+
+	print('actions params are saved')
+	return 'true'
+
 def save_recipe_param(srv):
-	recipes_collection.delete_many({})
 	recipes_param = rospy.get_param("/multi_skills/recipes")
-	recipes_collection.insert_many(recipes_param)
+	if recipes_param:
+		recipes_collection.delete_many({})
+		recipes_collection.insert_many(recipes_param)
 
 	print('recipe param is saved')
 	return 'true'
 
 def save_server():
 	s = rospy.Service('/save_components_params_on_mongo', SaveParam, save_components_params)
+	s = rospy.Service('/save_actions_param_on_mongo', SaveParam, save_actions_params)
 	s = rospy.Service('/save_recipe_param_on_mongo', SaveParam, save_recipe_param)
 	print("Ready to save new param.")
 	rospy.spin()

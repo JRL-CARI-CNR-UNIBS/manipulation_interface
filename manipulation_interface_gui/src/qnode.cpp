@@ -177,7 +177,7 @@ bool QNode::add_object_copy_grasp   ( int index, int index2 )
     objects[index].grasp.push_back   ( objects[index].grasp[index2] );
     objects[index].tool.push_back    ( objects[index].tool[index2] );
 }
-void QNode::load_recipe ( int index)
+void QNode::write_recipe ( int index)
 {
     for ( int i = 0; i < recipes[index].recipe_.size(); i++ )
     {
@@ -185,7 +185,7 @@ void QNode::load_recipe ( int index)
     }
 }
 
-std::vector<std::string> QNode::load_recipes ()
+std::vector<std::string> QNode::load_recipes_param ()
 {
     ros::NodeHandle n;
 
@@ -203,8 +203,6 @@ std::vector<std::string> QNode::load_recipes ()
     }
     ROS_INFO("There are %d recipes",config.size());
 
-    recipes.clear();
-
     for ( int i = 0; i < config.size(); i++)
     {
         XmlRpc::XmlRpcValue param = config[i];
@@ -217,13 +215,13 @@ std::vector<std::string> QNode::load_recipes ()
         single_recipe.name = rosparam_utilities::toString(param["name"]);
 
         std::string what;
-        std::vector<std::string> description;
-        if( !rosparam_utilities::getParam(param,"recipe",description,what) )
+        std::vector<std::string> recipe_;
+        if( !rosparam_utilities::getParam(param,"recipe",recipe_,what) )
         {
-          ROS_WARN("The element #%zu has not the field 'description'", i);
+          ROS_WARN("The element #%zu has not the field 'recipe'", i);
           continue;
         }
-        single_recipe.recipe_ = description;
+        single_recipe.recipe_ = recipe_;
         bool presence = false;
         for ( int j = 0; j < recipes.size(); j++)
         {
@@ -244,19 +242,8 @@ std::vector<std::string> QNode::load_recipes ()
     return recipes_names;
 }
 
-bool QNode::save_recipe( std::string recipe_name )
+bool QNode::add_recipe(std::string recipe_name)
 {
-    ros::NodeHandle n;
-    XmlRpc::XmlRpcValue param;
-
-    for ( int i = 0; i < recipes.size(); i++ )
-    {
-        if ( !recipe_name.compare( recipes[i].name ) )
-        {
-            recipes.erase( recipes.begin()+i );
-        }
-    }
-
     recipe recipe_;
     recipe_.name = recipe_name;
 
@@ -265,7 +252,34 @@ bool QNode::save_recipe( std::string recipe_name )
         recipe_.recipe_.push_back( logging_model_recipe.data( logging_model_recipe.index(i) ).toString().toStdString() );
     }
 
+    for ( int i = 0; i < recipes.size(); i++ )
+    {
+        if ( !recipe_name.compare( recipes[i].name ) )
+        {
+            return false;
+        }
+        if ( compare( recipe_.recipe_, recipes[i].recipe_ ) )
+        {
+            return false;
+        }
+    }
+
     recipes.push_back(recipe_);
+
+    return true;
+}
+
+bool QNode::remove_recipe(int ind)
+{
+    recipes.erase(recipes.begin()+ind);
+}
+
+bool QNode::save_recipe()
+{
+    ros::NodeHandle n;
+    XmlRpc::XmlRpcValue param;
+
+    check_recipes_param();
 
     for ( int i = 0; i < recipes.size(); i++)
     {
@@ -277,84 +291,13 @@ bool QNode::save_recipe( std::string recipe_name )
     ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("save_recipe_param_on_mongo");
     manipulation_interface_mongo::SaveParam srv;
     client.waitForExistence();
-     if ( !client.call(srv) )
+    if ( !client.call(srv) )
     {
         ROS_ERROR("Unable to call %s service",client.getService().c_str());
         return false;
     }
     return true;
 }
-
-bool QNode::set_recipe()
-{
-    ros::NodeHandle n;
-    std::vector<std::string> actions_names;
-
-    for ( int i = 0; i < logging_model_recipe.rowCount(); i++ )
-    {
-        bool presence = false;
-
-        for ( int j = 0; j < logging_model_second_go_to.rowCount(); j++ )
-        {
-            if ( !logging_model_second_go_to.data( logging_model_second_go_to.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
-            {
-                presence = true;
-            }
-        }
-        for ( int j = 0; j < logging_model_second_place.rowCount(); j++ )
-        {
-            if ( !logging_model_second_place.data( logging_model_second_place.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
-            {
-                presence = true;
-            }
-        }
-        for ( int j = 0; j < logging_model_second_pick.rowCount(); j++ )
-        {
-            if ( !logging_model_second_pick.data( logging_model_second_pick.index( j ), 0 ).toString().toStdString().compare( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() ) )
-            {
-                presence = true;
-            }
-        }
-
-        if ( presence )
-        {
-            actions_names.push_back( logging_model_recipe.data( logging_model_recipe.index( i ), 0 ).toString().toStdString() );
-        }
-        else
-        {
-            return false;
-        }
-    }
-    std::string xml_body;
-
-    xml_body.append(init_value);
-    xml_body.append(init_array);
-    xml_body.append(init_data);
-
-
-    for ( int i = 0; i < actions_names.size(); i++)
-    {
-        xml_body.append(init_value);
-        xml_body.append(init_string);
-        xml_body.append(actions_names[i]);
-        xml_body.append(end_string);
-        xml_body.append(end_value);
-    }
-
-    xml_body.append(end_data);
-    xml_body.append(end_array);
-    xml_body.append(end_value);
-
-    int offset = 0;
-    int* offset_ptr = &offset;
-    XmlRpc::XmlRpcValue param;
-    param.fromXml(xml_body,offset_ptr);
-
-    n.setParam("/multi_skills/recipe", param);
-    return true;
-}
-
-
 
 XmlRpc::XmlRpcValue QNode::get_recipe_param(int index)
 {
@@ -462,6 +405,14 @@ bool QNode::add_go_to(std::string go_to_name, std::vector<std::string> locations
             {
                 return false;
             }
+            if ( !go_to_name.compare( logging_model_place.data( logging_model_place.index( i ), 0 ).toString().toStdString() ) )
+            {
+                return false;
+            }
+            if ( !go_to_name.compare( logging_model_pick.data( logging_model_pick.index( i ), 0 ).toString().toStdString() ) )
+            {
+                return false;
+            }
         }
         for ( int i = 0; i < go_to_actions.size(); i++)
         {
@@ -491,7 +442,15 @@ bool QNode::add_place(std::string place_name, std::vector<std::string> groups_, 
         for (int i=0; i<logging_model_place.rowCount(); i++)
         {
             ros::Duration(0.1);
+            if ( !place_name.compare( logging_model_go_to.data( logging_model_go_to.index( i ), 0 ).toString().toStdString() ) )
+            {
+                return false;
+            }
             if ( !place_name.compare( logging_model_place.data( logging_model_place.index( i ), 0 ).toString().toStdString() ) )
+            {
+                return false;
+            }
+            if ( !place_name.compare( logging_model_pick.data( logging_model_pick.index( i ), 0 ).toString().toStdString() ) )
             {
                 return false;
             }
@@ -526,6 +485,14 @@ bool QNode::add_pick(std::string pick_name, std::vector<std::string> objects_, s
             for (int i=0; i<logging_model_pick.rowCount(); i++)
             {
                 ros::Duration(0.1);
+                if ( !pick_name.compare( logging_model_go_to.data( logging_model_go_to.index( i ), 0 ).toString().toStdString() ) )
+                {
+                    return false;
+                }
+                if ( !pick_name.compare( logging_model_place.data( logging_model_place.index( i ), 0 ).toString().toStdString() ) )
+                {
+                    return false;
+                }
                 if ( !pick_name.compare( logging_model_pick.data( logging_model_pick.index( i ), 0 ).toString().toStdString() ) )
                 {
                     return false;
@@ -579,6 +546,66 @@ bool QNode::add_location(std::string location_name)
     gt.frame = base_frame;
     go_to_locations.push_back(gt);
 
+    return true;
+}
+
+bool QNode::add_location_copy(go_to_location new_loc)
+{
+    for ( int i = 0; i < go_to_locations.size(); i++)
+    {
+        if ( !new_loc.name.compare( go_to_locations[i].name ) )
+        {
+            return false;
+        }
+    }
+    go_to_locations.push_back( new_loc );
+    log_location( new_loc.name );
+    log_location_modify( new_loc.name );
+    return true;
+}
+
+bool QNode::add_object_copy(object_type new_obj)
+{
+    for ( int i = 0; i < objects.size(); i++)
+    {
+        if ( !new_obj.name.compare( objects[i].name ) )
+        {
+            return false;
+        }
+    }
+    objects.push_back( new_obj );
+    log_object( new_obj.name );
+    log_object_modify( new_obj.name );
+    return true;
+}
+
+bool QNode::add_slot_copy(slot new_slot)
+{
+    for ( int i = 0; i < manipulation_slots.size(); i++)
+    {
+        if ( !new_slot.name.compare( manipulation_slots[i].name ) )
+        {
+            return false;
+        }
+    }
+    manipulation_slots.push_back( new_slot );
+    log_slot( new_slot.name );
+    log_slot_modify( new_slot.name );
+    return true;
+}
+
+bool QNode::add_box_copy(box new_box)
+{
+    for ( int i = 0; i < boxes.size(); i++)
+    {
+        if ( !new_box.name.compare( boxes[i].name ) )
+        {
+            return false;
+        }
+    }
+    boxes.push_back( new_box );
+    log_box( new_box.name );
+    log_box_modify( new_box.name );
     return true;
 }
 
@@ -1574,6 +1601,27 @@ void QNode::check_other_param()
     boxes_compare = boxes;
 }
 
+void QNode::check_recipes_param()
+{
+    for ( int i = 0; i < recipes_compare.size(); i++ )
+    {
+        bool presence = false;
+        for ( int j = 0; j < recipes.size(); j++)
+        {
+            if ( recipes[j].name == recipes_compare[i].name )
+            {
+                presence = true;
+            }
+        }
+        if ( presence == false )
+        {
+            recipes.push_back( recipes_compare[i] );
+        }
+    }
+
+    recipes_compare = recipes;
+}
+
 bool QNode::save_components()
 {
     ros::NodeHandle n;
@@ -1665,7 +1713,7 @@ bool QNode::save_actions()
     n.setParam("/multi_skills/tasks", param);
     param.clear();
 
-    ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("/save_components_params_on_mongo");
+    ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("/save_actions_param_on_mongo");
     manipulation_interface_mongo::SaveParam srv;
     client.call(srv);
 
@@ -1674,7 +1722,7 @@ bool QNode::save_actions()
     return true;
 }
 
-bool QNode::save_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools)
+bool QNode::add_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools)
 {
     if ( logging_model_object.rowCount()!=0 )
     {
@@ -1700,7 +1748,7 @@ bool QNode::save_object(std::string object_name, std::vector<position> object_ap
     return true;
 }
 
-bool QNode::save_slot(std::string slot_name, location slot_approach, location slot_final_pos, std::string group_name, int max_number )
+bool QNode::add_slot(std::string slot_name, location slot_approach, location slot_final_pos, std::string group_name, int max_number )
 {
     if ( logging_model_slot.rowCount()!=0 )
     {
@@ -1751,7 +1799,7 @@ bool QNode::save_slot(std::string slot_name, location slot_approach, location sl
     return true;
 }
 
-bool QNode::save_box(std::string box_name, location approach_position, location final_position)
+bool QNode::add_box(std::string box_name, location approach_position, location final_position)
 {
     if ( logging_model_box.rowCount()!=0 )
     {
@@ -1778,7 +1826,7 @@ bool QNode::save_box(std::string box_name, location approach_position, location 
     return true;
 }
 
-bool QNode::save_location_changes(int ind, go_to_location new_location)
+bool QNode::add_location_changes(int ind, go_to_location new_location)
 {
     if ( !go_to_locations[ind].name.compare( new_location.name ) )
     {
@@ -1793,7 +1841,7 @@ bool QNode::save_location_changes(int ind, go_to_location new_location)
     return true;
 }
 
-bool QNode::save_slot_changes(int ind, slot new_slot)
+bool QNode::add_slot_changes(int ind, slot new_slot)
 {
     if ( !manipulation_slots[ind].name.compare( new_slot.name ) )
     {
@@ -1808,7 +1856,7 @@ bool QNode::save_slot_changes(int ind, slot new_slot)
     return true;
 }
 
-bool QNode::save_box_changes(int ind, box new_box)
+bool QNode::add_box_changes(int ind, box new_box)
 {
     if ( !boxes[ind].name.compare( new_box.name ) )
     {
@@ -1823,7 +1871,7 @@ bool QNode::save_box_changes(int ind, box new_box)
     return true;
 }
 
-bool QNode::save_object_changes(int ind, object_type new_object)
+bool QNode::add_object_changes(int ind, object_type new_object)
 {
     if ( !objects[ind].name.compare( new_object.name ) )
     {
