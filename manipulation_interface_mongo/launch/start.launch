@@ -2,6 +2,8 @@
 
 <launch>
 
+<!--these params are necessary for manipulaion-->
+
 <rosparam command="load" file="$(find manipulation_interface_mongo)/config/go_to_location_server.yaml" />
 <rosparam command="load" file="$(find manipulation_interface_mongo)/config/inbound_server.yaml" />
 <rosparam command="load" file="$(find manipulation_interface_mongo)/config/outbound_server.yaml" />
