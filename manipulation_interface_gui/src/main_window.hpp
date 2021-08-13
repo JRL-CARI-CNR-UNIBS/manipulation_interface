@@ -46,7 +46,6 @@ public Q_SLOTS:
     void add_pick                       (int state);
     void add_place                      (int state);
     void on_check_robot_TF_stateChanged (int state);
-    void on_check_gripper_stateChanged  (int state);
 
     void on_actionAbout_triggered();
     void on_button_add_action_clicked                 (bool check);
@@ -136,7 +135,8 @@ public Q_SLOTS:
     void on_combo_configuration_currentIndexChanged  (int index);
     void on_combo_configuration__currentIndexChanged (int index);
     void on_combo_ref_frame_currentIndexChanged      (int index);
-    void on_velocity_slider_valueChanged (int value);
+    void on_gripper_percentage_valueChanged (int value);
+    void on_velocity_slider_valueChanged    (int value);
     void on_list_location_modify_pressed (const QModelIndex &index);
     void on_list_box_modify_pressed      (const QModelIndex &index);
     void on_list_slot_modify_pressed     (const QModelIndex &index);
@@ -173,7 +173,7 @@ private:
     bool init_box_final       = false;
     bool init_objects         = false;
     float max_vel  = 0.1;
-    float max_rot  = 1.57;
+    float max_rot  = 0.7;
     int   perc_vel = 50;
 };
 

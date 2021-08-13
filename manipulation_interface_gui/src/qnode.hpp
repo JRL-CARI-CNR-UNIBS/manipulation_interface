@@ -295,10 +295,8 @@ public:
     void remove_object   (int ind);
     void remove_slot     (int ind);
     void remove_box      (int ind);
-    void active_manual_guidance     ();
-    void active_watch_configuration ();
-    void active_cart_teleop         ();
-    void close_gripper(bool action);
+    void active_configuration(std::string config);
+    void move_gripper(std::string str);
     std::vector<int> remove_group( int ind);
     bool compare(std::vector<std::string> &v1, std::vector<std::string> &v2);
 

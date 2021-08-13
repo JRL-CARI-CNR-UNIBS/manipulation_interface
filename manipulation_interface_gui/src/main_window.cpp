@@ -403,25 +403,6 @@ void MainWindow::on_button_add_action_clicked(bool check)
     }
 }
 
-//void MainWindow::on_button_add_approach_object_clicked(bool check)
-//{
-//    std::string actual_base_frame = ui.TF_list->currentText().toStdString();
-//    location loc;
-//    position pos;
-//    loc = qnode.return_position(actual_base_frame, qnode.target_frame);
-//    pos.origin_x = loc.pos.origin_x;
-//    pos.origin_y = loc.pos.origin_y;
-//    pos.origin_z = loc.pos.origin_z;
-//    actual_object_approach.push_back(pos);
-//    actual_tool_approach.push_back(qnode.target_frame);
-//    num_approach++;
-//    std::string str = "approach";
-//    str.append(std::to_string(num_approach));
-//    QString approach;
-//    approach.append(str.c_str());
-//    ui.approach_list->addItem(approach);
-//}
-
 void MainWindow::on_button_add_grasp_clicked(bool check)
 {
     std::string actual_base_frame = ui.TF_list->currentText().toStdString();
@@ -437,7 +418,7 @@ void MainWindow::on_button_add_grasp_clicked(bool check)
     position pos;
     pos.origin_x = 0.0;
     pos.origin_y = 0.0;
-    pos.origin_z = 0.0;
+    pos.origin_z = -0.10;
     actual_object_approach.push_back(pos);
     actual_tool_approach.push_back(qnode.target_frame);
 }
@@ -776,23 +757,6 @@ void MainWindow::on_button_remove_slot_clicked(bool check)
     msgBox.exec();
 }
 
-//void MainWindow::on_button_remove_approach_object_clicked(bool check)
-//{
-//    int index = ui.approach_list->currentIndex();
-
-//    if ( ui.approach_list->count() > 0 )
-//    {
-//        ui.approach_list->removeItem(index);
-//        actual_object_approach.erase(actual_object_approach.begin()+index);
-//        actual_tool_approach.erase(actual_tool_approach.begin()+index);
-//        return;
-//    }
-
-//    QMessageBox msgBox;
-//    msgBox.setText("There isn't a selected approach");
-//    msgBox.exec();
-//}
-
 void MainWindow::on_button_remove_grasp_clicked(bool check)
 {
     int index = ui.grasp_list->currentIndex();
@@ -802,6 +766,8 @@ void MainWindow::on_button_remove_grasp_clicked(bool check)
         ui.grasp_list->removeItem(index);
         actual_object_grasp.erase(actual_object_grasp.begin()+index);
         actual_tool_grasp.erase(actual_tool_grasp.begin()+index);
+        actual_object_approach.erase(actual_object_approach.begin()+index);
+        actual_tool_approach.erase(actual_tool_approach.begin()+index);
         return;
     }
 
@@ -847,7 +813,46 @@ void MainWindow::on_button_remove_recipe_clicked(bool check)
 
 void MainWindow::on_button_gripper_clicked(bool check)
 {
-    ui.check_gripper->click();
+    int perc = ui.gripper_percentage->value();
+
+    switch(perc) {
+
+        case 0  :
+           qnode.move_gripper("close");
+           break;
+        case 10  :
+           qnode.move_gripper("open_225");
+           break;
+        case 20  :
+           qnode.move_gripper("open_200");
+           break;
+        case 30  :
+           qnode.move_gripper("open_175");
+           break;
+        case 40  :
+           qnode.move_gripper("open_150");
+           break;
+        case 50  :
+           qnode.move_gripper("open_125");
+           break;
+        case 60  :
+           qnode.move_gripper("open_100");
+           break;
+        case 70  :
+           qnode.move_gripper("open_75");
+           break;
+        case 80  :
+           qnode.move_gripper("open_50");
+           break;
+        case 90  :
+           qnode.move_gripper("open_25");
+           break;
+        case 100  :
+           qnode.move_gripper("open");
+           break;
+        default :
+            qnode.move_gripper("open");
+    }
     return;
 }
 
@@ -911,7 +916,7 @@ void MainWindow::on_button_add_object_clicked(bool check)
                 }
             }
             else {
-                ROS_ERROR("Apporach and grasp have different sizes");
+                ROS_ERROR("Apporach and grasp have different sizes: %zu, %zu", actual_object_grasp.size(), actual_object_approach.size() );
                 QMessageBox msgBox;
                 msgBox.setText("Apporach and grasp have different sizes");
                 msgBox.exec();
@@ -1818,7 +1823,7 @@ void MainWindow::reset_object(int index)
 
 void MainWindow::on_check_robot_TF_stateChanged(int state)
 {
-    if ( ! state == 0 )
+    if ( state != 0 )
     {
         ui.button_save_components         ->setEnabled(true);
         ui.lateral_tab                    ->setEnabled(true);
@@ -1830,22 +1835,9 @@ void MainWindow::on_check_robot_TF_stateChanged(int state)
     }
 }
 
-void MainWindow::on_check_gripper_stateChanged(int state)
-{
-    if ( ! state == 0)
-    {
-        qnode.close_gripper(true);
-    }
-    else
-    {
-        qnode.close_gripper(false);
-    }
-    return;
-}
-
 void MainWindow::on_robot_list_currentIndexChanged(int index)
 {
-    qnode.set_target_frame( ui.robot_list->currentIndex() );
+    qnode.set_target_frame( index );
 }
 
 void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
@@ -1910,15 +1902,23 @@ void MainWindow::on_combo_configuration_currentIndexChanged(int index)
 {
     if ( index == 0 )
     {
-        qnode.active_watch_configuration();
+        qnode.active_configuration("watch");
     }
     else if ( index == 1 )
     {
-        qnode.active_manual_guidance();
+        qnode.active_configuration("manual_guidance");
     }
     else if ( index == 2 )
     {
-        qnode.active_cart_teleop();
+        qnode.active_configuration("lin_xyz_manual_guidance");
+    }
+    else if ( index == 3 )
+    {
+        qnode.active_configuration("rot_xyz_manual_guidance");
+    }
+    else if ( index == 4 )
+    {
+        qnode.active_configuration("cart_teleop");
     }
     else
     {
@@ -1958,6 +1958,57 @@ void MainWindow::on_list_slot_modify_pressed(const QModelIndex &index)
 void MainWindow::on_list_object_modify_pressed(const QModelIndex &index)
 {
     reset_object( index.row() );
+}
+
+void MainWindow::on_gripper_percentage_valueChanged (int value)
+{
+  if ( value < 5)
+  {
+    value = 0;
+  }
+  else if ( value < 15 )
+  {
+    value = 10;
+  }else if ( value < 25 )
+  {
+    value = 20;
+  }else if ( value < 35 )
+  {
+    value = 30;
+  }
+  else if ( value < 45 )
+  {
+    value = 40;
+  }
+  else if ( value < 55 )
+  {
+    value = 50;
+  }
+  else if ( value < 65 )
+  {
+    value = 60;
+  }
+  else if ( value < 75 )
+  {
+    value = 70;
+  }
+  else if ( value < 85 )
+  {
+    value = 80;
+  }
+  else if ( value < 95 )
+  {
+    value = 90;
+  }
+  else
+  {
+    value = 100;
+  }
+
+  ui.gripper_percentage->setValue(value);
+  std::string str = std::to_string(value);
+  QString qstr = QString::fromStdString(str);
+  ui.open_gripper_label->setText(qstr);
 }
 
 void MainWindow::on_velocity_slider_valueChanged(int value)

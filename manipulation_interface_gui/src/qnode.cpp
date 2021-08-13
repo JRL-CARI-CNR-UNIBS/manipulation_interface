@@ -218,7 +218,7 @@ std::vector<std::string> QNode::load_recipes_param ()
         std::vector<std::string> recipe_;
         if( !rosparam_utilities::getParam(param,"recipe",recipe_,what) )
         {
-          ROS_WARN("The element #%zu has not the field 'recipe'", i);
+          ROS_WARN("The element #%d has not the field 'recipe'", i);
           continue;
         }
         single_recipe.recipe_ = recipe_;
@@ -914,9 +914,9 @@ std::vector<int> QNode::remove_group(int ind)
     return indexes;
 }
 
-void QNode::active_manual_guidance()
+void QNode::active_configuration(std::string config)
 {
-    start_ctrl_req.request.start_configuration = "rot_xyz_manual_guidance";
+    start_ctrl_req.request.start_configuration = config;
     start_ctrl_req.request.strictness = 1;
 
     set_ctrl_srv.waitForExistence();
@@ -935,77 +935,18 @@ void QNode::active_manual_guidance()
     ROS_INFO("Controller %s started.",start_ctrl_req.request.start_configuration.c_str());
 }
 
-void QNode::active_watch_configuration()
+void QNode::move_gripper( std::string str )
 {
-    start_ctrl_req.request.start_configuration = "watch";
-    start_ctrl_req.request.strictness = 1;
+    ROS_INFO("Gripper are moving");
+    gripper_req.request.skill_name = " ";
+    gripper_req.request.tool_id = "gripper_fake";
+    gripper_req.request.property_id = str;
 
-    set_ctrl_srv.waitForExistence();
-
-    if ( !set_ctrl_srv.call(start_ctrl_req) )
+    gripper_srv.waitForExistence();
+    if (!gripper_srv.call(gripper_req))
     {
-        ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_srv.getService().c_str(),start_ctrl_req.request.start_configuration.c_str());
+        ROS_ERROR("Unable to move gripper t %s state",gripper_req.request.property_id.c_str());
         return;
-    }
-
-    if (!start_ctrl_req.response.ok)
-    {
-        ROS_ERROR("Error on service %s response", set_ctrl_srv.getService().c_str());
-        return;
-    }
-    ROS_INFO("Controller %s started.",start_ctrl_req.request.start_configuration.c_str());
-}
-
-void QNode::active_cart_teleop()
-{
-    start_ctrl_req.request.start_configuration = "cart_velocity_control";
-    start_ctrl_req.request.strictness = 1;
-
-    set_ctrl_srv.waitForExistence();
-
-    if ( !set_ctrl_srv.call(start_ctrl_req) )
-    {
-        ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_srv.getService().c_str(),start_ctrl_req.request.start_configuration.c_str());
-        return;
-    }
-
-    if (!start_ctrl_req.response.ok)
-    {
-        ROS_ERROR("Error on service %s response", set_ctrl_srv.getService().c_str());
-        return;
-    }
-    ROS_INFO("Controller %s started.",start_ctrl_req.request.start_configuration.c_str());
-}
-
-void QNode::close_gripper( bool action )
-{
-    if ( action )
-    {
-        ROS_INFO("Gripper are closing");
-        gripper_req.request.skill_name = " ";
-        gripper_req.request.tool_id = "gripper_fake";
-        gripper_req.request.property_id = "close_min_force_min_vel";
-
-        gripper_srv.waitForExistence();
-        if (!gripper_srv.call(gripper_req))
-        {
-            ROS_ERROR("Unable to move gripper t %s state",gripper_req.request.property_id.c_str());
-            return;
-        }
-    }
-    else
-    {
-        ROS_INFO("Gripper are opening");
-        gripper_req.request.skill_name = " ";
-        gripper_req.request.tool_id = "gripper_fake";
-        gripper_req.request.property_id = "open";
-
-        gripper_srv.waitForExistence();
-        if (!gripper_srv.call(gripper_req))
-        {
-            ROS_ERROR("Unable to move gripper t %s state",gripper_req.request.property_id.c_str());
-            return;
-        }
     }
 }
 
