@@ -83,6 +83,7 @@ public Q_SLOTS:
     void on_button_remove_final_box_clicked           (bool check);
     void on_button_remove_recipe_clicked              (bool check);
     void on_button_gripper_clicked                    (bool check);
+    void on_button_gripper_2_clicked                  (bool check);
     void on_button_save_components_clicked            (bool check);
     void on_button_save_actions_clicked               (bool check);
     void on_button_save_all_changes0_clicked          (bool check);
@@ -135,8 +136,9 @@ public Q_SLOTS:
     void on_combo_configuration_currentIndexChanged  (int index);
     void on_combo_configuration__currentIndexChanged (int index);
     void on_combo_ref_frame_currentIndexChanged      (int index);
-    void on_gripper_percentage_valueChanged (int value);
-    void on_velocity_slider_valueChanged    (int value);
+    void on_gripper_percentage_valueChanged   (int value);
+    void on_gripper_percentage_2_valueChanged (int value);
+    void on_velocity_slider_valueChanged      (int value);
     void on_list_location_modify_pressed (const QModelIndex &index);
     void on_list_box_modify_pressed      (const QModelIndex &index);
     void on_list_slot_modify_pressed     (const QModelIndex &index);
@@ -159,6 +161,7 @@ private:
     int num_grasp = 0, num_approach = 0, num_picks = 0, num_places = 0;
     std::vector<location>    actual_object_grasp;
     std::vector<position>    actual_object_approach;
+    std::vector<std::string> actual_approach_gripper_states;
     std::vector<std::string> actual_tool_approach;
     std::vector<std::string> actual_tool_grasp;
     location                 actual_slot_approach;
@@ -166,6 +169,7 @@ private:
     location                 actual_box_approach;
     location                 actual_box_final;
     object_type              actual_object_to_modify;
+    std::string              actual_gripper_state = "open";
     bool init_approach_object = false;
     bool init_slot_approach   = false;
     bool init_slot_final      = false;

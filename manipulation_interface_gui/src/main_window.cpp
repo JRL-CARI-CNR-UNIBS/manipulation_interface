@@ -420,6 +420,7 @@ void MainWindow::on_button_add_grasp_clicked(bool check)
     pos.origin_y = 0.0;
     pos.origin_z = -0.10;
     actual_object_approach.push_back(pos);
+    actual_approach_gripper_states.push_back(actual_gripper_state);
     actual_tool_approach.push_back(qnode.target_frame);
 }
 
@@ -447,6 +448,7 @@ void MainWindow::on_button_set_approach_clicked(bool check)
     actual_object_approach[index].origin_x = dist_tool[0];
     actual_object_approach[index].origin_y = dist_tool[1];
     actual_object_approach[index].origin_z = dist_tool[2];
+    actual_approach_gripper_states[index] = actual_gripper_state;
     actual_tool_approach[index] = qnode.target_frame;
 }
 
@@ -767,6 +769,7 @@ void MainWindow::on_button_remove_grasp_clicked(bool check)
         actual_object_grasp.erase(actual_object_grasp.begin()+index);
         actual_tool_grasp.erase(actual_tool_grasp.begin()+index);
         actual_object_approach.erase(actual_object_approach.begin()+index);
+        actual_approach_gripper_states.erase(actual_approach_gripper_states.begin()+index);
         actual_tool_approach.erase(actual_tool_approach.begin()+index);
         return;
     }
@@ -819,41 +822,58 @@ void MainWindow::on_button_gripper_clicked(bool check)
 
         case 0  :
            qnode.move_gripper("close");
+           actual_gripper_state = "close";
            break;
         case 10  :
            qnode.move_gripper("open_225");
+           actual_gripper_state = "open_225";
            break;
         case 20  :
            qnode.move_gripper("open_200");
+           actual_gripper_state = "open_200";
            break;
         case 30  :
            qnode.move_gripper("open_175");
+           actual_gripper_state = "open_175";
            break;
         case 40  :
            qnode.move_gripper("open_150");
+           actual_gripper_state = "open_150";
            break;
         case 50  :
            qnode.move_gripper("open_125");
+           actual_gripper_state = "open_125";
            break;
         case 60  :
            qnode.move_gripper("open_100");
+           actual_gripper_state = "open_100";
            break;
         case 70  :
            qnode.move_gripper("open_75");
+           actual_gripper_state = "open_75";
            break;
         case 80  :
            qnode.move_gripper("open_50");
+           actual_gripper_state = "open_50";
            break;
         case 90  :
            qnode.move_gripper("open_25");
+           actual_gripper_state = "open_25";
            break;
         case 100  :
            qnode.move_gripper("open");
+           actual_gripper_state = "open";
            break;
         default :
             qnode.move_gripper("open");
+            actual_gripper_state = "open";
     }
     return;
+}
+
+void MainWindow::on_button_gripper_2_clicked(bool check)
+{
+    on_button_gripper_clicked(false);
 }
 
 void MainWindow::on_button_save_components_clicked(bool check)
@@ -879,39 +899,47 @@ void MainWindow::on_button_add_object_clicked(bool check)
 
     if ( !obj_name.empty() )
     {
-
         if ( !actual_object_grasp.empty() )
         {
             if ( actual_object_grasp.size() == actual_object_approach.size() )
             {
-                if ( actual_tool_approach == actual_tool_grasp )
+                if ( actual_object_approach.size() == actual_approach_gripper_states.size() )
                 {
-                    if( !qnode.add_object(obj_name, actual_object_approach, actual_object_grasp, actual_tool_grasp))
+                    if ( actual_tool_approach == actual_tool_grasp )
                     {
-                        ROS_ERROR("Object just set");
-                        QMessageBox msgBox;
-                        msgBox.setText("There is another object with this name");
-                        msgBox.exec();
-                        ui.edit_object_name->clear();
+                        if( !qnode.add_object(obj_name, actual_object_approach, actual_object_grasp, actual_tool_grasp, actual_approach_gripper_states) )
+                        {
+                            ROS_ERROR("Object just set");
+                            QMessageBox msgBox;
+                            msgBox.setText("There is another object with this name");
+                            msgBox.exec();
+                            ui.edit_object_name->clear();
+                        }
+                        else
+                        {
+                            num_grasp = 0;
+                            ui.edit_object_name->clear();
+                            ui.grasp_list->clear();
+                            init_approach_object = false;
+                            actual_object_grasp.clear();
+                            actual_object_approach.clear();
+                            if ( ui.combo_action_type->currentIndex() == 1 )
+                            {
+                                qnode.write_objects();
+                            }
+                        }
                     }
                     else
                     {
-                        num_grasp = 0;
-                        ui.edit_object_name->clear();
-                        ui.grasp_list->clear();
-                        init_approach_object = false;
-                        actual_object_grasp.clear();
-                        actual_object_approach.clear();
-                        if ( ui.combo_action_type->currentIndex() == 1 )
-                        {
-                            qnode.write_objects();
-                        }
+                        QMessageBox msgBox;
+                        msgBox.setText("Apporach and grasp have different tool");
+                        msgBox.exec();
                     }
                 }
-                else
-                {
+                else {
+                    ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach.size(), actual_approach_gripper_states.size() );
                     QMessageBox msgBox;
-                    msgBox.setText("Apporach and grasp have different tool");
+                    msgBox.setText("Apporach and grasp have different sizes");
                     msgBox.exec();
                 }
             }
@@ -2006,9 +2034,16 @@ void MainWindow::on_gripper_percentage_valueChanged (int value)
   }
 
   ui.gripper_percentage->setValue(value);
+  ui.gripper_percentage_2->setValue(value);
   std::string str = std::to_string(value);
   QString qstr = QString::fromStdString(str);
   ui.open_gripper_label->setText(qstr);
+  ui.open_gripper_label_2->setText(qstr);
+}
+
+void MainWindow::on_gripper_percentage_2_valueChanged (int value)
+{
+    ui.gripper_percentage->setValue(value);
 }
 
 void MainWindow::on_velocity_slider_valueChanged(int value)

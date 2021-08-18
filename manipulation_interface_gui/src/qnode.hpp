@@ -90,6 +90,7 @@ struct object_type
     std::string              name;
     std::vector<position>    approach;
     std::vector<location>    grasp;
+    std::vector<std::string> approach_gripper_state;
     std::vector<std::string> tool;
 };
 
@@ -151,7 +152,7 @@ public:
     bool add_go_to    (std::string go_to_name, std::vector<std::string> locations_, std::string description, std::vector<std::string> agents_);
     bool add_place    (std::string place_name, std::vector<std::string> groups_, std::string description, std::vector<std::string> agents_);
     bool add_pick     (std::string pick_name, std::vector<std::string> objects_, std::string description, std::vector<std::string> agents_);
-    bool add_object   (std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools);
+    bool add_object   (std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools, std::vector<std::string> gripper_states);
     bool add_slot     (std::string slot_name, location slot_approach, location slot_final_pos, std::string goup_name, int max_number);
     bool add_box      (std::string box_name, location approach_position, location final_position);
     void add_object_type          (int ind);

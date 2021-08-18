@@ -1105,6 +1105,7 @@ std::string QNode::get_xml_object_grasp_string( int index, int index2 )
     xml_body.append(get_xml_position_string("position", objects[index].grasp[index2].pos));
     xml_body.append(get_xml_quaternion_string(objects[index].grasp[index2].quat));
     xml_body.append(get_xml_position_string("approach_distance", objects[index].approach[index2]));
+    xml_body.append(get_xml_string_param("approach_gripper_state", objects[index].approach_gripper_state[index2]));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1663,7 +1664,7 @@ bool QNode::save_actions()
     return true;
 }
 
-bool QNode::add_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools)
+bool QNode::add_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools, std::vector<std::string> gripper_states)
 {
     if ( logging_model_object.rowCount()!=0 )
     {
@@ -1684,6 +1685,7 @@ bool QNode::add_object(std::string object_name, std::vector<position> object_app
     obj.tool     = object_tools;
     obj.approach = object_approach;
     obj.grasp    = object_grasp;
+    obj.approach_gripper_state = gripper_states;
     objects.push_back(obj);
 
     return true;
@@ -2318,6 +2320,13 @@ bool QNode::readObjectFromParam()
                 continue;
             }
             object_.tool.push_back( rosparam_utilities::toString(object["tool"]) );
+
+            if( !object.hasMember("approach_gripper_state") )
+            {
+                ROS_WARN("The element #%zu has not the field 'approach_gripper_state'", i);
+                continue;
+            }
+            object_.approach_gripper_state.push_back( rosparam_utilities::toString(object["approach_gripper_state"]) );
 
             location loc;
 
