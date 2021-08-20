@@ -1192,18 +1192,7 @@ XmlRpc::XmlRpcValue QNode::get_box_param(int index)
 XmlRpc::XmlRpcValue QNode::get_object_grasp_param(int index, int index2)
 {
 //    /nameObj/grasp_poses
-    std::string xml_body;
-
-    xml_body.append(init_value);
-    xml_body.append(init_struct);
-
-    xml_body.append(get_xml_string_param("tool", objects[index].tool[index2]));
-    xml_body.append(get_xml_position_string("position", objects[index].grasp[index2].pos));
-    xml_body.append(get_xml_quaternion_string(objects[index].grasp[index2].quat));
-    xml_body.append(get_xml_position_string("approach_distance", objects[index].approach[index2]));
-
-    xml_body.append(end_struct);
-    xml_body.append(end_value);
+    std::string xml_body = get_xml_object_grasp_string( index, index2 );
 
     int offset = 0;
     int* offset_ptr = &offset;

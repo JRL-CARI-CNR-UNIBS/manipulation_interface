@@ -116,6 +116,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     ui.edit_box_frame          ->setReadOnly(true);
     ui.edit_object_tool        ->setReadOnly(true);
     ui.edit_action_description ->setReadOnly(true);
+    ui.edit_gripper_state      ->setReadOnly(true);
 
     /*********************
     ** Window connect to ROS
@@ -1813,6 +1814,7 @@ void MainWindow::reset_object(int index)
     ui.edit_object_approach_y   ->clear();
     ui.edit_object_approach_z   ->clear();
     ui.edit_object_tool         ->clear();
+    ui.edit_gripper_state       ->clear();
 
     actual_object_to_modify = qnode.return_object_info(index);
 
@@ -1835,6 +1837,7 @@ void MainWindow::reset_object(int index)
     QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_z) );
     QString tool   = QString::fromStdString( actual_object_to_modify.tool[i] );
     QString name_  = QString::fromStdString( actual_object_to_modify.name );
+    QString state  = QString::fromStdString( actual_object_to_modify.approach_gripper_state[i] );
 
     ui.edit_object_position_x   ->insert(pos_x);
     ui.edit_object_position_y   ->insert(pos_y);
@@ -1847,6 +1850,7 @@ void MainWindow::reset_object(int index)
     ui.edit_object_approach_y   ->insert(appr_y);
     ui.edit_object_approach_z   ->insert(appr_z);
     ui.edit_object_tool         ->insert(tool);
+    ui.edit_gripper_state       ->insert(state);
 }
 
 void MainWindow::on_check_robot_TF_stateChanged(int state)
@@ -1881,6 +1885,7 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
     ui.edit_object_approach_y   ->clear();
     ui.edit_object_approach_z   ->clear();
     ui.edit_object_tool         ->clear();
+    ui.edit_gripper_state       ->clear();
 
     if ( init_objects)
     {
@@ -1895,6 +1900,7 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
         QString appr_y = QString::fromStdString( std::to_string(actual_object_to_modify.approach[index].origin_y) );
         QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify.approach[index].origin_z) );
         QString tool   = QString::fromStdString( actual_object_to_modify.tool[index] );
+        QString state  = QString::fromStdString( actual_object_to_modify.approach_gripper_state[index] );
 
         ui.edit_object_position_x   ->insert(pos_x);
         ui.edit_object_position_y   ->insert(pos_y);
@@ -1907,6 +1913,7 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
         ui.edit_object_approach_y   ->insert(appr_y);
         ui.edit_object_approach_z   ->insert(appr_z);
         ui.edit_object_tool         ->insert(tool);
+        ui.edit_gripper_state       ->insert(state);
     }
 }
 
