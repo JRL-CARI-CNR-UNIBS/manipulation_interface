@@ -21,6 +21,7 @@
 #include <fstream>
 #include <rosparam_utilities/rosparam_utilities.h>
 #include <manipulation_interface_mongo/SaveParam.h>
+#include <manipulation_interface_gui/recipe_test_msg.h>
 
 /*****************************************************************************
 ** Namespaces
@@ -196,10 +197,12 @@ std::vector<std::string> QNode::load_recipes_param ()
     if ( !n.getParam("/multi_skills/recipes", config) )
     {
         ROS_ERROR("Unable to find /multi_skills/recipes");
+        return recipes_names;
     }
     if (config.getType() != XmlRpc::XmlRpcValue::TypeArray)
     {
         ROS_ERROR("The recipes param is not an array" );
+        return recipes_names;
     }
     ROS_INFO("There are %d recipes",config.size());
 
@@ -299,6 +302,38 @@ bool QNode::save_recipe()
     return true;
 }
 
+void QNode::run_recipe()
+{
+    ros::NodeHandle n;
+
+    std::vector<std::string> recipe_;
+
+    for ( int i = 0; i < logging_model_recipe.rowCount(); i++ )
+    {
+        recipe_.push_back( logging_model_recipe.data( logging_model_recipe.index(i) ).toString().toStdString() );
+    }
+
+    XmlRpc::XmlRpcValue param;
+    param = get_recipe_param( recipe_ );
+
+    n.setParam("recipe_to_run", param);
+
+    ros::ServiceClient run_recipe_client = n.serviceClient<manipulation_interface_gui::recipe_test_msg>("run_recipe");
+    manipulation_interface_gui::recipe_test_msg recipe_msg;
+    recipe_msg.request.input = "manipulator";
+
+    if (run_recipe_client.call(recipe_msg))
+      {
+        ROS_INFO("Done");
+      }
+      else
+      {
+        ROS_ERROR("Failed to call service run_recipe");
+        return;
+      }
+    return;
+}
+
 XmlRpc::XmlRpcValue QNode::get_recipe_param(int index)
 {
     std::string xml_body;
@@ -310,6 +345,36 @@ XmlRpc::XmlRpcValue QNode::get_recipe_param(int index)
     xml_body.append(get_xml_group_string("recipe", recipes[index].recipe_));
 
     xml_body.append(end_struct);
+    xml_body.append(end_value);
+
+    int offset = 0;
+    int* offset_ptr = &offset;
+    XmlRpc::XmlRpcValue param;
+    param.fromXml(xml_body,offset_ptr);
+
+    return param;
+}
+
+XmlRpc::XmlRpcValue QNode::get_recipe_param(std::vector<std::string> recipe_)
+{
+    std::string xml_body;
+
+    xml_body.append(init_value);
+    xml_body.append(init_array);
+    xml_body.append(init_data);
+
+
+    for ( int i = 0; i < recipe_.size(); i++)
+    {
+        xml_body.append(init_value);
+        xml_body.append(init_string);
+        xml_body.append(recipe_[i]);
+        xml_body.append(end_string);
+        xml_body.append(end_value);
+    }
+
+    xml_body.append(end_data);
+    xml_body.append(end_array);
     xml_body.append(end_value);
 
     int offset = 0;

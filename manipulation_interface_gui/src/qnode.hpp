@@ -140,8 +140,10 @@ public:
     void cartMove (std::vector<float> twist_move);
 
     bool save_recipe();
+    void run_recipe();
     std::vector<std::string> load_recipes_param();
 
+    XmlRpc::XmlRpcValue get_recipe_param(std::vector<std::string> recipe_);
     XmlRpc::XmlRpcValue get_recipe_param       (int index);
     XmlRpc::XmlRpcValue get_action_go_to_param (int index);
     XmlRpc::XmlRpcValue get_action_place_param (int index);

@@ -14,7 +14,28 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
 endif()
 
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
-find_package(catkin REQUIRED COMPONENTS roscpp tf rosparam_utilities manipulation_interface_mongo configuration_msgs manipulation_msgs geometry_msgs)
+find_package(catkin REQUIRED COMPONENTS
+	roscpp
+	std_msgs
+	tf
+	rosparam_utilities
+	manipulation_interface_mongo
+	configuration_msgs
+	manipulation_msgs
+	geometry_msgs)
+
+## Generate services in the 'srv' folder
+ add_service_files(
+	 FILES
+	 recipe_test_msg.srv
+ )
+
+## Generate added messages and services with any dependencies listed here
+ generate_messages(
+	 DEPENDENCIES
+	 std_msgs
+ )
+
 catkin_package()
 
 include_directories(
@@ -33,3 +54,9 @@ target_link_libraries(manipulation_interface_gui
    ${catkin_LIBRARIES}
    Qt5::Core
    Qt5::Widgets)
+
+add_executable(        recipe_test_node src/recipe_test_node.cpp)
+add_dependencies(      recipe_test_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries( recipe_test_node
+	${catkin_LIBRARIES}
+)

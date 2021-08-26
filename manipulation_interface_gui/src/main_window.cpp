@@ -815,6 +815,11 @@ void MainWindow::on_button_remove_recipe_clicked(bool check)
     ui.recipe_box->removeItem( index );
 }
 
+void MainWindow::on_button_run_recipe_clicked(bool check)
+{
+    qnode.run_recipe();
+}
+
 void MainWindow::on_button_gripper_clicked(bool check)
 {
     int perc = ui.gripper_percentage->value();

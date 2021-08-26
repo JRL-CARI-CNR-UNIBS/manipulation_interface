@@ -82,6 +82,7 @@ public Q_SLOTS:
     void on_button_remove_approach_box_clicked        (bool check);
     void on_button_remove_final_box_clicked           (bool check);
     void on_button_remove_recipe_clicked              (bool check);
+    void on_button_run_recipe_clicked                 (bool check);
     void on_button_gripper_clicked                    (bool check);
     void on_button_gripper_2_clicked                  (bool check);
     void on_button_save_components_clicked            (bool check);

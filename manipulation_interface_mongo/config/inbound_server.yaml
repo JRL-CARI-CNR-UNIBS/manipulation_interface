@@ -1,12 +1,11 @@
 inbound_pick_server:
 
-  ik_sol_number: 16
-  max_stall_iter: 16
+  ik_sol_number: 512
+  max_stall_iter: 512
   collision_detector: FCL
 
   groups:
     manipulator: open_tip
-    manipulator2: closed_tip
 
   manipulator:
     preferred_configuration: [1.4762239456176758, -1.7016049824156703, 1.7525199095355433, -0.6964729589274903, 1.4800915718078613, -2.1354430357562464]
