@@ -22,12 +22,19 @@
 #include <rosparam_utilities/rosparam_utilities.h>
 #include <manipulation_interface_mongo/SaveParam.h>
 #include <manipulation_interface_gui/recipe_test_msg.h>
+#include <manipulation_utils/manipulation_load_params_utils.h>
 
 /*****************************************************************************
 ** Namespaces
 *****************************************************************************/
 
 namespace manipulation_interface_gui {
+
+std::shared_ptr<manipulation::OutboundPlaceFromParam> oub;
+std::shared_ptr<manipulation::InboundPickFromParam> inb;
+std::shared_ptr<manipulation::GoToLocationFromParam> go_to;
+
+
 
 /*****************************************************************************
 ** Implementation
@@ -49,12 +56,13 @@ QNode::~QNode() {
 
 
 bool QNode::init() {
-    ros::init(init_argc,init_argv,"manipulation_interface_gui");
-	if ( ! ros::master::check() ) {
+  ros::init(init_argc,init_argv,"manipulation_interface_gui");
+  if ( ! ros::master::check() ) {
 		return false;
 	}
 	ros::start(); // explicitly needed since our nodehandle is going out of scope.
-    ros::NodeHandle n;
+
+  ros::NodeHandle n;
 
     twist_pub=n.advertise<geometry_msgs::TwistStamped>("/target_cart_twist",1);
     set_ctrl_srv = n.serviceClient<configuration_msgs::StartConfiguration>("/configuration_manager/start_configuration");
@@ -188,7 +196,7 @@ void QNode::write_recipe ( int index)
 
 std::vector<std::string> QNode::load_recipes_param ()
 {
-    ros::NodeHandle n;
+  ros::NodeHandle n;
 
     XmlRpc::XmlRpcValue config;
 
@@ -279,7 +287,8 @@ bool QNode::remove_recipe(int ind)
 
 bool QNode::save_recipe()
 {
-    ros::NodeHandle n;
+  ros::NodeHandle n;
+
     XmlRpc::XmlRpcValue param;
 
     check_recipes_param();
@@ -304,7 +313,7 @@ bool QNode::save_recipe()
 
 void QNode::run_recipe()
 {
-    ros::NodeHandle n;
+  ros::NodeHandle n;
 
     std::vector<std::string> recipe_;
 
@@ -490,7 +499,7 @@ bool QNode::add_go_to(std::string go_to_name, std::vector<std::string> locations
     log_go_to(go_to_name);
     log_second_go_to(go_to_name);
 
-    go_to gt;
+    go_to_action gt;
     gt.agents      = agents_;
     gt.name = go_to_name;
     gt.locations = locations_;
@@ -699,7 +708,7 @@ location QNode::return_position( std::string base_frame, std::string target_fram
     return loc;
 }
 
-go_to QNode::return_go_to_info(int ind)
+go_to_action QNode::return_go_to_info(int ind)
 {
     return go_to_actions[ind];
 }
@@ -1469,7 +1478,8 @@ XmlRpc::XmlRpcValue QNode::get_place_param_(int index)
 
 void QNode::set_target_frame( int ind )
 {
-    ros::NodeHandle n;
+  ros::NodeHandle n;
+
     if ( robot_name_params.size() != 0 )
     {
         n.getParam(robot_name_params[ind],target_frame);
@@ -1620,7 +1630,7 @@ void QNode::check_recipes_param()
 
 bool QNode::save_components()
 {
-    ros::NodeHandle n;
+  ros::NodeHandle n;
 
     XmlRpc::XmlRpcValue param;
 
@@ -1682,12 +1692,60 @@ bool QNode::save_components()
 
     write_param(1);
 
+    ROS_ERROR("arrivo all'inizio");
+    // This is the part where use manipulation_utils to add our components to manipulation
+
+    //inbound
+    ros::NodeHandle nh_i("inbound_pick_server");
+    inb = std::make_shared<manipulation::InboundPickFromParam>(nh_i);
+    if (!inb->readBoxesFromParam())
+    {
+      ROS_ERROR("Unable to load boxes");
+      return 0;
+    }
+    if (!inb->readObjectFromParam())
+    {
+      ROS_ERROR("Unable to load objects in the boxes");
+      return 0;
+    }
+
+    ROS_ERROR("passato in");
+    //outbound
+
+    ros::NodeHandle nh_o("outbound_place_server");
+    oub = std::make_shared<manipulation::OutboundPlaceFromParam>(nh_o);
+    if (!oub->readSlotsGroupFromParam())
+    {
+        ROS_ERROR("Unable to load slots group");
+        return 0;
+    }
+    if (!oub->readSlotsFromParam())
+    {
+        ROS_ERROR("Unable to load slots");
+        return 0;
+    }
+    ROS_INFO("Outbound slot loaded");
+
+    //go_to_location
+    ROS_ERROR("passato out");
+
+    ros::NodeHandle nh_g("go_to_location_server");
+
+    go_to = std::make_shared<manipulation::GoToLocationFromParam>(nh_g);
+
+    if (!go_to->readLocationsFromParam())
+    {
+      ROS_ERROR("Unable to load GoTo locations.");
+      return 0;
+    }
+    ROS_ERROR("passato goto");
+
     return true;
 }
 
 bool QNode::save_actions()
 {
-    ros::NodeHandle n;
+  ros::NodeHandle n;
 
     XmlRpc::XmlRpcValue param;
 
@@ -1892,7 +1950,7 @@ void QNode::load_TF()
 
 void QNode::load_param( int ind )
 {
-    ros::NodeHandle n;
+  ros::NodeHandle n;
 
     if (!n.getParamNames(param_names))
     {
@@ -1920,7 +1978,7 @@ void QNode::load_param( int ind )
 
 void QNode::load_robots()
 {
-    ros::NodeHandle n;
+  ros::NodeHandle n;
 
     if (!n.getParamNames(param_names))
     {
@@ -2218,10 +2276,10 @@ void QNode::write_groups()
 
 bool QNode::readBoxesFromParam()
 {
-    ros::NodeHandle nh_;
+  ros::NodeHandle n;
 
     XmlRpc::XmlRpcValue config;
-    if (!nh_.getParam("/inbound/boxes",config))
+    if (!n.getParam("/inbound/boxes",config))
     {
         ROS_ERROR("Unable to find /inboud/boxes");
         return false;
@@ -2319,8 +2377,6 @@ bool QNode::readBoxesFromParam()
 
 bool QNode::readObjectFromParam()
 {
-    ros::NodeHandle nh_;
-
     std::vector<std::string> objects_param, objects_names;
     for ( int i = 0; i < param_names.size(); i++)
     {
@@ -2344,8 +2400,10 @@ bool QNode::readObjectFromParam()
 
     for ( int i = 0; i < objects_param.size(); i++ )
     {
+      ros::NodeHandle n;
+
         XmlRpc::XmlRpcValue config;
-        if (!nh_.getParam(objects_param[i],config))
+        if (!n.getParam(objects_param[i],config))
         {
             ROS_ERROR("Unable to find %s",objects_param[i].c_str());
             return false;
@@ -2452,10 +2510,10 @@ bool QNode::readObjectFromParam()
 
 bool QNode::readSlotsGroupFromParam()
 {
-    ros::NodeHandle nh_;
+  ros::NodeHandle n;
 
     XmlRpc::XmlRpcValue config;
-    if (!nh_.getParam("/outbound/slots_group",config))
+    if (!n.getParam("/outbound/slots_group",config))
     {
         ROS_ERROR("Unable to find /outbound/slots_group");
         return false;
@@ -2504,10 +2562,10 @@ bool QNode::readSlotsGroupFromParam()
 
 bool QNode::readSlotsFromParam()
 {
-    ros::NodeHandle nh_;
+  ros::NodeHandle n;
 
     XmlRpc::XmlRpcValue config;
-    if (!nh_.getParam("/outbound/slots",config))
+    if (!n.getParam("/outbound/slots",config))
     {
         ROS_ERROR("Unable to find /outbound/slots");
         return false;
@@ -2621,10 +2679,10 @@ bool QNode::readSlotsFromParam()
 
 bool QNode::readLocationsFromParam()
 {
-    ros::NodeHandle nh_;
+  ros::NodeHandle n;
 
     XmlRpc::XmlRpcValue go_to_locations_param;
-    if (!nh_.getParam("/go_to_location",go_to_locations_param))
+    if (!n.getParam("/go_to_location",go_to_locations_param))
     {
         ROS_ERROR("Unable to find /go_to_location");
         return false;
@@ -2707,11 +2765,11 @@ bool QNode::readLocationsFromParam()
 
 bool QNode::readGotoPickAndPlaceFromParam()
 {
-    ros::NodeHandle nh_;
+  ros::NodeHandle n;
 
     XmlRpc::XmlRpcValue config;
 
-    if ( !nh_.getParam("/multi_skills/tasks",config) )
+    if ( !n.getParam("/multi_skills/tasks",config) )
     {
         ROS_ERROR("Unable to find /multi_skills/tasks");
         return false;
@@ -2736,7 +2794,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
 
         if ( !type_.compare("goto") )
         {
-            go_to go_to_;
+            go_to_action go_to_;
 
             if( !param.hasMember("name") )
             {

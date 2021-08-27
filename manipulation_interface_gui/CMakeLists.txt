@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
 	manipulation_interface_mongo
 	configuration_msgs
 	manipulation_msgs
+  manipulation_utils
 	geometry_msgs)
 
 ## Generate services in the 'srv' folder

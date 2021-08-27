@@ -2214,7 +2214,7 @@ void MainWindow::on_list_pick_pressed(const QModelIndex &index)
 void MainWindow::on_list_go_to_pressed(const QModelIndex &index)
 {
     qnode.add_location_info( index.row() );
-    go_to gt = qnode.return_go_to_info( index.row() );
+    go_to_action gt = qnode.return_go_to_info( index.row() );
     QString qstr = QString::fromStdString( gt.description );
     ui.edit_action_description_2->setText( qstr );
     ui.list_place->clearSelection();
@@ -2249,7 +2249,7 @@ void MainWindow::on_list_go_to_pressed(const QModelIndex &index)
 void MainWindow::on_go_to_list_pressed(const QModelIndex &index)
 {
     qnode.add_second_location_info( index.row() );
-    go_to gt = qnode.return_go_to_info( index.row() );
+    go_to_action gt = qnode.return_go_to_info( index.row() );
     QString qstr = QString::fromStdString( gt.description );
     ui.edit_action_description->setText( qstr );
     ui.place_list->clearSelection();

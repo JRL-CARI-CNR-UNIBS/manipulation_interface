@@ -18,6 +18,8 @@
   <param if="$(eval pipeline == 'human_aware')" name="manipulator/planning_plugin" value="ha_planner/DgacoPlannerManager" />
   <param if="$(eval pipeline == 'dirrt')" name="manipulator/planning_plugin" value="pathplan/DIRRTStar" />
   <remap from="/centroids" to="/centroid_detection_rs1/poses" />
-  <remap from="/outbound_place_server/job/place" to="/robotiq_gripper"/></node>
-<node pkg="outbound_place"  type="outbound_place_loader" name="outbound_place_loader" output="screen"/>
+  <remap from="/outbound_place_server/job/place" to="/robotiq_gripper"/>
+</node>
+
+<!-- <node pkg="outbound_place"  type="outbound_place_loader" name="outbound_place_loader" output="screen"/> -->
 </launch>

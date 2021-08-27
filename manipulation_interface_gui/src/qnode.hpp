@@ -61,7 +61,7 @@ struct go_to_location
     location    location_;
 };
 
-struct go_to
+struct go_to_action
 {
     std::string name;
     std::vector<std::string> locations;
@@ -178,7 +178,7 @@ public:
 
 
     location       return_position(std::string base_frame, std::string target_frame);
-    go_to          return_go_to_info         (int ind);
+    go_to_action   return_go_to_info         (int ind);
     pick           return_pick_info          (int ind);
     place          return_place_info         (int ind);
     go_to_location return_location_info      (int ind);
@@ -344,7 +344,7 @@ private:
     QStringListModel logging_model_recipe;
 
     std::vector<go_to_location> go_to_locations;
-    std::vector<go_to>          go_to_actions;
+    std::vector<go_to_action>   go_to_actions;
     std::vector<place>          place_actions;
     std::vector<pick>           pick_actions;
     std::vector<object_type>    objects;
@@ -353,7 +353,7 @@ private:
     std::vector<box>            boxes;
     std::vector<recipe>         recipes;
     std::vector<go_to_location> go_to_locations_compare;
-    std::vector<go_to>          go_to_actions_compare;
+    std::vector<go_to_action>   go_to_actions_compare;
     std::vector<place>          place_actions_compare;
     std::vector<pick>           pick_actions_compare;
     std::vector<object_type>    objects_compare;
@@ -361,7 +361,7 @@ private:
     std::vector<std::string>    groups_compare;
     std::vector<box>            boxes_compare;
     std::vector<recipe>         recipes_compare;
-    std::vector<go_to>          second_go_to_actions;
+    std::vector<go_to_action>   second_go_to_actions;
     std::vector<place>          second_place_actions;
     std::vector<pick>           second_pick_actions;
     std::vector<action>         action_list;

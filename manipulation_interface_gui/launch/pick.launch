@@ -22,5 +22,5 @@
   <remap from="/inbound_pick_server/job/pick" to="/robotiq_gripper"/>
 </node>
 
-<node pkg="inbound_pick"  type="inbound_pick_loader" name="inbound_pick_loader" output="screen"/>
+<!-- <node pkg="inbound_pick"  type="inbound_pick_loader" name="inbound_pick_loader" output="screen"/> -->
 </launch>

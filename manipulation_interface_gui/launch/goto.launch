@@ -21,5 +21,5 @@
   <remap from="/go_to_location_server/job/go_to" to="/robotiq_gripper"/>
 </node>
 
-<node pkg="go_to_location"  type="go_to_location_loader" name="go_to_location_loader" output="screen"/>
+<!-- <node pkg="go_to_location"  type="go_to_location_loader" name="go_to_location_loader" output="screen"/> -->
 </launch>

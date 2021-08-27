@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>manipulation_interface_gui</name>
   <version>0.1.0</version>
   <description>
@@ -18,21 +18,24 @@
   <build_depend>roscpp</build_depend>
   <build_depend>libqt4-dev</build_depend>
   <build_depend>manipulation_msgs</build_depend>
+  <build_depend>manipulation_utils</build_depend>
   <build_depend>configuration_msgs</build_depend>
   <build_depend>manipulation_interface_mongo</build_depend>
   <build_depend>rosparam_utilities</build_depend>
   <build_depend>tf</build_depend>
 	<build_depend>geometry_msgs</build_depend>
 	<build_depend>message_generation</build_depend>
-	<run_depend>qt_build</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>libqt4-dev</run_depend>
-  <run_depend>manipulation_msgs</run_depend>
-  <run_depend>configuration_msgs</run_depend>
-  <run_depend>manipulation_interface_mongo</run_depend>
-  <run_depend>rosparam_utilities</run_depend>
-  <run_depend>tf</run_depend>
-	<run_depend>geometry_msgs</run_depend>
-  <run_depend>message_runtime</run_depend>
+  <build_export_depend>manipulation_utils</build_export_depend>
+  <exec_depend>qt_build</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>libqt4-dev</exec_depend>
+  <exec_depend>manipulation_msgs</exec_depend>
+  <exec_depend>manipulation_utils</exec_depend>
+  <exec_depend>configuration_msgs</exec_depend>
+  <exec_depend>manipulation_interface_mongo</exec_depend>
+  <exec_depend>rosparam_utilities</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
 
 </package>

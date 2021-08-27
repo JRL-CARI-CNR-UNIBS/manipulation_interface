@@ -365,6 +365,14 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
         {
           manipulation_msgs::PlaceObjectsGoal place_goal;
 
+          if (!pick_ac.getResult()->object_name.empty())
+            place_goal.object_name = pick_ac.getResult()->object_name;
+          else
+          {
+            ROS_ERROR("No object name = %s",pick_ac.getResult()->object_name.c_str());
+            return 0;
+          }
+
           place_goal.slots_group_names     = action_.goal;
           place_goal.approach_loc_ctrl_id  = action_.approach_loc;
           place_goal.to_loc_ctrl_id        = action_.to_loc      ;
