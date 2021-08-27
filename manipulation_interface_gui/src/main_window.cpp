@@ -929,6 +929,7 @@ void MainWindow::on_button_add_object_clicked(bool check)
                             init_approach_object = false;
                             actual_object_grasp.clear();
                             actual_object_approach.clear();
+                            actual_approach_gripper_states.clear();
                             if ( ui.combo_action_type->currentIndex() == 1 )
                             {
                                 qnode.write_objects();
@@ -945,7 +946,7 @@ void MainWindow::on_button_add_object_clicked(bool check)
                 else {
                     ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach.size(), actual_approach_gripper_states.size() );
                     QMessageBox msgBox;
-                    msgBox.setText("Apporach and grasp have different sizes");
+                    msgBox.setText("Apporach and gripper have different sizes");
                     msgBox.exec();
                 }
             }
