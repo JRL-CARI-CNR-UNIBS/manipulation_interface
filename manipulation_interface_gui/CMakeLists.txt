@@ -16,8 +16,7 @@ endif()
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
-	std_msgs
-	tf
+	  tf
 	rosparam_utilities
 	manipulation_interface_mongo
 	configuration_msgs
@@ -37,7 +36,20 @@ find_package(catkin REQUIRED COMPONENTS
 	 std_msgs
  )
 
-catkin_package()
+#catkin_package()
+
+catkin_package(
+	INCLUDE_DIRS src
+	LIBRARIES
+	CATKIN_DEPENDS  roscpp
+	tf
+	rosparam_utilities
+	manipulation_interface_mongo
+	configuration_msgs
+	manipulation_msgs
+	manipulation_utils
+	geometry_msgs
+)
 
 include_directories(
 src

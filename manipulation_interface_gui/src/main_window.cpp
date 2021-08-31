@@ -28,9 +28,9 @@ using namespace Qt;
 ** Implementation [MainWindow]
 *****************************************************************************/
 
-MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
+MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle nh_i, ros::NodeHandle nh_o, ros::NodeHandle nh_g, QWidget *parent)
 	: QMainWindow(parent)
-	, qnode(argc,argv)
+    , qnode(argc,argv,n,nh_i,nh_o,nh_g)
 {
 	ui.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
     QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt())); // qApp is a global variable for the application
@@ -893,7 +893,7 @@ void MainWindow::on_button_save_components_clicked(bool check)
     else
     {
         QMessageBox msgBox;
-        msgBox.setText("There is some problem with the save");
+        msgBox.setText("The previous saving did not finish");
         msgBox.exec();
     }
 }
@@ -1149,7 +1149,7 @@ void MainWindow::on_button_add_location_changes_clicked(bool check)
 
 void MainWindow::on_button_add_slot_changes_clicked(bool check)
 {
-    slot slt;
+    manipulation_slot slt;
 
     QModelIndex index = ui.list_slot_modify->currentIndex();
 
@@ -1376,7 +1376,7 @@ void MainWindow::reset_slot(int index)
     ui.edit_slot_group        ->clear();
     ui.edit_slot_max_objects  ->clear();
 
-    slot sl = qnode.return_slot_info(index);
+    manipulation_slot sl = qnode.return_slot_info(index);
     QString frame_ = QString::fromStdString( sl.frame);
     QString group_ = QString::fromStdString( sl.group);
     QString pos_x  = QString::fromStdString( std::to_string(sl.location_.pos.origin_x) );
@@ -1627,6 +1627,10 @@ void MainWindow::on_button_copy_location_clicked(bool chack)
             else
             {
                 ui.edit_new_location->clear();
+                if ( ui.combo_action_type->currentIndex() == 0)
+                {
+                    qnode.write_locations();
+                }
             }
         }
         else
@@ -1664,6 +1668,10 @@ void MainWindow::on_button_copy_object_clicked(bool chack)
             else
             {
                 ui.edit_new_object->clear();
+                if ( ui.combo_action_type->currentIndex() == 1 )
+                {
+                    qnode.write_objects();
+                }
             }
         }
         else
@@ -1686,7 +1694,7 @@ void MainWindow::on_button_copy_slot_clicked(bool chack)
     if ( !ui.list_slot_modify->selectionModel()->selectedIndexes().empty() )
     {
         int index = ui.list_slot_modify->currentIndex().row();
-        slot slt = qnode.return_slot_info( index );
+        manipulation_slot slt = qnode.return_slot_info( index );
         slt.name = ui.edit_new_slot->text().toStdString();
 
         if ( !slt.name.empty() )
@@ -1701,6 +1709,10 @@ void MainWindow::on_button_copy_slot_clicked(bool chack)
             else
             {
                 ui.edit_new_slot->clear();
+                if ( ui.combo_action_type->currentIndex() == 2 )
+                {
+                    qnode.write_groups();
+                }
             }
         }
         else

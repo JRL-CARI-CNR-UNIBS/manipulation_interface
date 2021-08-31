@@ -23,9 +23,11 @@
 #endif
 #include <string>
 #include <QThread>
+#include <thread>
 #include <QStringListModel>
 #include <configuration_msgs/StartConfiguration.h>
 #include <manipulation_msgs/JobExecution.h>
+#include <manipulation_utils/manipulation_load_params_utils.h>
 
 /*****************************************************************************
 ** Namespaces
@@ -94,7 +96,7 @@ struct object_type
     std::vector<std::string> tool;
 };
 
-struct slot
+struct manipulation_slot
 {
     std::string name;
     std::string group;
@@ -132,7 +134,11 @@ struct recipe
 class QNode : public QThread {
     Q_OBJECT
 public:
-	QNode(int argc, char** argv );
+    QNode(int argc, char** argv,
+          ros::NodeHandle n_,
+          ros::NodeHandle nh_i_,
+          ros::NodeHandle nh_o_,
+          ros::NodeHandle nh_g_);
 	virtual ~QNode();
 
 	bool init();
@@ -167,30 +173,41 @@ public:
     bool add_second_slot_groups   (int ind);
     bool add_second_object_type   (int ind);
     bool add_location_changes     (int ind, go_to_location new_location);
-    bool add_slot_changes         (int ind, slot new_slot);
+    bool add_slot_changes         (int ind, manipulation_slot new_slot);
     bool add_box_changes          (int ind, box new_box);
     bool add_object_changes       (int ind, object_type new_object);
     bool add_object_copy_grasp    (int index, int index2);
     bool add_location_copy (go_to_location new_loc);
     bool add_object_copy   (object_type new_obj);
-    bool add_slot_copy     (slot new_slot);
+    bool add_slot_copy     (manipulation_slot new_slot);
     bool add_box_copy      (box new_box);
 
+    void load_initial_param_in_manipulator();
+    void load_new_params_in_manipulation(std::vector<object_type> changed_objects_,
+                                         std::vector<go_to_location> changed_locations_,
+                                         std::vector<manipulation_slot> changed_slots_,
+                                         std::vector<box> changed_boxes_,
+                                         std::vector<std::string> changed_groups_,
+                                         std::vector<object_type> objects_to_remove_,
+                                         std::vector<go_to_location> locations_to_remove_,
+                                         std::vector<manipulation_slot> slots_to_remove_,
+                                         std::vector<box> boxes_to_remove_,
+                                         std::vector<std::string> groups_to_remove_);
 
-    location       return_position(std::string base_frame, std::string target_frame);
-    go_to_action   return_go_to_info         (int ind);
-    pick           return_pick_info          (int ind);
-    place          return_place_info         (int ind);
-    go_to_location return_location_info      (int ind);
-    object_type    return_object_info        (int ind);
-    box            return_box_info           (int ind);
-    slot           return_slot_info          (int ind);
-    recipe         return_recipe_info        (int ind);
-    std::string    return_location_list_text (int ind);
-    std::string    return_group_list_text    (int ind);
-    std::string    return_object_list_text   (int ind);
-    std::string    return_obj_dist_list_text (int ind);
-    std::string    return_box_list_text      (int ind);
+    location          return_position(std::string base_frame, std::string target_frame);
+    go_to_action      return_go_to_info         (int ind);
+    pick              return_pick_info          (int ind);
+    place             return_place_info         (int ind);
+    go_to_location    return_location_info      (int ind);
+    object_type       return_object_info        (int ind);
+    box               return_box_info           (int ind);
+    manipulation_slot return_slot_info(int ind);
+    recipe            return_recipe_info        (int ind);
+    std::string       return_location_list_text (int ind);
+    std::string       return_group_list_text    (int ind);
+    std::string       return_object_list_text   (int ind);
+    std::string       return_obj_dist_list_text (int ind);
+    std::string       return_box_list_text      (int ind);
 
     std::string get_xml_max_number_string         (int value);
     std::string get_xml_double_string             (double value);
@@ -316,6 +333,25 @@ Q_SIGNALS:
 private:
 	int init_argc;
 	char** init_argv;
+    std::thread t;
+    std::thread t_component;
+
+    ros::NodeHandle n;
+    ros::NodeHandle nh_i;
+    ros::NodeHandle nh_o;
+    ros::NodeHandle nh_g;
+
+    ros::ServiceClient add_objs_to_scene_client_;
+    ros::ServiceClient add_locations_client_;
+    ros::ServiceClient add_boxes_client_;
+    ros::ServiceClient add_objs_client_;
+    ros::ServiceClient add_slots_group_client_;
+    ros::ServiceClient add_slots_client_;
+    ros::ServiceClient remove_locations_client_;
+    ros::ServiceClient remove_boxes_client_;
+    ros::ServiceClient remove_objs_client_;
+    ros::ServiceClient remove_slots_group_client_;
+    ros::ServiceClient remove_slots_client_;
 
     ros::Publisher     twist_pub;
     ros::ServiceClient set_ctrl_srv;
@@ -343,30 +379,41 @@ private:
     QStringListModel logging_model_action_components;
     QStringListModel logging_model_recipe;
 
-    std::vector<go_to_location> go_to_locations;
-    std::vector<go_to_action>   go_to_actions;
-    std::vector<place>          place_actions;
-    std::vector<pick>           pick_actions;
-    std::vector<object_type>    objects;
-    std::vector<slot>           manipulation_slots;
-    std::vector<std::string>    groups;
-    std::vector<box>            boxes;
-    std::vector<recipe>         recipes;
-    std::vector<go_to_location> go_to_locations_compare;
-    std::vector<go_to_action>   go_to_actions_compare;
-    std::vector<place>          place_actions_compare;
-    std::vector<pick>           pick_actions_compare;
-    std::vector<object_type>    objects_compare;
-    std::vector<slot>           slots_compare;
-    std::vector<std::string>    groups_compare;
-    std::vector<box>            boxes_compare;
-    std::vector<recipe>         recipes_compare;
-    std::vector<go_to_action>   second_go_to_actions;
-    std::vector<place>          second_place_actions;
-    std::vector<pick>           second_pick_actions;
-    std::vector<action>         action_list;
-    std::vector<std::string>    param_names;
-    std::vector<std::string>    robot_name_params;
+    std::vector<object_type>       changed_objects;
+    std::vector<go_to_location>    changed_locations;
+    std::vector<manipulation_slot> changed_slots;
+    std::vector<box>               changed_boxes;
+    std::vector<std::string>       changed_groups;
+    std::vector<object_type>       objects_to_remove;
+    std::vector<go_to_location>    locations_to_remove;
+    std::vector<manipulation_slot> slots_to_remove;
+    std::vector<box>               boxes_to_remove;
+    std::vector<std::string>       groups_to_remove;
+
+    std::vector<go_to_location>    go_to_locations;
+    std::vector<go_to_action>      go_to_actions;
+    std::vector<place>             place_actions;
+    std::vector<pick>              pick_actions;
+    std::vector<object_type>       objects;
+    std::vector<manipulation_slot> manipulation_slots;
+    std::vector<std::string>       groups;
+    std::vector<box>               boxes;
+    std::vector<recipe>            recipes;
+    std::vector<go_to_location>    go_to_locations_compare;
+    std::vector<go_to_action>      go_to_actions_compare;
+    std::vector<place>             place_actions_compare;
+    std::vector<pick>              pick_actions_compare;
+    std::vector<object_type>       objects_compare;
+    std::vector<manipulation_slot> slots_compare;
+    std::vector<std::string>       groups_compare;
+    std::vector<box>               boxes_compare;
+    std::vector<recipe>            recipes_compare;
+    std::vector<go_to_action>      second_go_to_actions;
+    std::vector<place>             second_place_actions;
+    std::vector<pick>              second_pick_actions;
+    std::vector<action>            action_list;
+    std::vector<std::string>       param_names;
+    std::vector<std::string>       robot_name_params;
 
     const std::string init_value  = "<value>";
     const std::string end_value   = "</value>";
@@ -387,7 +434,12 @@ private:
     const std::string init_string = "<string>";
     const std::string end_string  = "</string>";
 
-    bool manual_guidance = false;
+    std::shared_ptr<manipulation::OutboundPlaceFromParam> oub;
+    std::shared_ptr<manipulation::InboundPickFromParam>   inb;
+    std::shared_ptr<manipulation::GoToLocationFromParam>  go_to;
+
+    bool t_finito = false;
+    bool tc_finito = false;
 };
 
 }  // namespace manipulation_interface_gui

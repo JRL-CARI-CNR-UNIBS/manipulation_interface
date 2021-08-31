@@ -25,8 +25,9 @@
   <build_depend>tf</build_depend>
 	<build_depend>geometry_msgs</build_depend>
 	<build_depend>message_generation</build_depend>
-  <build_export_depend>manipulation_utils</build_export_depend>
-  <exec_depend>qt_build</exec_depend>
+	<build_export_depend>manipulation_utils</build_export_depend>
+	<build_export_depend>manipulation_msgs</build_export_depend>
+	<exec_depend>qt_build</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>libqt4-dev</exec_depend>
   <exec_depend>manipulation_msgs</exec_depend>

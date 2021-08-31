@@ -32,7 +32,12 @@ class MainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
-	MainWindow(int argc, char** argv, QWidget *parent = 0);
+    MainWindow(int argc, char** argv,
+               ros::NodeHandle n,
+               ros::NodeHandle nh_i,
+               ros::NodeHandle nh_o,
+               ros::NodeHandle nh_g,
+               QWidget *parent = 0);
 	~MainWindow();
 
 	void closeEvent(QCloseEvent *event); // Overloaded function

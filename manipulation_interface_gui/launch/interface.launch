@@ -2,10 +2,10 @@
 
 <launch>
 
-<!-- <include file="$(find manipulation_interface_gui)/launch/skills.launch" /> -->
+<include file="$(find manipulation_interface_gui)/launch/skills.launch" />
 
-<node name="manipulation_interface_gui" type="manipulation_interface_gui" pkg="manipulation_interface_gui" />
+<node  name="manipulation_interface_gui" type="manipulation_interface_gui" pkg="manipulation_interface_gui" />
 
-<node name="recipe_test_node" type="recipe_test_node" pkg="manipulation_interface_gui" />
+<node name="recipe_test_node" type="recipe_test_node" pkg="manipulation_interface_gui" output="log"/>
 
 </launch>
