@@ -146,7 +146,7 @@ public:
     void cartMove (std::vector<float> twist_move);
 
     bool save_recipe();
-    void run_recipe();
+    int run_recipe();
     std::vector<std::string> load_recipes_param();
 
     XmlRpc::XmlRpcValue get_recipe_param(std::vector<std::string> recipe_);
@@ -183,6 +183,7 @@ public:
     bool add_box_copy      (box new_box);
 
     void load_initial_param_in_manipulator();
+    void load_objects_in_manipulator();
     void load_new_params_in_manipulation(std::vector<object_type> changed_objects_,
                                          std::vector<go_to_location> changed_locations_,
                                          std::vector<manipulation_slot> changed_slots_,

@@ -132,6 +132,7 @@ public Q_SLOTS:
     void on_button_left_released    ();
     void on_button_right_released   ();
     void on_button_front_released   ();
+    void on_button_load_objects     ();
     void reset_location                              (int index);
     void reset_slot                                  (int index);
     void reset_box                                   (int index);
@@ -142,6 +143,7 @@ public Q_SLOTS:
     void on_combo_configuration_currentIndexChanged  (int index);
     void on_combo_configuration__currentIndexChanged (int index);
     void on_combo_ref_frame_currentIndexChanged      (int index);
+    void on_TF_list_currentIndexChanged              (int index);
     void on_gripper_percentage_valueChanged   (int value);
     void on_gripper_percentage_2_valueChanged (int value);
     void on_velocity_slider_valueChanged      (int value);

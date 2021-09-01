@@ -114,7 +114,7 @@ bool QNode::init()
     oub = std::make_shared<manipulation::OutboundPlaceFromParam>(nh_o);
     go_to = std::make_shared<manipulation::GoToLocationFromParam>(nh_g);
 
-//    t = std::thread(&QNode::load_initial_param_in_manipulator,this);
+    t = std::thread(&QNode::load_initial_param_in_manipulator,this);
 
 //    add_objs_to_scene_client_  = n.serviceClient<object_loader_msgs::AddObjects>      ("/add_object_to_scene");
     add_locations_client_      = n.serviceClient<manipulation_msgs::AddLocations>     ("/go_to_location_server/add_locations");
@@ -128,9 +128,9 @@ bool QNode::init()
     remove_slots_group_client_ = n.serviceClient<manipulation_msgs::RemoveSlotsGroup> ("/outbound_place_server/remove_slots_group");
     remove_slots_client_       = n.serviceClient<manipulation_msgs::RemoveSlots>      ("/outbound_place_server/remove_slots");
 
-    ROS_INFO("Scene spawner is waiting %s", add_objs_to_scene_client_.getService().c_str());
-    add_objs_to_scene_client_.waitForExistence();
-    ROS_INFO("Client %s connected to server", add_objs_to_scene_client_.getService().c_str());
+//    ROS_INFO("Scene spawner is waiting %s", add_objs_to_scene_client_.getService().c_str());
+//    add_objs_to_scene_client_.waitForExistence();
+//    ROS_INFO("Client %s connected to server", add_objs_to_scene_client_.getService().c_str());
 
     ROS_INFO("Scene spawner is waiting %s", add_locations_client_.getService().c_str());
     add_locations_client_.waitForExistence();
@@ -182,10 +182,10 @@ void QNode::load_initial_param_in_manipulator()
     {
       ROS_ERROR("Unable to load boxes");
     }
-    if (!inb->readObjectFromParam())
-    {
-      ROS_ERROR("Unable to load objects in the boxes");
-    }
+//    if (!inb->readObjectFromParamWithoutSceneSpawn())
+//    {
+//      ROS_ERROR("Unable to load objects in the boxes");
+//    }
 
     //outbound
     if (!oub->readSlotsGroupFromParam())
@@ -207,6 +207,14 @@ void QNode::load_initial_param_in_manipulator()
     ROS_FATAL("First loading on manipulation is finisched");
 
     t_finito = true;
+}
+
+void QNode::load_objects_in_manipulator()
+{
+  if (!inb->readObjectFromParamWithoutSceneSpawn())
+  {
+    ROS_ERROR("Unable to load objects in the boxes");
+  }
 }
 
 void QNode::cartMove (std::vector<float> twist_move)
@@ -424,8 +432,31 @@ bool QNode::save_recipe()
     return true;
 }
 
-void QNode::run_recipe()
+int QNode::run_recipe()
 {
+  if ( t_finito )
+  {
+      t.join();
+      t_finito = false;
+  }
+
+  if ( tc_finito )
+  {
+      t_component.join();
+      tc_finito = false;
+  }
+
+  if ( t_component.joinable() )
+      ROS_ERROR("The saving has not finished");
+  if ( t.joinable() )
+      ROS_ERROR("The first saving has not finished");
+
+  if ( t_component.joinable() || t.joinable() )
+  {
+      ROS_ERROR("The previous thread has not finished");
+      return 1;
+  }
+
     std::vector<std::string> recipe_;
 
     for ( int i = 0; i < logging_model_recipe.rowCount(); i++ )
@@ -449,9 +480,9 @@ void QNode::run_recipe()
       else
       {
         ROS_ERROR("Failed to call service run_recipe");
-        return;
+        return 2;
       }
-    return;
+    return 0;
 }
 
 XmlRpc::XmlRpcValue QNode::get_recipe_param(int index)
@@ -2002,14 +2033,18 @@ void QNode::load_new_params_in_manipulation(std::vector<object_type>       chang
                                             std::vector<box>               boxes_to_remove_,
                                             std::vector<std::string>       groups_to_remove_)
 {
-//    manipulation_msgs::RemoveObjects remove_objects_srv;
-//    for ( int i = 0; i < objects_to_remove.size(); i++ )
-//    {
-//        remove_objects_srv.request.object_names.push_back(objects_to_remove[i].name);
-//    }
-//    remove_objs_client_.call(remove_objects_srv);
-
     ROS_FATAL("Inizio caricamento componenti nel manipulator");
+
+//    manipulation_msgs::RemoveObjects remove_objects_srv;
+//    ROS_FATAL("Objects da rimuovere: %zu", objects_to_remove_.size());
+//    for ( int i = 0; i < objects_to_remove_.size(); i++ )
+//    {
+//        remove_objects_srv.request.object_names.push_back(objects_to_remove_[i].name);
+//    }
+//    if ( remove_objects_srv.request.object_names.size() != 0 )
+//    {
+//      remove_objs_client_.call(remove_objects_srv);
+//    }
 
     manipulation_msgs::RemoveLocations remove_location_srv;
     ROS_FATAL("Locations da rimuovere: %zu", locations_to_remove_.size());

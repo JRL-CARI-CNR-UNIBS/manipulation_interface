@@ -59,15 +59,25 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
     actionlib::SimpleActionClient<manipulation_msgs::PlaceObjectsAction> place_ac("/outbound_place_server/"+req.input+"/place");
     actionlib::SimpleActionClient<manipulation_msgs::GoToAction>         go_to_ac("/go_to_location_server/"+req.input+"/go_to");
 
-    ROS_INFO("Waiting for pick server");
+//    ROS_INFO("Waiting for pick server");
+//    pick_ac.waitForServer();
+//    ROS_INFO("Connection ok");
+//    ROS_INFO("Waiting for place server");
+//    place_ac.waitForServer();
+//    ROS_INFO("Connection ok");
+//    ROS_INFO("Waiting for goto server");
+//    go_to_ac.waitForServer();
+//    ROS_INFO("Connection ok");
+
+    ROS_WARN("Waiting for pick server");
     pick_ac.waitForServer();
-    ROS_INFO("Connection ok");
-    ROS_INFO("Waiting for place server");
+    ROS_WARN("Connection ok");
+    ROS_WARN("Waiting for place server");
     place_ac.waitForServer();
-    ROS_INFO("Connection ok");
-    ROS_INFO("Waiting for goto server");
+    ROS_WARN("Connection ok");
+    ROS_WARN("Waiting for goto server");
     go_to_ac.waitForServer();
-    ROS_INFO("Connection ok");
+    ROS_WARN("Connection ok");
 
     ros::ServiceClient remove_object_from_slot_clnt = nh_.serviceClient<manipulation_msgs::RemoveObjectFromSlot>("/outbound_place_server/remove_obj_from_slot");
     remove_object_from_slot_clnt.waitForExistence();
@@ -431,34 +441,6 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
 
 
     }
-
-//    for ( int i = 0; i < actions.size(); i++ )
-//    {
-//        if ( !actions[i].type.compare("pick") )
-//        {
-//            manipulation_msgs::PickObjectsGoal pick_goal;
-
-//            pick_goal.object_types          = actions[i].goal;
-//            pick_goal.approach_loc_ctrl_id  = actions[i].approach_loc;
-//            pick_goal.to_loc_ctrl_id        = actions[i].to_loc      ;
-//            pick_goal.leave_loc_ctrl_id     = actions[i].leave_loc   ;
-//            pick_goal.job_exec_name         = actions[i].job_exec    ;
-//            pick_goal.tool_id               = actions[i].tool_id     ;
-//            pick_goal.property_pre_exec_id  = actions[i].pre_exec_id ;
-//            pick_goal.property_exec_id      = actions[i].exec_id     ;
-//            pick_goal.property_post_exec_id = actions[i].post_exec_id;
-
-//            pick_ac.sendGoalAndWait(pick_goal);
-
-//            if (pick_ac.getResult()->result < 0)
-//            {
-//                ROS_ERROR("[Group %s] unable to pick -> object type = %s",pnh.getNamespace().c_str(),pick_ac.getResult()->object_name.c_str());
-//                return 0;
-//            }
-//            ROS_INFO("[Group %s] well done! I picked it, name = %s",pnh.getNamespace().c_str(),pick_ac.getResult()->object_name.c_str());
-//        }
-
-//    }
 
     return true;
 }

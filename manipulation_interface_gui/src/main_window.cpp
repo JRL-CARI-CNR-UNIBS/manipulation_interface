@@ -117,6 +117,7 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle
     ui.edit_object_tool        ->setReadOnly(true);
     ui.edit_action_description ->setReadOnly(true);
     ui.edit_gripper_state      ->setReadOnly(true);
+    ui.edit_object_name        ->setReadOnly(true);
 
     /*********************
     ** Window connect to ROS
@@ -154,6 +155,15 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle
             ui.recipe_box->addItem( QString::fromStdString(recipes_names[i]) );
         }
     }
+
+    std::string name = ui.TF_list->currentText().toStdString();
+    std::size_t found  = name.find( "_0" );
+    if ( found != std::string::npos)
+    {
+      name.erase( found, name.size() );
+    }
+    ui.edit_object_name->setText(QString::fromStdString(name));
+
 }
 
 MainWindow::~MainWindow() {}
@@ -817,7 +827,24 @@ void MainWindow::on_button_remove_recipe_clicked(bool check)
 
 void MainWindow::on_button_run_recipe_clicked(bool check)
 {
-    qnode.run_recipe();
+    int risp = qnode.run_recipe();
+    QMessageBox msgBox;
+
+    switch (risp)
+    {
+    case 0 :
+      msgBox.setText("The recipe was done without error");
+      msgBox.exec();
+      break;
+    case 1 :
+      msgBox.setText("The saving of components has not finished ");
+      msgBox.exec();
+      break;
+    case 2 :
+      msgBox.setText("Failed to call service run_recipe");
+      msgBox.exec();
+      break;
+    }
 }
 
 void MainWindow::on_button_gripper_clicked(bool check)
@@ -1607,6 +1634,11 @@ void MainWindow::on_button_anti_z_released  ()
     qnode.cartMove ( twist_move );
 }
 
+void MainWindow::on_button_load_objects()
+{
+    qnode.load_objects_in_manipulator();
+}
+
 void MainWindow::on_button_copy_location_clicked(bool chack)
 {
     if ( !ui.list_location_modify->selectionModel()->selectedIndexes().empty() )
@@ -1992,6 +2024,17 @@ void MainWindow::on_combo_ref_frame_currentIndexChanged(int index)
     qnode.frame_id.clear();
     qnode.frame_id.append("/");
     qnode.frame_id.append( ui.combo_ref_frame->currentText().toStdString() );
+}
+
+void MainWindow::on_TF_list_currentIndexChanged(int index)
+{
+  std::string name = ui.TF_list->currentText().toStdString();
+  std::size_t found  = name.find( "_0" );
+  if ( found != std::string::npos)
+  {
+    name.erase( found, name.size() );
+  }
+  ui.edit_object_name->setText(QString::fromStdString(name));
 }
 
 void MainWindow::on_list_location_modify_pressed(const QModelIndex &index)
