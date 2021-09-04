@@ -68,6 +68,8 @@ public Q_SLOTS:
     void on_button_add_slot_changes_clicked           (bool check);
     void on_button_add_box_changes_clicked            (bool check);
     void on_button_add_object_changes_clicked         (bool check);
+    void on_button_add_leave_position_slot_clicked    (bool check);
+    void on_button_add_leave_position_box_clicked     (bool check);
     void on_button_copy_location_clicked              (bool check);
     void on_button_copy_object_clicked                (bool check);
     void on_button_copy_slot_clicked                  (bool check);
@@ -87,6 +89,8 @@ public Q_SLOTS:
     void on_button_remove_approach_box_clicked        (bool check);
     void on_button_remove_final_box_clicked           (bool check);
     void on_button_remove_recipe_clicked              (bool check);
+    void on_button_remove_leave_position_slot_clicked (bool check);
+    void on_button_remove_leave_position_box_clicked  (bool check);
     void on_button_run_recipe_clicked                 (bool check);
     void on_button_gripper_clicked                    (bool check);
     void on_button_gripper_2_clicked                  (bool check);
@@ -101,6 +105,7 @@ public Q_SLOTS:
     void on_button_write_recipe_clicked               (bool check);
     void on_button_reset_location_info_clicked        (bool check);
     void on_button_set_approach_clicked               (bool check);
+    void on_button_set_leave_clicked                  (bool check);
     void on_button_reset_slot_info_clicked            (bool check);
     void on_button_reset_box_info_clicked             (bool check);
     void on_button_reset_object_info_clicked          (bool check);
@@ -171,13 +176,18 @@ private:
     int num_grasp = 0, num_approach = 0, num_picks = 0, num_places = 0;
     std::vector<location>    actual_object_grasp;
     std::vector<position>    actual_object_approach;
+    std::vector<position>    actual_object_leave;
     std::vector<std::string> actual_approach_gripper_states;
+    std::vector<std::string> actual_leave_gripper_states;
     std::vector<std::string> actual_tool_approach;
     std::vector<std::string> actual_tool_grasp;
+    std::vector<std::string> actual_tool_leave;
     location                 actual_slot_approach;
     location                 actual_slot_final_position;
     location                 actual_box_approach;
     location                 actual_box_final;
+    location                 actual_slot_leave;
+    location                 actual_box_leave;
     object_type              actual_object_to_modify;
     std::string              actual_gripper_state = "open";
     bool init_approach_object = false;
@@ -186,6 +196,8 @@ private:
     bool init_box_approach    = false;
     bool init_box_final       = false;
     bool init_objects         = false;
+    bool init_slot_leave      = false;
+    bool init_box_leave       = false;
     float max_vel  = 0.1;
     float max_rot  = 0.7;
     int   perc_vel = 50;

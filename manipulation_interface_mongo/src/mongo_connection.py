@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import pymongo
 import pprint
@@ -32,7 +32,7 @@ def save_components_params(srv):
 		groups_collection.delete_many({})
 		groups_collection.insert_many(groups_param)
 
-	objects_param = rospy.get_param("/manipulation/objects")
+	objects_param = rospy.get_param("/manipulation_object_types")
 	if objects_param:
 		objects_collection.delete_many({})
 		objects_collection.insert_many(objects_param)

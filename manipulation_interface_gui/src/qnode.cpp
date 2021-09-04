@@ -1451,7 +1451,9 @@ std::string QNode::get_xml_object_grasp_string( int index, int index2 )
     xml_body.append(get_xml_position_string("position", objects[index].grasp[index2].pos));
     xml_body.append(get_xml_quaternion_string(objects[index].grasp[index2].quat));
     xml_body.append(get_xml_position_string("approach_distance", objects[index].approach[index2]));
+    xml_body.append(get_xml_position_string("leave_distance", objects[index].leave[index2]));
     xml_body.append(get_xml_string_param("approach_gripper_state", objects[index].approach_gripper_state[index2]));
+    xml_body.append(get_xml_string_param("leave_gripper_state", objects[index].leave_gripper_state[index2]));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1523,6 +1525,7 @@ XmlRpc::XmlRpcValue QNode::get_box_param(int index)
     xml_body.append(get_xml_string_param("frame", boxes[index].frame));
     xml_body.append(get_xml_position_string("position", boxes[index].location_.pos));
     xml_body.append(get_xml_position_string("approach_distance", boxes[index].approach));
+    xml_body.append(get_xml_position_string("leave_distance", boxes[index].leave));
     xml_body.append(get_xml_quaternion_string(boxes[index].location_.quat));
 
     xml_body.append(end_struct);
@@ -1664,6 +1667,7 @@ XmlRpc::XmlRpcValue QNode::get_slot_param(int index)
     xml_body.append(get_xml_position_string("position", manipulation_slots[index].location_.pos));
     xml_body.append(get_xml_quaternion_string( manipulation_slots[index].location_.quat));
     xml_body.append(get_xml_position_string("approach_distance", manipulation_slots[index].approach));
+    xml_body.append(get_xml_position_string("leave_distance", manipulation_slots[index].leave));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -2009,25 +2013,11 @@ bool QNode::save_components()
     n.setParam("/outbound/slots", param);
     param.clear();
 
-    for ( int i = 0; i < objects.size(); i++)
-    {
-        for ( int j = 0; j < objects[i].grasp.size(); j++)
-        {
-            param[j] = get_object_grasp_param( i, j );
-        }
-        std::string str;
-        str.append("/manipulation_object_types/");
-        str.append(objects[i].type);
-        str.append("/grasp_poses");
-        n.setParam( str, param);
-        param.clear();
-    }
-
     for ( int i = 0; i < objects.size(); i++ )
     {
         param [i] = get_object_param(i);
     }
-    n.setParam("/manipulation/objects", param);
+    n.setParam("/manipulation_object_types", param);
     param.clear();
 
     ros::ServiceClient client = n.serviceClient<manipulation_interface_mongo::SaveParam>("/save_components_params_on_mongo");
@@ -2432,7 +2422,13 @@ bool QNode::save_actions()
     return true;
 }
 
-bool QNode::add_object(std::string object_name, std::vector<position> object_approach, std::vector<location> object_grasp, std::vector<std::string> object_tools, std::vector<std::string> gripper_states)
+bool QNode::add_object(std::string object_name,
+                       std::vector<position> object_approach,
+                       std::vector<location> object_grasp,
+                       std::vector<position> object_leave,
+                       std::vector<std::string> object_tools,
+                       std::vector<std::string> approach_gripper_states,
+                       std::vector<std::string> leave_gripper_states)
 {
     if ( logging_model_object.rowCount()!=0 )
     {
@@ -2454,7 +2450,9 @@ bool QNode::add_object(std::string object_name, std::vector<position> object_app
     obj.tool     = object_tools;
     obj.approach = object_approach;
     obj.grasp    = object_grasp;
-    obj.approach_gripper_state = gripper_states;
+    obj.leave    = object_leave;
+    obj.approach_gripper_state = approach_gripper_states;
+    obj.leave_gripper_state = leave_gripper_states;
     objects.push_back(obj);
 
     //    changed_objects.push_back( obj );
@@ -2462,7 +2460,7 @@ bool QNode::add_object(std::string object_name, std::vector<position> object_app
     return true;
 }
 
-bool QNode::add_slot(std::string slot_name, location slot_approach, location slot_final_pos, std::string group_name, int max_number )
+bool QNode::add_slot(std::string slot_name, location slot_approach, location slot_final_pos, location slot_leave, std::string group_name, int max_number )
 {
     if ( logging_model_slot.rowCount()!=0 )
     {
@@ -2504,6 +2502,10 @@ bool QNode::add_slot(std::string slot_name, location slot_approach, location slo
     approach.origin_x = slot_approach.pos.origin_x-slot_final_pos.pos.origin_x;
     approach.origin_y = slot_approach.pos.origin_y-slot_final_pos.pos.origin_y;
     approach.origin_z = slot_approach.pos.origin_z-slot_final_pos.pos.origin_z;
+    position leave;
+    leave.origin_x = slot_leave.pos.origin_x-slot_final_pos.pos.origin_x;
+    leave.origin_y = slot_leave.pos.origin_y-slot_final_pos.pos.origin_y;
+    leave.origin_z = slot_leave.pos.origin_z-slot_final_pos.pos.origin_z;
 
     log_slot(slot_name);
     log_slot_modify(slot_name);
@@ -2511,6 +2513,7 @@ bool QNode::add_slot(std::string slot_name, location slot_approach, location slo
     slt.name           = slot_name;
     slt.group          = group_name;
     slt.approach       = approach;
+    slt.leave          = leave;
     slt.location_      = slot_final_pos;
     slt.max_objects    = max_number;
     slt.frame          = base_frame;
@@ -2521,7 +2524,7 @@ bool QNode::add_slot(std::string slot_name, location slot_approach, location slo
     return true;
 }
 
-bool QNode::add_box(std::string box_name, location approach_position, location final_position)
+bool QNode::add_box(std::string box_name, location approach_position, location final_position, location leave_position)
 {
     if ( logging_model_box.rowCount()!=0 )
     {
@@ -2538,12 +2541,17 @@ bool QNode::add_box(std::string box_name, location approach_position, location f
     approach.origin_x = approach_position.pos.origin_x-final_position.pos.origin_x;
     approach.origin_y = approach_position.pos.origin_y-final_position.pos.origin_y;
     approach.origin_z = approach_position.pos.origin_z-final_position.pos.origin_z;
+    position leave;
+    leave.origin_x = leave_position.pos.origin_x-final_position.pos.origin_x;
+    leave.origin_y = leave_position.pos.origin_y-final_position.pos.origin_y;
+    leave.origin_z = leave_position.pos.origin_z-final_position.pos.origin_z;
     log_box(box_name);
     log_box_modify(box_name);
     box bx;
     bx.name      = box_name;
     bx.location_ = final_position;
     bx.approach  = approach;
+    bx.leave     = leave;
     bx.frame     = base_frame;
     boxes.push_back(bx);
 
@@ -3027,6 +3035,18 @@ bool QNode::readBoxesFromParam()
         box_.approach.origin_y = approach_distance_d.at(1);
         box_.approach.origin_z = approach_distance_d.at(2);
 
+        std::vector<double> leave_distance_d;
+        if( !rosparam_utilities::getParam(param,"leave_distance",leave_distance_d,what) )
+        {
+            ROS_WARN("The box %s has not the field 'leave_distance'",box_.name.c_str());
+            return false;
+        }
+        assert(leave_distance_d.size() == 3);
+
+        box_.leave.origin_x = leave_distance_d.at(0);
+        box_.leave.origin_y = leave_distance_d.at(1);
+        box_.leave.origin_z = leave_distance_d.at(2);
+
         bool presence = false;
         for ( int j = 0; j < boxes.size(); j++)
         {
@@ -3152,6 +3172,21 @@ bool QNode::readObjectFromParam()
 
             object_.approach.push_back( approach );
 
+            std::vector<double> leave_distance_d;
+            if( !rosparam_utilities::getParam(single_grasp,"leave_distance",leave_distance_d,what) )
+            {
+                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'leave_distance'", j, i);
+                return false;
+            }
+            assert(leave_distance_d.size() == 3);
+
+            position leave;
+            leave.origin_x = leave_distance_d.at(0);
+            leave.origin_y = leave_distance_d.at(1);
+            leave.origin_z = leave_distance_d.at(2);
+
+            object_.leave.push_back( leave );
+
             if ( !single_grasp.hasMember("tool"))
             {
                 ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'tool'", j, i);
@@ -3167,6 +3202,14 @@ bool QNode::readObjectFromParam()
             }
 
             object_.approach_gripper_state.push_back( rosparam_utilities::toString(single_grasp["approach_gripper_state"]) );
+
+            if ( !single_grasp.hasMember("leave_gripper_state"))
+            {
+                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'leave_gripper_state'", j, i);
+                continue;
+            }
+
+            object_.leave_gripper_state.push_back( rosparam_utilities::toString(single_grasp["leave_gripper_state"]) );
         }
         objects.push_back( object_ );
     }
@@ -3291,6 +3334,17 @@ bool QNode::readSlotsFromParam()
         slot_.approach.origin_x = approach_distance_d.at(0);
         slot_.approach.origin_y = approach_distance_d.at(1);
         slot_.approach.origin_z = approach_distance_d.at(2);
+
+        std::vector<double> leave_distance_d;
+        if( !rosparam_utilities::getParam(param,"leave_distance",leave_distance_d,what) )
+        {
+            ROS_WARN("Slot %s has not the field 'leave_distance'",slot_.name.c_str());
+            return false;
+        }
+        assert(leave_distance_d.size()==3);
+        slot_.leave.origin_x = leave_distance_d.at(0);
+        slot_.leave.origin_y = leave_distance_d.at(1);
+        slot_.leave.origin_z = leave_distance_d.at(2);
 
         location loc;
         std::vector<double> position;

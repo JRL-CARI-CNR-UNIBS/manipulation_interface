@@ -83,6 +83,8 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle
     ui.button_remove_final_position_slot ->setEnabled(false);
     ui.button_remove_approach_box        ->setEnabled(false);
     ui.button_remove_final_box           ->setEnabled(false);
+    ui.button_remove_leave_position_slot ->setEnabled(false);
+    ui.button_remove_leave_position_box  ->setEnabled(false);
     ui.button_save_components            ->setEnabled(false);
     ui.lateral_tab                       ->setEnabled(false);
     ui.check_human_info                  ->setEnabled(false);
@@ -423,8 +425,11 @@ void MainWindow::on_button_add_grasp_clicked(bool check)
     pos.origin_y = 0.0;
     pos.origin_z = -0.10;
     actual_object_approach.push_back(pos);
-    actual_approach_gripper_states.push_back(actual_gripper_state);
+    actual_object_leave.push_back(pos);
+    actual_approach_gripper_states.push_back("open");
+    actual_leave_gripper_states.push_back("open");
     actual_tool_approach.push_back(qnode.target_frame);
+    actual_tool_leave.push_back(qnode.target_frame);
 }
 
 void MainWindow::on_button_set_approach_clicked(bool check)
@@ -454,6 +459,35 @@ void MainWindow::on_button_set_approach_clicked(bool check)
     actual_approach_gripper_states[index] = actual_gripper_state;
     actual_tool_approach[index] = qnode.target_frame;
 }
+
+void MainWindow::on_button_set_leave_clicked(bool check)
+{
+    if ( ui.grasp_list->count() == 0 )
+    {
+        return;
+    }
+    int index = ui.grasp_list->currentIndex();
+    std::string actual_base_frame = ui.TF_list->currentText().toStdString();
+    location actual_leave = qnode.return_position(actual_base_frame, qnode.target_frame);
+    double dist_x = actual_leave.pos.origin_x - actual_object_grasp[index].pos.origin_x;
+    double dist_y = actual_leave.pos.origin_y - actual_object_grasp[index].pos.origin_y;
+    double dist_z = actual_leave.pos.origin_z - actual_object_grasp[index].pos.origin_z;
+    Eigen::Vector3d dist_obj(dist_x,dist_y,dist_z);
+    double w = actual_object_grasp[index].quat.rotation_w;
+    double x = actual_object_grasp[index].quat.rotation_x;
+    double y = actual_object_grasp[index].quat.rotation_y;
+    double z = actual_object_grasp[index].quat.rotation_z;
+    Eigen::Quaterniond quat_grasp( w, x, y, z);
+    Eigen::MatrixXd matrix(quat_grasp.toRotationMatrix());
+    Eigen::Vector3d dist_tool;
+    dist_tool = matrix.inverse() * dist_obj;
+    actual_object_leave[index].origin_x = dist_tool[0];
+    actual_object_leave[index].origin_y = dist_tool[1];
+    actual_object_leave[index].origin_z = dist_tool[2];
+    actual_leave_gripper_states[index] = actual_gripper_state;
+    actual_tool_leave[index] = qnode.target_frame;
+}
+
 
 void MainWindow::on_button_add_approach_slot_clicked(bool check)
 {
@@ -932,27 +966,46 @@ void MainWindow::on_button_add_object_clicked(bool check)
                 {
                     if ( actual_tool_approach == actual_tool_grasp )
                     {
-                        if( !qnode.add_object(obj_name, actual_object_approach, actual_object_grasp, actual_tool_grasp, actual_approach_gripper_states) )
+                        if ( actual_tool_leave == actual_tool_grasp )
                         {
-                            ROS_ERROR("Object just set");
-                            QMessageBox msgBox;
-                            msgBox.setText("There is another object with this name");
-                            msgBox.exec();
-                            ui.edit_object_name->clear();
+                            if( !qnode.add_object(obj_name,
+                                                  actual_object_approach,
+                                                  actual_object_grasp,
+                                                  actual_object_leave,
+                                                  actual_tool_grasp,
+                                                  actual_approach_gripper_states,
+                                                  actual_leave_gripper_states) )
+                            {
+                                ROS_ERROR("Object just set");
+                                QMessageBox msgBox;
+                                msgBox.setText("There is another object with this name");
+                                msgBox.exec();
+                                ui.edit_object_name->clear();
+                            }
+                            else
+                            {
+                                num_grasp = 0;
+                                ui.edit_object_name->clear();
+                                ui.grasp_list->clear();
+                                init_approach_object = false;
+                                actual_object_grasp.clear();
+                                actual_object_approach.clear();
+                                actual_object_leave.clear();
+                                actual_approach_gripper_states.clear();
+                                actual_leave_gripper_states.clear();
+                                actual_tool_approach.clear();
+                                actual_tool_leave.clear();
+                                if ( ui.combo_action_type->currentIndex() == 1 )
+                                {
+                                    qnode.write_objects();
+                                }
+                            }
                         }
                         else
                         {
-                            num_grasp = 0;
-                            ui.edit_object_name->clear();
-                            ui.grasp_list->clear();
-                            init_approach_object = false;
-                            actual_object_grasp.clear();
-                            actual_object_approach.clear();
-                            actual_approach_gripper_states.clear();
-                            if ( ui.combo_action_type->currentIndex() == 1 )
-                            {
-                                qnode.write_objects();
-                            }
+                            QMessageBox msgBox;
+                            msgBox.setText("Leave and grasp have different tool");
+                            msgBox.exec();
                         }
                     }
                     else
@@ -1013,7 +1066,12 @@ void MainWindow::on_button_add_slot_clicked(bool check)
                     {
                         if ( ok )
                         {
-                            if( !qnode.add_slot(slot_name, actual_slot_approach, actual_slot_final_position, group_name, num_max_obj ) )
+                            if ( !init_slot_leave )
+                            {
+                                actual_slot_leave = actual_slot_approach;
+                            }
+
+                            if( !qnode.add_slot(slot_name, actual_slot_approach, actual_slot_final_position, actual_slot_leave, group_name, num_max_obj ) )
                             {
                                 QMessageBox msgBox;
                                 msgBox.setText("There is another slot with this name");
@@ -1093,7 +1151,12 @@ void MainWindow::on_button_add_box_clicked(bool check)
         {
             if ( !box_name.empty() )
             {
-                if( !qnode.add_box( box_name, actual_box_approach, actual_box_final ) )
+                if ( !init_box_leave )
+                {
+                    actual_box_leave = actual_box_approach;
+                }
+
+                if( !qnode.add_box( box_name, actual_box_approach, actual_box_final, actual_box_leave ) )
                 {
                     ROS_ERROR("box just set");
                     QMessageBox msgBox;
@@ -1402,6 +1465,9 @@ void MainWindow::reset_slot(int index)
     ui.edit_slot_approach_z   ->clear();
     ui.edit_slot_group        ->clear();
     ui.edit_slot_max_objects  ->clear();
+    ui.edit_slot_leave_x      ->clear();
+    ui.edit_slot_leave_y      ->clear();
+    ui.edit_slot_leave_z      ->clear();
 
     manipulation_slot sl = qnode.return_slot_info(index);
     QString frame_ = QString::fromStdString( sl.frame);
@@ -1418,6 +1484,9 @@ void MainWindow::reset_slot(int index)
     QString appr_z = QString::fromStdString( std::to_string(sl.approach.origin_z) );
     QString max_ob = QString::fromStdString( std::to_string(sl.max_objects) );
     QString name_  = QString::fromStdString( sl.name );
+    QString leav_x = QString::fromStdString( std::to_string(sl.leave.origin_z) );
+    QString leav_y = QString::fromStdString( std::to_string(sl.leave.origin_z) );
+    QString leav_z = QString::fromStdString( std::to_string(sl.leave.origin_z) );
 
     ui.edit_slot_frame        ->insert(frame_);
     ui.edit_slot_group        ->insert(group_);
@@ -1432,6 +1501,10 @@ void MainWindow::reset_slot(int index)
     ui.edit_slot_approach_y   ->insert(appr_y);
     ui.edit_slot_approach_z   ->insert(appr_z);
     ui.edit_slot_max_objects  ->insert(max_ob);
+    ui.edit_slot_leave_x      ->insert(leav_x);
+    ui.edit_slot_leave_y      ->insert(leav_y);
+    ui.edit_slot_leave_z      ->insert(leav_z);
+
 }
 
 void MainWindow::on_button_reset_box_info_clicked(bool chack)
@@ -1846,6 +1919,9 @@ void MainWindow::reset_box(int index)
     ui.edit_box_approach_x   ->clear();
     ui.edit_box_approach_y   ->clear();
     ui.edit_box_approach_z   ->clear();
+    ui.edit_box_leave_x      ->clear();
+    ui.edit_box_leave_y      ->clear();
+    ui.edit_box_leave_z      ->clear();
 
     box bx = qnode.return_box_info(index);
     QString frame_ = QString::fromStdString( bx.frame);
@@ -1859,6 +1935,9 @@ void MainWindow::reset_box(int index)
     QString appr_x = QString::fromStdString( std::to_string(bx.approach.origin_x) );
     QString appr_y = QString::fromStdString( std::to_string(bx.approach.origin_y) );
     QString appr_z = QString::fromStdString( std::to_string(bx.approach.origin_z) );
+    QString leav_x = QString::fromStdString( std::to_string(bx.leave.origin_z) );
+    QString leav_y = QString::fromStdString( std::to_string(bx.leave.origin_z) );
+    QString leav_z = QString::fromStdString( std::to_string(bx.leave.origin_z) );
     QString name_  = QString::fromStdString( bx.name );
 
     ui.edit_box_frame         ->insert(frame_);
@@ -1872,6 +1951,10 @@ void MainWindow::reset_box(int index)
     ui.edit_box_approach_x    ->insert(appr_x);
     ui.edit_box_approach_y    ->insert(appr_y);
     ui.edit_box_approach_z    ->insert(appr_z);
+    ui.edit_box_leave_x       ->insert(leav_x);
+    ui.edit_box_leave_y       ->insert(leav_y);
+    ui.edit_box_leave_z       ->insert(leav_z);
+
 }
 
 void MainWindow::on_button_reset_object_info_clicked(bool chack)
@@ -1899,6 +1982,9 @@ void MainWindow::reset_object(int index)
     ui.edit_object_approach_z   ->clear();
     ui.edit_object_tool         ->clear();
     ui.edit_gripper_state       ->clear();
+    ui.edit_object_leave_x      ->clear();
+    ui.edit_object_leave_y      ->clear();
+    ui.edit_object_leave_z      ->clear();
 
     actual_object_to_modify = qnode.return_object_info(index);
 
@@ -1919,6 +2005,9 @@ void MainWindow::reset_object(int index)
     QString appr_x = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_x) );
     QString appr_y = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_y) );
     QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_z) );
+    QString leav_x = QString::fromStdString( std::to_string(actual_object_to_modify.leave[i].origin_z) );
+    QString leav_y = QString::fromStdString( std::to_string(actual_object_to_modify.leave[i].origin_z) );
+    QString leav_z = QString::fromStdString( std::to_string(actual_object_to_modify.leave[i].origin_z) );
     QString tool   = QString::fromStdString( actual_object_to_modify.tool[i] );
     QString type_  = QString::fromStdString( actual_object_to_modify.type );
     QString state  = QString::fromStdString( actual_object_to_modify.approach_gripper_state[i] );
@@ -1933,6 +2022,9 @@ void MainWindow::reset_object(int index)
     ui.edit_object_approach_x   ->insert(appr_x);
     ui.edit_object_approach_y   ->insert(appr_y);
     ui.edit_object_approach_z   ->insert(appr_z);
+    ui.edit_object_leave_x      ->insert(leav_x);
+    ui.edit_object_leave_y      ->insert(leav_y);
+    ui.edit_object_leave_z      ->insert(leav_z);
     ui.edit_object_tool         ->insert(tool);
     ui.edit_gripper_state       ->insert(state);
 }
@@ -1970,6 +2062,9 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
     ui.edit_object_approach_z   ->clear();
     ui.edit_object_tool         ->clear();
     ui.edit_gripper_state       ->clear();
+    ui.edit_object_leave_x      ->clear();
+    ui.edit_object_leave_y      ->clear();
+    ui.edit_object_leave_z      ->clear();
 
     if ( init_objects)
     {
@@ -1985,6 +2080,9 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
         QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify.approach[index].origin_z) );
         QString tool   = QString::fromStdString( actual_object_to_modify.tool[index] );
         QString state  = QString::fromStdString( actual_object_to_modify.approach_gripper_state[index] );
+        QString leav_x = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_z) );
+        QString leav_y = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_z) );
+        QString leav_z = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_z) );
 
         ui.edit_object_position_x   ->insert(pos_x);
         ui.edit_object_position_y   ->insert(pos_y);
@@ -1998,6 +2096,9 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
         ui.edit_object_approach_z   ->insert(appr_z);
         ui.edit_object_tool         ->insert(tool);
         ui.edit_gripper_state       ->insert(state);
+        ui.edit_object_leave_x      ->insert(leav_x);
+        ui.edit_object_leave_y      ->insert(leav_y);
+        ui.edit_object_leave_z      ->insert(leav_z);
     }
 }
 
@@ -2443,6 +2544,36 @@ void MainWindow::on_pick_list_pressed (const QModelIndex &index)
         ui.check_human_info->setChecked(false);
         ui.check_robot_info->setChecked(false);
     }
+}
+
+void MainWindow::on_button_add_leave_position_slot_clicked(bool check)
+{
+    actual_slot_leave = qnode.return_position(qnode.base_frame, qnode.target_frame);
+    init_slot_leave = true;
+    ui.button_add_leave_position_slot->setEnabled(false);
+    ui.button_remove_leave_position_slot->setEnabled(true);
+}
+
+void MainWindow::on_button_add_leave_position_box_clicked(bool check)
+{
+    actual_box_leave =  qnode.return_position(qnode.base_frame, qnode.target_frame);
+    init_box_leave = true;
+    ui.button_add_leave_position_box->setEnabled(false);
+    ui.button_remove_leave_position_box->setEnabled(true);
+}
+
+void MainWindow::on_button_remove_leave_position_slot_clicked(bool check)
+{
+    init_slot_leave = false;
+    ui.button_add_leave_position_slot->setEnabled(true);
+    ui.button_remove_leave_position_slot->setEnabled(false);
+}
+
+void MainWindow::on_button_remove_leave_position_box_clicked(bool check)
+{
+    init_box_leave = false;
+    ui.button_add_leave_position_box->setEnabled(true);
+    ui.button_remove_leave_position_box->setEnabled(false);
 }
 
 /*****************************************************************************
