@@ -130,10 +130,10 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle
     for ( int i = 0; i < qnode.TFs.size(); i++ )
     {
         tf = QString::fromStdString(qnode.TFs[i]);
-        ui.TF_list->addItem(tf);
         ui.world_TF_list->addItem(tf);
         ui.combo_ref_frame->addItem(tf);
     }
+    on_button_load_TF_clicked(false);
     for ( int i = 0; i < qnode.robots.size(); i++)
     {
         tf = QString::fromStdString(qnode.robots[i]);
@@ -145,6 +145,7 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle
     qnode.frame_id.append( ui.combo_ref_frame->currentText().toStdString() );
 
     qnode.write_param(1);
+    qnode.initial_add_components_in_manipulation();
     qnode.write_param(2);
     qnode.write_locations();
     std::vector<std::string> recipes_names =qnode.load_recipes_param();
@@ -155,15 +156,6 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle
             ui.recipe_box->addItem( QString::fromStdString(recipes_names[i]) );
         }
     }
-
-    std::string name = ui.TF_list->currentText().toStdString();
-    std::size_t found  = name.find( "_0" );
-    if ( found != std::string::npos)
-    {
-      name.erase( found, name.size() );
-    }
-    ui.edit_object_name->setText(QString::fromStdString(name));
-
 }
 
 MainWindow::~MainWindow() {}
@@ -1260,7 +1252,7 @@ void MainWindow::on_button_add_object_changes_clicked(bool check)
     obj.grasp[index2].quat.rotation_z = ui.edit_object_quaternion_z ->text().toDouble(&ok5);
     obj.grasp[index2].quat.rotation_w = ui.edit_object_quaternion_w ->text().toDouble(&ok6);
     obj.tool[index2]                  = ui.edit_object_tool         ->text().toStdString();
-    obj.name                          = ui.list_object_modify       ->model()->data( index ).toString().toStdString();
+    obj.type                          = ui.list_object_modify       ->model()->data( index ).toString().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 )
     {
@@ -1316,10 +1308,18 @@ void MainWindow::on_button_load_TF_clicked(bool chack)
 
     QString tf;
     ui.TF_list->clear();
+    std::string tf_name;
     for ( int i = 0; i < qnode.TFs.size(); i++ )
     {
-        tf = QString::fromStdString(qnode.TFs[i]);
-        ui.TF_list->addItem(tf);
+        std::size_t found = qnode.TFs[i].find( tf_name_space.c_str() );
+        if ( found != std::string::npos )
+        {
+            tf_name = qnode.TFs[i];
+            found = tf_name.find("/",2);
+            tf_name.erase( 0, found+1 );
+            tf = QString::fromStdString(qnode.TFs[i]);
+            ui.TF_list->addItem(tf);
+        }
     }
 }
 
@@ -1634,9 +1634,43 @@ void MainWindow::on_button_anti_z_released  ()
     qnode.cartMove ( twist_move );
 }
 
-void MainWindow::on_button_load_objects()
+void MainWindow::on_button_load_objects_clicked(bool check)
 {
-    qnode.load_objects_in_manipulator();
+    qnode.load_objects_in_manipulation();
+}
+
+void MainWindow::on_button_run_selected_action_clicked(bool check)
+{
+    QModelIndexList indexes =  ui.list_recipe->selectionModel()->selectedIndexes();
+    if ( !indexes.empty() )
+    {
+        int index = indexes.at(0).row();
+        int risp = qnode.run_selected_action(index);
+        QMessageBox msgBox;
+
+        switch (risp)
+        {
+        case 0 :
+          msgBox.setText("The recipe was done without error");
+          msgBox.exec();
+          break;
+        case 1 :
+          msgBox.setText("The saving of components has not finished ");
+          msgBox.exec();
+          break;
+        case 2 :
+          msgBox.setText("Failed to call service run_recipe");
+          msgBox.exec();
+          break;
+        }
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("No selected action");
+        msgBox.exec();
+        ui.edit_action_name->clear();
+    }
 }
 
 void MainWindow::on_button_copy_location_clicked(bool chack)
@@ -1686,9 +1720,9 @@ void MainWindow::on_button_copy_object_clicked(bool chack)
     {
         int index = ui.list_object_modify->currentIndex().row();
         object_type obj = qnode.return_object_info( index );
-        obj.name = ui.edit_new_object->text().toStdString();
+        obj.type = ui.edit_new_object->text().toStdString();
 
-        if ( !obj.name.empty() )
+        if ( !obj.type.empty() )
         {
             if ( !qnode.add_object_copy( obj ) )
             {
@@ -1886,7 +1920,7 @@ void MainWindow::reset_object(int index)
     QString appr_y = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_y) );
     QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_z) );
     QString tool   = QString::fromStdString( actual_object_to_modify.tool[i] );
-    QString name_  = QString::fromStdString( actual_object_to_modify.name );
+    QString type_  = QString::fromStdString( actual_object_to_modify.type );
     QString state  = QString::fromStdString( actual_object_to_modify.approach_gripper_state[i] );
 
     ui.edit_object_position_x   ->insert(pos_x);
@@ -2029,7 +2063,7 @@ void MainWindow::on_combo_ref_frame_currentIndexChanged(int index)
 void MainWindow::on_TF_list_currentIndexChanged(int index)
 {
   std::string name = ui.TF_list->currentText().toStdString();
-  std::size_t found  = name.find( "_0" );
+  std::size_t found  = name.find( "/" );
   if ( found != std::string::npos)
   {
     name.erase( found, name.size() );
@@ -2120,6 +2154,11 @@ void MainWindow::on_velocity_slider_valueChanged(int value)
     QString qstr = QString::fromStdString(str);
     ui.velocity_label->setText(qstr);
     perc_vel = value;
+}
+
+void MainWindow::on_lateral_layout_currentChanged(int index)
+{
+    on_button_load_TF_clicked(false);
 }
 
 void MainWindow::on_button_remove_element_clicked(bool check )

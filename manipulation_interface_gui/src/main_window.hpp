@@ -108,6 +108,8 @@ public Q_SLOTS:
     void on_button_load_recipe_clicked                (bool check);
     void on_button_load_actions_clicked               (bool check);
     void on_button_save_recipe_clicked                (bool check);
+    void on_button_load_objects_clicked               (bool check);
+    void on_button_run_selected_action_clicked        (bool check);
     void on_button_anti_x_pressed   ();
     void on_button_anti_y_pressed   ();
     void on_button_anti_z_pressed   ();
@@ -132,7 +134,7 @@ public Q_SLOTS:
     void on_button_left_released    ();
     void on_button_right_released   ();
     void on_button_front_released   ();
-    void on_button_load_objects     ();
+    void on_lateral_layout_currentChanged            (int index);
     void reset_location                              (int index);
     void reset_slot                                  (int index);
     void reset_box                                   (int index);
@@ -187,6 +189,7 @@ private:
     float max_vel  = 0.1;
     float max_rot  = 0.7;
     int   perc_vel = 50;
+    std::string tf_name_space = "NAME_SPACE";
 };
 
 }  // namespace manipulation_interface_gui

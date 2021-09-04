@@ -23,6 +23,7 @@
 #include <manipulation_interface_mongo/SaveParam.h>
 #include <manipulation_interface_gui/recipe_test_msg.h>
 #include <object_loader_msgs/AddObjects.h>
+#include <object_loader_msgs/ListObjects.h>
 #include <manipulation_msgs/AddLocations.h>
 #include <manipulation_msgs/AddBoxes.h>
 #include <manipulation_msgs/AddObjects.h>
@@ -67,9 +68,6 @@ QNode::QNode(int argc, char** argv ,
 
 QNode::~QNode()
 {
-    if ( t.joinable() )
-        t.join();
-
     if ( t_component.joinable() )
         t_component.join();
     if(ros::isStarted())
@@ -110,13 +108,10 @@ bool QNode::init()
     load_TF();
     load_robots();
 
-    inb = std::make_shared<manipulation::InboundPickFromParam>(nh_i);
-    oub = std::make_shared<manipulation::OutboundPlaceFromParam>(nh_o);
-    go_to = std::make_shared<manipulation::GoToLocationFromParam>(nh_g);
+//    inb = std::make_shared<manipulation::InboundPickFromParam>(nh_i);
+//    oub = std::make_shared<manipulation::OutboundPlaceFromParam>(nh_o);
+//    go_to = std::make_shared<manipulation::GoToLocationFromParam>(nh_g);
 
-    t = std::thread(&QNode::load_initial_param_in_manipulator,this);
-
-//    add_objs_to_scene_client_  = n.serviceClient<object_loader_msgs::AddObjects>      ("/add_object_to_scene");
     add_locations_client_      = n.serviceClient<manipulation_msgs::AddLocations>     ("/go_to_location_server/add_locations");
     add_boxes_client_          = n.serviceClient<manipulation_msgs::AddBoxes>         ("/inbound_pick_server/add_boxes");
     add_objs_client_           = n.serviceClient<manipulation_msgs::AddObjects>       ("/inbound_pick_server/add_objects");
@@ -127,16 +122,17 @@ bool QNode::init()
     remove_objs_client_        = n.serviceClient<manipulation_msgs::RemoveObjects>    ("/inbound_pick_server/remove_objects");
     remove_slots_group_client_ = n.serviceClient<manipulation_msgs::RemoveSlotsGroup> ("/outbound_place_server/remove_slots_group");
     remove_slots_client_       = n.serviceClient<manipulation_msgs::RemoveSlots>      ("/outbound_place_server/remove_slots");
+    list_objects_client_       = n.serviceClient<object_loader_msgs::ListObjects>     ("/list_objects");
 
-//    ROS_INFO("Scene spawner is waiting %s", add_objs_to_scene_client_.getService().c_str());
-//    add_objs_to_scene_client_.waitForExistence();
-//    ROS_INFO("Client %s connected to server", add_objs_to_scene_client_.getService().c_str());
+    ROS_ERROR("Start");
 
-    ROS_INFO("Scene spawner is waiting %s", add_locations_client_.getService().c_str());
+
+
+    ROS_INFO("Waiting for: %s server", add_locations_client_.getService().c_str());
     add_locations_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", add_locations_client_.getService().c_str());
 
-    ROS_INFO("Scene spawner is waiting %s", remove_locations_client_.getService().c_str());
+    ROS_INFO("Waiting for: %s server", remove_locations_client_.getService().c_str());
     remove_locations_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", remove_locations_client_.getService().c_str());
 
@@ -148,11 +144,11 @@ bool QNode::init()
     add_objs_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", add_objs_client_.getService().c_str());
 
-    ROS_INFO("Scene spawner is waiting %s", remove_boxes_client_.getService().c_str());
+    ROS_INFO("Waiting for: %s server", remove_boxes_client_.getService().c_str());
     remove_boxes_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", remove_boxes_client_.getService().c_str());
 
-    ROS_INFO("Scene spawner is waiting %s", remove_objs_client_.getService().c_str());
+    ROS_INFO("Waiting for: %s server", remove_objs_client_.getService().c_str());
     remove_objs_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", remove_objs_client_.getService().c_str());
 
@@ -164,57 +160,110 @@ bool QNode::init()
     add_slots_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", add_slots_client_.getService().c_str());
 
-    ROS_INFO("Scene spawner is waiting %s", remove_slots_group_client_.getService().c_str());
+    ROS_INFO("Waiting for: %s server", remove_slots_group_client_.getService().c_str());
     remove_slots_group_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", remove_slots_group_client_.getService().c_str());
 
-    ROS_INFO("Scene spawner is waiting %s", remove_slots_client_.getService().c_str());
+    ROS_INFO("Waiting for: %s server", remove_slots_client_.getService().c_str());
     remove_slots_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", remove_slots_client_.getService().c_str());
 
-	return true;
+    ROS_ERROR("Init finish");
+
+    return true;
 }
 
-void QNode::load_initial_param_in_manipulator()
+void QNode::initial_add_components_in_manipulation()
 {
-    //inbound
-    if (!inb->readBoxesFromParam())
-    {
-      ROS_ERROR("Unable to load boxes");
-    }
-//    if (!inb->readObjectFromParamWithoutSceneSpawn())
-//    {
-//      ROS_ERROR("Unable to load objects in the boxes");
-//    }
+    changed_boxes     = boxes;
+    changed_locations = go_to_locations;
+    changed_slots     = manipulation_slots;
+    changed_groups    = groups;
 
-    //outbound
-    if (!oub->readSlotsGroupFromParam())
-    {
-        ROS_ERROR("Unable to load slots group");
-    }
-    if (!oub->readSlotsFromParam())
-    {
-        ROS_ERROR("Unable to load slots");
-    }
-    ROS_INFO("Outbound slot loaded");
+    t_component = std::thread(&QNode::load_new_params_in_manipulation, this,
+                              changed_locations,
+                              changed_slots,
+                              changed_boxes,
+                              changed_groups,
+                              locations_to_remove,
+                              slots_to_remove,
+                              boxes_to_remove,
+                              groups_to_remove);
 
-    //go_to_location
-    if (!go_to->readLocationsFromParam())
-    {
-      ROS_ERROR("Unable to load GoTo locations.");
-    }
-
-    ROS_FATAL("First loading on manipulation is finisched");
-
-    t_finito = true;
+    changed_locations.clear();
+    changed_slots.clear();
+    changed_boxes.clear();
+    changed_groups.clear();
 }
 
-void QNode::load_objects_in_manipulator()
+void QNode::load_objects_in_manipulation()
 {
-  if (!inb->readObjectFromParamWithoutSceneSpawn())
-  {
-    ROS_ERROR("Unable to load objects in the boxes");
-  }
+    object_loader_msgs::ListObjects objects_list;
+    if ( list_objects_client_.call( objects_list ) )
+    {
+        ROS_ERROR("Unable to obtain the object list");
+        return;
+    }
+
+    manipulation_msgs::RemoveObjects remove_objects_srv;
+    manipulation_msgs::AddObjects add_objects_srv;
+    if ( !objects_list.response.ids.empty() )
+    {
+        remove_objects_srv.request.object_names = objects_list.response.ids;
+        if ( !remove_objs_client_.call(remove_objects_srv) )
+        {
+            ROS_ERROR("Unable to remove the objects by the manipulation");
+            return;
+        }
+
+        for ( int i = 0; i < objects_list.response.ids.size(); i++ )
+        {
+            manipulation_msgs::Object obj;
+
+            obj.name = objects_list.response.ids[i];
+            obj.type = objects_list.response.types[i];
+
+            int index;
+            for ( int j = 0; j < objects.size(); j++ )
+            {
+                if ( !obj.type.compare( objects[j].type ) )
+                {
+                    index = j;
+                }
+            }
+
+            for ( int j = 0; j < objects[index].grasp.size(); j++ )
+            {
+                obj.grasping_locations[j].tool_name = objects[index].tool[j];
+                obj.grasping_locations[j].location.name = obj.name+"/grasp"+std::to_string(j)+"_"+objects[index].tool[j];
+                obj.grasping_locations[j].location.frame = obj.name;
+
+                obj.grasping_locations[j].location.pose.position.x    = objects[index].grasp[j].pos.origin_x;
+                obj.grasping_locations[j].location.pose.position.x    = objects[index].grasp[j].pos.origin_x;
+                obj.grasping_locations[j].location.pose.position.x    = objects[index].grasp[j].pos.origin_x;
+                obj.grasping_locations[j].location.pose.orientation.w = objects[index].grasp[j].quat.rotation_w;
+                obj.grasping_locations[j].location.pose.orientation.x = objects[index].grasp[j].quat.rotation_x;
+                obj.grasping_locations[j].location.pose.orientation.y = objects[index].grasp[j].quat.rotation_y;
+                obj.grasping_locations[j].location.pose.orientation.z = objects[index].grasp[j].quat.rotation_z;
+
+                obj.grasping_locations[j].location.approach_relative_pose.position.x = objects[index].approach[j].origin_x;
+                obj.grasping_locations[j].location.approach_relative_pose.position.y = objects[index].approach[j].origin_y;
+                obj.grasping_locations[j].location.approach_relative_pose.position.z = objects[index].approach[j].origin_z;
+
+                obj.grasping_locations[j].location.leave_relative_pose.position.x = objects[index].leave[j].origin_x;
+                obj.grasping_locations[j].location.leave_relative_pose.position.y = objects[index].leave[j].origin_y;
+                obj.grasping_locations[j].location.leave_relative_pose.position.z = objects[index].leave[j].origin_z;
+            }
+
+            add_objects_srv.request.add_objects.push_back( obj );
+        }
+
+        if ( !add_objs_client_.call(add_objects_srv) )
+        {
+            ROS_ERROR("Unable to add the objects to the manipulation");
+            return;
+        }
+    }
 }
 
 void QNode::cartMove (std::vector<float> twist_move)
@@ -352,8 +401,8 @@ std::vector<std::string> QNode::load_recipes_param ()
         std::vector<std::string> recipe_;
         if( !rosparam_utilities::getParam(param,"recipe",recipe_,what) )
         {
-          ROS_WARN("The element #%d has not the field 'recipe'", i);
-          continue;
+            ROS_WARN("The element #%d has not the field 'recipe'", i);
+            continue;
         }
         single_recipe.recipe_ = recipe_;
         bool presence = false;
@@ -434,28 +483,17 @@ bool QNode::save_recipe()
 
 int QNode::run_recipe()
 {
-  if ( t_finito )
-  {
-      t.join();
-      t_finito = false;
-  }
+    if ( tc_finito )
+    {
+        t_component.join();
+        tc_finito = false;
+    }
 
-  if ( tc_finito )
-  {
-      t_component.join();
-      tc_finito = false;
-  }
-
-  if ( t_component.joinable() )
-      ROS_ERROR("The saving has not finished");
-  if ( t.joinable() )
-      ROS_ERROR("The first saving has not finished");
-
-  if ( t_component.joinable() || t.joinable() )
-  {
-      ROS_ERROR("The previous thread has not finished");
-      return 1;
-  }
+    if ( t_component.joinable() )
+    {
+        ROS_ERROR("The previous thread has not finished");
+        return 1;
+    }
 
     std::vector<std::string> recipe_;
 
@@ -474,14 +512,53 @@ int QNode::run_recipe()
     recipe_msg.request.input = "manipulator";
 
     if (run_recipe_client.call(recipe_msg))
-      {
+    {
         ROS_INFO("Done");
-      }
-      else
-      {
+    }
+    else
+    {
         ROS_ERROR("Failed to call service run_recipe");
         return 2;
-      }
+    }
+    return 0;
+}
+
+int QNode::run_selected_action( int index )
+{
+    if ( tc_finito )
+    {
+        t_component.join();
+        tc_finito = false;
+    }
+
+    if ( t_component.joinable() )
+    {
+        ROS_ERROR("The previous thread has not finished");
+        return 1;
+    }
+
+    std::vector<std::string> recipe_;
+
+    recipe_.push_back( logging_model_recipe.data( logging_model_recipe.index(index) ).toString().toStdString() );
+
+    XmlRpc::XmlRpcValue param;
+    param = get_recipe_param( recipe_ );
+
+    n.setParam("recipe_to_run", param);
+
+    ros::ServiceClient run_recipe_client = n.serviceClient<manipulation_interface_gui::recipe_test_msg>("run_recipe");
+    manipulation_interface_gui::recipe_test_msg recipe_msg;
+    recipe_msg.request.input = "manipulator";
+
+    if (run_recipe_client.call(recipe_msg))
+    {
+        ROS_INFO("Done");
+    }
+    else
+    {
+        ROS_ERROR("Failed to call service run_recipe");
+        return 2;
+    }
     return 0;
 }
 
@@ -787,15 +864,15 @@ bool QNode::add_object_copy(object_type new_obj)
 {
     for ( int i = 0; i < objects.size(); i++)
     {
-        if ( !new_obj.name.compare( objects[i].name ) )
+        if ( !new_obj.type.compare( objects[i].type ) )
         {
             return false;
         }
     }
     objects.push_back( new_obj );
-    changed_objects.push_back( new_obj );
-    log_object( new_obj.name );
-    log_object_modify( new_obj.name );
+    //    changed_objects.push_back( new_obj );
+    log_object( new_obj.type );
+    log_object_modify( new_obj.type );
     return true;
 }
 
@@ -1113,13 +1190,13 @@ void QNode::remove_pick(int ind)
 
 void QNode::remove_object(int ind)
 {
-    for ( int i = 0; i < changed_objects.size(); i++ )
-    {
-        if ( !objects[ind].name.compare( changed_objects[i].name ) )
-        {
-            changed_objects.erase( changed_objects.begin() + i );
-        }
-    }
+    //    for ( int i = 0; i < changed_objects.size(); i++ )
+    //    {
+    //        if ( !objects[ind].name.compare( changed_objects[i].name ) )
+    //        {
+    //            changed_objects.erase( changed_objects.begin() + i );
+    //        }
+    //    }
 
     objects.erase(objects.begin()+ind);
 }
@@ -1412,7 +1489,7 @@ std::string QNode::get_xml_object_grasp_poses_string( int index )
 
 XmlRpc::XmlRpcValue QNode::get_go_to_location_param(int index)
 {
-//    /go_to_location
+    //    /go_to_location
     std::string xml_body;
 
     xml_body.append(init_value);
@@ -1436,7 +1513,7 @@ XmlRpc::XmlRpcValue QNode::get_go_to_location_param(int index)
 
 XmlRpc::XmlRpcValue QNode::get_box_param(int index)
 {
-//    /inbound/boxes
+    //    /inbound/boxes
     std::string xml_body;
 
     xml_body.append(init_value);
@@ -1460,7 +1537,7 @@ XmlRpc::XmlRpcValue QNode::get_box_param(int index)
 
 XmlRpc::XmlRpcValue QNode::get_object_grasp_param(int index, int index2)
 {
-//    /nameObj/grasp_poses
+    //    /nameObj/grasp_poses
     std::string xml_body = get_xml_object_grasp_string( index, index2 );
 
     int offset = 0;
@@ -1477,7 +1554,7 @@ XmlRpc::XmlRpcValue QNode::get_object_param(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append( get_xml_string_param("name", objects[index].name) );
+    xml_body.append( get_xml_string_param("type", objects[index].type) );
     xml_body.append( get_xml_object_grasp_poses_string(index) );
 
     xml_body.append(end_struct);
@@ -1511,25 +1588,25 @@ XmlRpc::XmlRpcValue QNode::get_group_param(int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::get_object_name_param(int index)
-{
-    std::string xml_body;
+//XmlRpc::XmlRpcValue QNode::get_object_name_param(int index)
+//{
+//    std::string xml_body;
 
-    xml_body.append(init_value);
-    xml_body.append(init_struct);
+//    xml_body.append(init_value);
+//    xml_body.append(init_struct);
 
-    xml_body.append(get_xml_string_param("name", objects[index].name));
+//    xml_body.append(get_xml_string_param("type", objects[index].type));
 
-    xml_body.append(end_struct);
-    xml_body.append(end_value);
+//    xml_body.append(end_struct);
+//    xml_body.append(end_value);
 
-    int offset = 0;
-    int* offset_ptr = &offset;
-    XmlRpc::XmlRpcValue param;
-    param.fromXml(xml_body,offset_ptr);
+//    int offset = 0;
+//    int* offset_ptr = &offset;
+//    XmlRpc::XmlRpcValue param;
+//    param.fromXml(xml_body,offset_ptr);
 
-    return param;
-}
+//    return param;
+//}
 
 XmlRpc::XmlRpcValue QNode::get_pick_param(int index)
 {
@@ -1688,7 +1765,7 @@ void QNode::check_objects_param()
     {
         for ( int j = 0; j < objects.size(); j++)
         {
-            if ( objects[j].name == objects_compare[i].name )
+            if ( objects[j].type == objects_compare[i].type )
             {
                 presence = true;
             }
@@ -1696,17 +1773,6 @@ void QNode::check_objects_param()
         if ( presence == false )
         {
             objects.push_back( objects_compare[i] );
-        }
-    }
-
-    for ( int i = 0; i < changed_objects.size(); i++ )
-    {
-        for ( int j = 0; j < objects_compare.size(); j++ )
-        {
-            if ( !changed_objects[i].name.compare( objects_compare[j].name ) )
-            {
-                objects_to_remove.push_back( objects_compare[j] );
-            }
         }
     }
 
@@ -1950,8 +2016,8 @@ bool QNode::save_components()
             param[j] = get_object_grasp_param( i, j );
         }
         std::string str;
-        str.append("/manipulation_objects/");
-        str.append(objects[i].name);
+        str.append("/manipulation_object_types/");
+        str.append(objects[i].type);
         str.append("/grasp_poses");
         n.setParam( str, param);
         param.clear();
@@ -1970,12 +2036,6 @@ bool QNode::save_components()
 
     write_param(1);
 
-    if ( t_finito )
-    {
-        t.join();
-        t_finito = false;
-    }
-
     if ( tc_finito )
     {
         t_component.join();
@@ -1983,11 +2043,6 @@ bool QNode::save_components()
     }
 
     if ( t_component.joinable() )
-        ROS_ERROR("The saving has not finished");
-    if ( t.joinable() )
-        ROS_ERROR("The first saving has not finished");
-
-    if ( t_component.joinable() || t.joinable() )
     {
         ROS_ERROR("The previous thread did not finish");
         return false;
@@ -1996,23 +2051,19 @@ bool QNode::save_components()
     {
 
         t_component = std::thread(&QNode::load_new_params_in_manipulation, this,
-                                  changed_objects,
                                   changed_locations,
                                   changed_slots,
                                   changed_boxes,
                                   changed_groups,
-                                  objects_to_remove,
                                   locations_to_remove,
                                   slots_to_remove,
                                   boxes_to_remove,
                                   groups_to_remove);
 
-        changed_objects.clear();
         changed_locations.clear();
         changed_slots.clear();
         changed_boxes.clear();
         changed_groups.clear();
-        objects_to_remove.clear();
         locations_to_remove.clear();
         slots_to_remove.clear();
         boxes_to_remove.clear();
@@ -2022,29 +2073,16 @@ bool QNode::save_components()
     return true;
 }
 
-void QNode::load_new_params_in_manipulation(std::vector<object_type>       changed_objects_,
-                                            std::vector<go_to_location>    changed_locations_,
+void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    changed_locations_,
                                             std::vector<manipulation_slot> changed_slots_,
                                             std::vector<box>               changed_boxes_,
                                             std::vector<std::string>       changed_groups_,
-                                            std::vector<object_type>       objects_to_remove_,
                                             std::vector<go_to_location>    locations_to_remove_,
                                             std::vector<manipulation_slot> slots_to_remove_,
                                             std::vector<box>               boxes_to_remove_,
                                             std::vector<std::string>       groups_to_remove_)
 {
     ROS_FATAL("Inizio caricamento componenti nel manipulator");
-
-//    manipulation_msgs::RemoveObjects remove_objects_srv;
-//    ROS_FATAL("Objects da rimuovere: %zu", objects_to_remove_.size());
-//    for ( int i = 0; i < objects_to_remove_.size(); i++ )
-//    {
-//        remove_objects_srv.request.object_names.push_back(objects_to_remove_[i].name);
-//    }
-//    if ( remove_objects_srv.request.object_names.size() != 0 )
-//    {
-//      remove_objs_client_.call(remove_objects_srv);
-//    }
 
     manipulation_msgs::RemoveLocations remove_location_srv;
     ROS_FATAL("Locations da rimuovere: %zu", locations_to_remove_.size());
@@ -2094,48 +2132,61 @@ void QNode::load_new_params_in_manipulation(std::vector<object_type>       chang
     ROS_FATAL("Locations da aggiungere: %zu", changed_locations_.size());
     for ( int i = 0; i < changed_locations_.size(); i++ )
     {
-        Eigen::Quaterniond q( changed_locations_[i].location_.quat.rotation_w,
-                              changed_locations_[i].location_.quat.rotation_x,
-                              changed_locations_[i].location_.quat.rotation_y,
-                              changed_locations_[i].location_.quat.rotation_z);
-        Eigen::Affine3d T_frame_tool;
-        T_frame_tool = q;
-        T_frame_tool.translation()(0) = changed_locations_[i].location_.pos.origin_x;
-        T_frame_tool.translation()(1) = changed_locations_[i].location_.pos.origin_y;
-        T_frame_tool.translation()(2) = changed_locations_[i].location_.pos.origin_z;
+        manipulation_msgs::Location location_;
+        location_.name               = changed_locations_[i].name;
+        location_.frame              = changed_locations_[i].frame;
+        location_.pose.position.x    = changed_locations_[i].location_.pos.origin_x;
+        location_.pose.position.y    = changed_locations_[i].location_.pos.origin_y;
+        location_.pose.position.z    = changed_locations_[i].location_.pos.origin_z;
+        location_.pose.orientation.w = changed_locations_[i].location_.quat.rotation_w;
+        location_.pose.orientation.x = changed_locations_[i].location_.quat.rotation_x;
+        location_.pose.orientation.y = changed_locations_[i].location_.quat.rotation_y;
+        location_.pose.orientation.z = changed_locations_[i].location_.quat.rotation_z;
 
-        std::string frame = changed_locations_[i].frame;
+        add_locations_srv.request.locations.push_back(location_);
 
-        tf::TransformListener listener;
-        tf::StampedTransform transform;
-        ros::Time t0 = ros::Time::now();
-        if (!listener.waitForTransform("world",frame,t0,ros::Duration(10)))
-        {
-          ROS_WARN("Unable to find a transform from world to %s", frame.c_str());
-        }
+//        Eigen::Quaterniond q( changed_locations_[i].location_.quat.rotation_w,
+//                              changed_locations_[i].location_.quat.rotation_x,
+//                              changed_locations_[i].location_.quat.rotation_y,
+//                              changed_locations_[i].location_.quat.rotation_z);
+//        Eigen::Affine3d T_frame_tool;
+//        T_frame_tool = q;
+//        T_frame_tool.translation()(0) = changed_locations_[i].location_.pos.origin_x;
+//        T_frame_tool.translation()(1) = changed_locations_[i].location_.pos.origin_y;
+//        T_frame_tool.translation()(2) = changed_locations_[i].location_.pos.origin_z;
 
-        try
-        {
-          listener.lookupTransform("world", frame, t0, transform);
-        }
-        catch (tf::TransformException ex)
-        {
-          ROS_ERROR("Exception %s",ex.what());
-          ros::Duration(1.0).sleep();
-        }
+//        std::string frame = changed_locations_[i].frame;
 
-        Eigen::Affine3d T_w_frame;
-        tf::poseTFToEigen(transform,T_w_frame);
+//        tf::TransformListener listener;
+//        tf::StampedTransform transform;
+//        ros::Time t0 = ros::Time::now();
+//        if (!listener.waitForTransform("world",frame,t0,ros::Duration(10)))
+//        {
+//            ROS_WARN("Unable to find a transform from world to %s", frame.c_str());
+//        }
 
-        Eigen::Affine3d T_w_tool = T_w_frame * T_frame_tool;
+//        try
+//        {
+//            listener.lookupTransform("world", frame, t0, transform);
+//        }
+//        catch (tf::TransformException ex)
+//        {
+//            ROS_ERROR("Exception %s",ex.what());
+//            ros::Duration(1.0).sleep();
+//        }
 
-        manipulation_msgs::Location goto_location;
+//        Eigen::Affine3d T_w_frame;
+//        tf::poseTFToEigen(transform,T_w_frame);
 
-        goto_location.name = changed_locations_[i].name;
-        goto_location.frame = "world";
-        tf::poseEigenToMsg(T_w_tool,goto_location.pose);
+//        Eigen::Affine3d T_w_tool = T_w_frame * T_frame_tool;
 
-        add_locations_srv.request.locations.push_back(goto_location);
+//        manipulation_msgs::Location goto_location;
+
+//        goto_location.name = changed_locations_[i].name;
+//        goto_location.frame = "world";
+//        tf::poseEigenToMsg(T_w_tool,goto_location.pose);
+
+//        add_locations_srv.request.locations.push_back(goto_location);
     }
     if ( add_locations_srv.request.locations.size() != 0 )
     {
@@ -2161,67 +2212,88 @@ void QNode::load_new_params_in_manipulation(std::vector<object_type>       chang
     for ( int i = 0; i < changed_groups.size(); i++ )
     {
         for ( int j = 0; j < changed_slots_.size(); j++ )
-        {
+        { 
             if ( !changed_slots_[j].group.compare( changed_groups.at(i) ) )
             {
-                Eigen::Vector3d approach_distance_in_frame;
-                approach_distance_in_frame(0) = changed_slots_[j].approach.origin_x;
-                approach_distance_in_frame(1) = changed_slots_[j].approach.origin_y;
-                approach_distance_in_frame(2) = changed_slots_[j].approach.origin_z;
-
-                Eigen::Quaterniond q(changed_slots_[j].location_.quat.rotation_w,
-                                     changed_slots_[j].location_.quat.rotation_x,
-                                     changed_slots_[j].location_.quat.rotation_y,
-                                     changed_slots_[j].location_.quat.rotation_z);
-
-                Eigen::Affine3d T_frame_slot;
-                T_frame_slot = q;
-                T_frame_slot.translation()(0) = changed_slots_[j].location_.pos.origin_x;
-                T_frame_slot.translation()(1) = changed_slots_[j].location_.pos.origin_y;
-                T_frame_slot.translation()(2) = changed_slots_[j].location_.pos.origin_z;
-
-                std::string frame = changed_slots_[j].frame;
-
-                tf::TransformListener listener;
-                tf::StampedTransform transform;
-                ros::Time t0 = ros::Time::now();
-                if (!listener.waitForTransform("world",frame,t0,ros::Duration(10)))
-                {
-                  ROS_WARN("Unable to find a transform from world to %s", frame.c_str());
-                }
-
-                try
-                {
-                  listener.lookupTransform("world", frame, t0, transform);
-                }
-                catch (tf::TransformException ex)
-                {
-                  ROS_ERROR("Exception %s",ex.what());
-                  ros::Duration(1.0).sleep();
-                }
-
-                Eigen::Affine3d T_w_frame;
-                tf::poseTFToEigen(transform,T_w_frame);
-
-                Eigen::Affine3d T_w_slot = T_w_frame * T_frame_slot;
-
-                Eigen::Vector3d approach_distance_in_world = T_w_frame.linear()*approach_distance_in_frame;
-
-                Eigen::Affine3d T_w_approach = T_w_slot;
-                T_w_approach.translation() += approach_distance_in_world;
-
-                Eigen::Affine3d T_slot_approach = T_w_slot.inverse() * T_w_approach;
-
                 manipulation_msgs::Slot slot_;
-                slot_.name = changed_slots_[j].name;
-                slot_.slot_size = changed_slots_[j].max_objects;
-                slot_.location.name = slot_.name;
-                slot_.location.frame = "world";
-                tf::poseEigenToMsg(T_w_slot,slot_.location.pose);
-                tf::poseEigenToMsg(T_slot_approach,slot_.location.approach_relative_pose);
-                tf::poseEigenToMsg(T_slot_approach,slot_.location.leave_relative_pose);
+                slot_.name                                       = changed_slots_[j].name;
+                slot_.slot_size                                  = changed_slots_[j].max_objects;
+                slot_.location.name                              = slot_.name;
+                slot_.location.frame                             = changed_slots_[j].frame;
+                slot_.location.pose.position.x                   = changed_slots_[j].location_.pos.origin_x;
+                slot_.location.pose.position.y                   = changed_slots_[j].location_.pos.origin_y;
+                slot_.location.pose.position.z                   = changed_slots_[j].location_.pos.origin_z;
+                slot_.location.pose.orientation.w                = changed_slots_[j].location_.quat.rotation_w;
+                slot_.location.pose.orientation.x                = changed_slots_[j].location_.quat.rotation_x;
+                slot_.location.pose.orientation.y                = changed_slots_[j].location_.quat.rotation_y;
+                slot_.location.pose.orientation.z                = changed_slots_[j].location_.quat.rotation_z;
+                slot_.location.approach_relative_pose.position.x = changed_slots_[j].approach.origin_x;
+                slot_.location.approach_relative_pose.position.y = changed_slots_[j].approach.origin_y;
+                slot_.location.approach_relative_pose.position.z = changed_slots_[j].approach.origin_z;
+                slot_.location.leave_relative_pose.position.x    = changed_slots_[j].leave.origin_x;
+                slot_.location.leave_relative_pose.position.y    = changed_slots_[j].leave.origin_y;
+                slot_.location.leave_relative_pose.position.z    = changed_slots_[j].leave.origin_z;
 
                 add_slots_srv.request.add_slots.push_back( slot_ );
+
+//                Eigen::Vector3d approach_distance_in_frame;
+//                approach_distance_in_frame(0) = changed_slots_[j].approach.origin_x;
+//                approach_distance_in_frame(1) = changed_slots_[j].approach.origin_y;
+//                approach_distance_in_frame(2) = changed_slots_[j].approach.origin_z;
+
+//                Eigen::Quaterniond q(changed_slots_[j].location_.quat.rotation_w,
+//                                     changed_slots_[j].location_.quat.rotation_x,
+//                                     changed_slots_[j].location_.quat.rotation_y,
+//                                     changed_slots_[j].location_.quat.rotation_z);
+
+//                Eigen::Affine3d T_frame_slot;
+//                T_frame_slot = q;
+//                T_frame_slot.translation()(0) = changed_slots_[j].location_.pos.origin_x;
+//                T_frame_slot.translation()(1) = changed_slots_[j].location_.pos.origin_y;
+//                T_frame_slot.translation()(2) = changed_slots_[j].location_.pos.origin_z;
+
+//                std::string frame = changed_slots_[j].frame;
+
+//                tf::TransformListener listener;
+//                tf::StampedTransform transform;
+//                ros::Time t0 = ros::Time::now();
+//                if (!listener.waitForTransform("world",frame,t0,ros::Duration(10)))
+//                {
+//                    ROS_WARN("Unable to find a transform from world to %s", frame.c_str());
+//                }
+
+//                try
+//                {
+//                    listener.lookupTransform("world", frame, t0, transform);
+//                }
+//                catch (tf::TransformException ex)
+//                {
+//                    ROS_ERROR("Exception %s",ex.what());
+//                    ros::Duration(1.0).sleep();
+//                }
+
+//                Eigen::Affine3d T_w_frame;
+//                tf::poseTFToEigen(transform,T_w_frame);
+
+//                Eigen::Affine3d T_w_slot = T_w_frame * T_frame_slot;
+
+//                Eigen::Vector3d approach_distance_in_world = T_w_frame.linear()*approach_distance_in_frame;
+
+//                Eigen::Affine3d T_w_approach = T_w_slot;
+//                T_w_approach.translation() += approach_distance_in_world;
+
+//                Eigen::Affine3d T_slot_approach = T_w_slot.inverse() * T_w_approach;
+
+//                manipulation_msgs::Slot slot_;
+//                slot_.name = changed_slots_[j].name;
+//                slot_.slot_size = changed_slots_[j].max_objects;
+//                slot_.location.name = slot_.name;
+//                slot_.location.frame = "world";
+//                tf::poseEigenToMsg(T_w_slot,slot_.location.pose);
+//                tf::poseEigenToMsg(T_slot_approach,slot_.location.approach_relative_pose);
+//                tf::poseEigenToMsg(T_slot_approach,slot_.location.leave_relative_pose);
+
+//                add_slots_srv.request.add_slots.push_back( slot_ );
             }
         }
         add_slots_srv.request.slots_group_name = changed_groups_.at(i);
@@ -2236,65 +2308,87 @@ void QNode::load_new_params_in_manipulation(std::vector<object_type>       chang
     ROS_FATAL("Box da aggiungere: %zu", changed_boxes_.size());
     for ( int i = 0; i < changed_boxes_.size(); i++ )
     {
-        Eigen::Vector3d approach_distance_in_frame;
-        approach_distance_in_frame(0) = changed_boxes_[i].approach.origin_x;
-        approach_distance_in_frame(1) = changed_boxes_[i].approach.origin_y;
-        approach_distance_in_frame(2) = changed_boxes_[i].approach.origin_z;
-
-        Eigen::Quaterniond q(changed_boxes_[i].location_.quat.rotation_w,
-                             changed_boxes_[i].location_.quat.rotation_x,
-                             changed_boxes_[i].location_.quat.rotation_y,
-                             changed_boxes_[i].location_.quat.rotation_z);
-
-        Eigen::Affine3d T_frame_box;
-        T_frame_box = q;
-        T_frame_box.translation()(0) = changed_boxes_[i].location_.pos.origin_x;
-        T_frame_box.translation()(1) = changed_boxes_[i].location_.pos.origin_y;
-        T_frame_box.translation()(2) = changed_boxes_[i].location_.pos.origin_z;
-
-        std::string frame_name = changed_boxes_[i].frame;
-
-        tf::TransformListener listener;
-        tf::StampedTransform transform;
-        ros::Time t0 = ros::Time::now();
-        if (!listener.waitForTransform("world",frame_name,t0,ros::Duration(10)))
-        {
-          ROS_WARN("Unable to find a transform from world to %s", frame_name.c_str());
-          continue;
-        }
-
-        try
-        {
-          listener.lookupTransform("world", frame_name, t0, transform);
-        }
-        catch (tf::TransformException& ex)
-        {
-          ROS_ERROR("%s",ex.what());
-          ros::Duration(1.0).sleep();
-          continue;
-        }
-
-        Eigen::Affine3d T_w_frame;
-        tf::poseTFToEigen(transform,T_w_frame);
-
-        Eigen::Affine3d T_w_box = T_w_frame * T_frame_box;
-
-        Eigen::Vector3d approach_distance_in_world = T_w_frame.linear() * approach_distance_in_frame;
-
-        Eigen::Affine3d T_w_approach = T_w_box;
-        T_w_approach.translation() += approach_distance_in_world;
-
-        Eigen::Affine3d T_box_approach = T_w_box.inverse() * T_w_approach;
-
         manipulation_msgs::Box box_;
         box_.name = changed_boxes_[i].name;
         box_.location.name = box_.name;
-        box_.location.frame = "world";
-        tf::poseEigenToMsg(T_w_box,box_.location.pose);
-        tf::poseEigenToMsg(T_box_approach,box_.location.approach_relative_pose);
-        tf::poseEigenToMsg(T_box_approach,box_.location.leave_relative_pose);
+        box_.location.frame = changed_boxes_[i].frame;
+        box_.location.name                              = box_.name;
+        box_.location.frame                             = changed_boxes_[i].frame;
+        box_.location.pose.position.x                   = changed_boxes_[i].location_.pos.origin_x;
+        box_.location.pose.position.y                   = changed_boxes_[i].location_.pos.origin_y;
+        box_.location.pose.position.z                   = changed_boxes_[i].location_.pos.origin_z;
+        box_.location.pose.orientation.w                = changed_boxes_[i].location_.quat.rotation_w;
+        box_.location.pose.orientation.x                = changed_boxes_[i].location_.quat.rotation_x;
+        box_.location.pose.orientation.y                = changed_boxes_[i].location_.quat.rotation_y;
+        box_.location.pose.orientation.z                = changed_boxes_[i].location_.quat.rotation_z;
+        box_.location.approach_relative_pose.position.x = changed_boxes_[i].approach.origin_x;
+        box_.location.approach_relative_pose.position.y = changed_boxes_[i].approach.origin_y;
+        box_.location.approach_relative_pose.position.z = changed_boxes_[i].approach.origin_z;
+        box_.location.leave_relative_pose.position.x    = changed_boxes_[i].leave.origin_x;
+        box_.location.leave_relative_pose.position.y    = changed_boxes_[i].leave.origin_y;
+        box_.location.leave_relative_pose.position.z    = changed_boxes_[i].leave.origin_z;
 
         add_boxes_srv.request.add_boxes.push_back( box_ );
+
+//        Eigen::Vector3d approach_distance_in_frame;
+//        approach_distance_in_frame(0) = changed_boxes_[i].approach.origin_x;
+//        approach_distance_in_frame(1) = changed_boxes_[i].approach.origin_y;
+//        approach_distance_in_frame(2) = changed_boxes_[i].approach.origin_z;
+
+//        Eigen::Quaterniond q(changed_boxes_[i].location_.quat.rotation_w,
+//                             changed_boxes_[i].location_.quat.rotation_x,
+//                             changed_boxes_[i].location_.quat.rotation_y,
+//                             changed_boxes_[i].location_.quat.rotation_z);
+
+//        Eigen::Affine3d T_frame_box;
+//        T_frame_box = q;
+//        T_frame_box.translation()(0) = changed_boxes_[i].location_.pos.origin_x;
+//        T_frame_box.translation()(1) = changed_boxes_[i].location_.pos.origin_y;
+//        T_frame_box.translation()(2) = changed_boxes_[i].location_.pos.origin_z;
+
+//        std::string frame_name = changed_boxes_[i].frame;
+
+//        tf::TransformListener listener;
+//        tf::StampedTransform transform;
+//        ros::Time t0 = ros::Time::now();
+//        if (!listener.waitForTransform("world",frame_name,t0,ros::Duration(10)))
+//        {
+//            ROS_WARN("Unable to find a transform from world to %s", frame_name.c_str());
+//            continue;
+//        }
+
+//        try
+//        {
+//            listener.lookupTransform("world", frame_name, t0, transform);
+//        }
+//        catch (tf::TransformException& ex)
+//        {
+//            ROS_ERROR("%s",ex.what());
+//            ros::Duration(1.0).sleep();
+//            continue;
+//        }
+
+//        Eigen::Affine3d T_w_frame;
+//        tf::poseTFToEigen(transform,T_w_frame);
+
+//        Eigen::Affine3d T_w_box = T_w_frame * T_frame_box;
+
+//        Eigen::Vector3d approach_distance_in_world = T_w_frame.linear() * approach_distance_in_frame;
+
+//        Eigen::Affine3d T_w_approach = T_w_box;
+//        T_w_approach.translation() += approach_distance_in_world;
+
+//        Eigen::Affine3d T_box_approach = T_w_box.inverse() * T_w_approach;
+
+//        manipulation_msgs::Box box_;
+//        box_.name = changed_boxes_[i].name;
+//        box_.location.name = box_.name;
+//        box_.location.frame = "world";
+//        tf::poseEigenToMsg(T_w_box,box_.location.pose);
+//        tf::poseEigenToMsg(T_box_approach,box_.location.approach_relative_pose);
+//        tf::poseEigenToMsg(T_box_approach,box_.location.leave_relative_pose);
+
+//        add_boxes_srv.request.add_boxes.push_back( box_ );
     }
     if ( add_boxes_srv.request.add_boxes.size() != 0 )
     {
@@ -2356,14 +2450,14 @@ bool QNode::add_object(std::string object_name, std::vector<position> object_app
     log_object_modify(object_name);
 
     object_type obj;
-    obj.name     = object_name;
+    obj.type     = object_name;
     obj.tool     = object_tools;
     obj.approach = object_approach;
     obj.grasp    = object_grasp;
     obj.approach_gripper_state = gripper_states;
     objects.push_back(obj);
 
-    changed_objects.push_back( obj );
+    //    changed_objects.push_back( obj );
 
     return true;
 }
@@ -2505,15 +2599,15 @@ bool QNode::add_box_changes(int ind, box new_box)
 
 bool QNode::add_object_changes(int ind, object_type new_object)
 {
-    if ( !objects[ind].name.compare( new_object.name ) )
+    if ( !objects[ind].type.compare( new_object.type ) )
     {
         objects[ind] = new_object;
     }
     else
     {
         objects.push_back( new_object );
-        log_object_modify(new_object.name);
-        log_object(new_object.name);
+        log_object_modify(new_object.type);
+        log_object(new_object.type);
     }
     return true;
 }
@@ -2540,10 +2634,15 @@ void QNode::load_param( int ind )
         set_target_frame(0);
 
         readBoxesFromParam();
+        ROS_ERROR("Read boxes finish");
         readObjectFromParam();
+        ROS_ERROR("Read objects finish");
         readSlotsGroupFromParam();
+        ROS_ERROR("Read slot group finish");
         readSlotsFromParam();
+        ROS_ERROR("Read slots finish");
         readLocationsFromParam();
+        ROS_ERROR("Read locations finish");
     }
     else if ( ind == 2 )
     {
@@ -2615,14 +2714,14 @@ void QNode::write_param(int ind)
             bool presence = false;
             for ( int j = 0; j < logging_model_object.rowCount(); j++)
             {
-                if ( !objects[i].name.compare(logging_model_object.data( logging_model_object.index( j ), 0 ).toString().toStdString() ) )
+                if ( !objects[i].type.compare(logging_model_object.data( logging_model_object.index( j ), 0 ).toString().toStdString() ) )
                 {
                     presence = true;
                 }
             }
             if ( !presence )
             {
-                log_object(objects[i].name);
+                log_object(objects[i].type);
             }
         }
         for ( int i = 0; i < objects.size(); i++)
@@ -2630,14 +2729,14 @@ void QNode::write_param(int ind)
             bool presence = false;
             for ( int j = 0; j < logging_model_object_modify.rowCount(); j++)
             {
-                if ( !objects[i].name.compare(logging_model_object_modify.data( logging_model_object_modify.index( j ), 0 ).toString().toStdString() ) )
+                if ( !objects[i].type.compare(logging_model_object_modify.data( logging_model_object_modify.index( j ), 0 ).toString().toStdString() ) )
                 {
                     presence = true;
                 }
             }
             if ( !presence )
             {
-                log_object_modify(objects[i].name);
+                log_object_modify(objects[i].type);
             }
         }
         for ( int i = 0; i < groups.size(); i++)
@@ -2831,7 +2930,7 @@ void QNode::write_objects()
     }
     for ( int i = 0; i < objects.size(); i++)
     {
-        log_components(objects[i].name);
+        log_components(objects[i].type);
     }
 }
 
@@ -2948,74 +3047,69 @@ bool QNode::readBoxesFromParam()
 
 bool QNode::readObjectFromParam()
 {
-    std::vector<std::string> objects_param, objects_names;
-    for ( int i = 0; i < param_names.size(); i++)
+    XmlRpc::XmlRpcValue param;
+    if ( !n.getParam("/manipulation_object_types", param) )
     {
-        std::size_t found  = param_names[i].find("/manipulation_objects/");
-        if ( found != std::string::npos )
-        {
-            found = param_names[i].find("grasp_poses");
-            if ( found != std::string::npos )
-            {
-                std::size_t found2  = param_names[i].find( "/", 5 );
-                std::size_t found3  = param_names[i].find( "/", found2+1 );
-                std::string str = param_names[i];
-                str.erase( found3, str.size() );
-                objects_names.push_back( str.erase( 0, found2+1 ) );
-                objects_param.push_back( param_names[i] );
-            }
-        }
+        ROS_ERROR("Unable to find /manipulation_object_types");
+        return false;
     }
 
-    ROS_INFO("There are %d objects",objects_param.size());
+    ROS_ERROR("Reading of manipulation_object_types is finish ");
 
-    for ( int i = 0; i < objects_param.size(); i++ )
+    for ( std::size_t i = 0; i < param.size(); i++ )
     {
-        XmlRpc::XmlRpcValue config;
-        if (!n.getParam(objects_param[i],config))
-        {
-            ROS_ERROR("Unable to find %s",objects_param[i].c_str());
-            return false;
-        }
-
-        if (config.getType() != XmlRpc::XmlRpcValue::TypeArray)
-        {
-            ROS_ERROR("The param is not a list of object information" );
-            return false;
-        }
-
         object_type object_;
-        object_.name = objects_names[i];
+        XmlRpc::XmlRpcValue single_object = param[i];
 
-        for(size_t i=0; i < config.size(); i++)
+        if( single_object.getType() != XmlRpc::XmlRpcValue::TypeStruct)
         {
-            XmlRpc::XmlRpcValue object = config[i];
-            if( object.getType() != XmlRpc::XmlRpcValue::TypeStruct)
-            {
-                ROS_WARN("The element #%zu is not a struct", i);
-                continue;
-            }
-            if( !object.hasMember("tool") )
-            {
-                ROS_WARN("The element #%zu has not the field 'tool'", i);
-                continue;
-            }
-            object_.tool.push_back( rosparam_utilities::toString(object["tool"]) );
+            ROS_WARN("The object element #%zu is not a struct", i);
+            continue;
+        }
 
-            if( !object.hasMember("approach_gripper_state") )
+        if ( !single_object.hasMember("type") )
+        {
+            ROS_WARN("The object element #%zu has not the field 'type'", i);
+            continue;
+        }
+        object_.type = rosparam_utilities::toString(single_object["type"]);
+
+        ROS_ERROR("Reading of objects %zu name is finish ",i);
+
+
+        XmlRpc::XmlRpcValue grasp_poses_;
+        if ( !single_object.hasMember("grasp_poses") )
+        {
+            ROS_WARN("The object element #%zu has not the field 'grasp_poses'", i);
+            continue;
+        }
+        grasp_poses_ = single_object["grasp_poses"];
+
+        ROS_ERROR("Reading of objects %zu grasp_poses_ is finish ",i);
+
+        if ( grasp_poses_.getType() != XmlRpc::XmlRpcValue::TypeArray )
+        {
+            ROS_WARN("The field grasp_poses of object element %zu is not an array", i);
+            continue;
+        }
+
+        for ( std::size_t j = 0; j < grasp_poses_.size(); j++ )
+        {
+            XmlRpc::XmlRpcValue single_grasp = grasp_poses_[j];
+
+            if( single_grasp.getType() != XmlRpc::XmlRpcValue::TypeStruct)
             {
-                ROS_WARN("The element #%zu has not the field 'approach_gripper_state'", i);
+                ROS_WARN("The grasp element %zu of object element #%zu is not a struct", j, i);
                 continue;
             }
-            object_.approach_gripper_state.push_back( rosparam_utilities::toString(object["approach_gripper_state"]) );
 
             location loc;
 
             std::string what;
             std::vector<double> pos;
-            if( !rosparam_utilities::getParam(object,"position",pos, what) )
+            if ( !rosparam_utilities::getParam(single_grasp,"position",pos, what) )
             {
-                ROS_WARN("Pose has not the field 'position'");
+                ROS_WARN("The grasp element %zu of object element #%zu has not the field 'position'", j, i);
                 continue;
             }
 
@@ -3025,10 +3119,12 @@ bool QNode::readObjectFromParam()
             loc.pos.origin_y = pos.at(1);
             loc.pos.origin_z = pos.at(2);
 
+            ROS_ERROR("Reading of objects %zu location #%zu is finish ",i,j);
+
             std::vector<double> quat;
-            if( !rosparam_utilities::getParam(object,"quaternion",quat,what) )
+            if( !rosparam_utilities::getParam(single_grasp,"quaternion",quat,what) )
             {
-                ROS_WARN("pose has not the field 'quaternion'");
+                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'quaternion'", j, i);
                 continue;
             }
 
@@ -3039,12 +3135,12 @@ bool QNode::readObjectFromParam()
             loc.quat.rotation_z = quat.at(2);
             loc.quat.rotation_w = quat.at(3);
 
-            object_.grasp.push_back(loc);
+            object_.grasp.push_back( loc );
 
             std::vector<double> approach_distance_d;
-            if( !rosparam_utilities::getParam(object,"approach_distance",approach_distance_d,what) )
+            if( !rosparam_utilities::getParam(single_grasp,"approach_distance",approach_distance_d,what) )
             {
-                ROS_WARN("The box %s has not the field 'approach_distance'",object_.name.c_str());
+                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'approach_distance'", j, i);
                 return false;
             }
             assert(approach_distance_d.size() == 3);
@@ -3054,25 +3150,26 @@ bool QNode::readObjectFromParam()
             approach.origin_y = approach_distance_d.at(1);
             approach.origin_z = approach_distance_d.at(2);
 
-            object_.approach.push_back(approach);
-        }
+            object_.approach.push_back( approach );
 
-        bool presence = false;
-        for ( int j = 0; j < objects.size(); j++)
-        {
-            if ( !object_.name.compare(objects[j].name) )
+            if ( !single_grasp.hasMember("tool"))
             {
-                presence = true;
+                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'tool'", j, i);
+                continue;
             }
-        }
 
-        if ( !presence )
-        {
-            objects.push_back(object_);
-            objects_compare.push_back(object_);
+            object_.tool.push_back( rosparam_utilities::toString(single_grasp["tool"]) );
+
+            if ( !single_grasp.hasMember("approach_gripper_state"))
+            {
+                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'approach_gripper_state'", j, i);
+                continue;
+            }
+
+            object_.approach_gripper_state.push_back( rosparam_utilities::toString(single_grasp["approach_gripper_state"]) );
         }
+        objects.push_back( object_ );
     }
-
 
     return true;
 }

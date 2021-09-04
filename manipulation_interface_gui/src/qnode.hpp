@@ -89,8 +89,9 @@ struct pick
 
 struct object_type
 {
-    std::string              name;
+    std::string              type;
     std::vector<position>    approach;
+    std::vector<position>    leave;
     std::vector<location>    grasp;
     std::vector<std::string> approach_gripper_state;
     std::vector<std::string> tool;
@@ -101,6 +102,7 @@ struct manipulation_slot
     std::string name;
     std::string group;
     position    approach;
+    position    leave;
     location    location_;
     int         max_objects;
     std::string frame;
@@ -111,6 +113,7 @@ struct box
     std::string name;
     location    location_;
     position    approach;
+    position    leave;
     std::string frame;
 };
 
@@ -147,7 +150,10 @@ public:
 
     bool save_recipe();
     int run_recipe();
+    int run_selected_action( int index );
     std::vector<std::string> load_recipes_param();
+
+    void initial_add_components_in_manipulation();
 
     XmlRpc::XmlRpcValue get_recipe_param(std::vector<std::string> recipe_);
     XmlRpc::XmlRpcValue get_recipe_param       (int index);
@@ -183,13 +189,11 @@ public:
     bool add_box_copy      (box new_box);
 
     void load_initial_param_in_manipulator();
-    void load_objects_in_manipulator();
-    void load_new_params_in_manipulation(std::vector<object_type> changed_objects_,
-                                         std::vector<go_to_location> changed_locations_,
+    void load_objects_in_manipulation();
+    void load_new_params_in_manipulation(std::vector<go_to_location> changed_locations_,
                                          std::vector<manipulation_slot> changed_slots_,
                                          std::vector<box> changed_boxes_,
                                          std::vector<std::string> changed_groups_,
-                                         std::vector<object_type> objects_to_remove_,
                                          std::vector<go_to_location> locations_to_remove_,
                                          std::vector<manipulation_slot> slots_to_remove_,
                                          std::vector<box> boxes_to_remove_,
@@ -334,7 +338,6 @@ Q_SIGNALS:
 private:
 	int init_argc;
 	char** init_argv;
-    std::thread t;
     std::thread t_component;
 
     ros::NodeHandle n;
@@ -353,6 +356,7 @@ private:
     ros::ServiceClient remove_objs_client_;
     ros::ServiceClient remove_slots_group_client_;
     ros::ServiceClient remove_slots_client_;
+    ros::ServiceClient list_objects_client_;
 
     ros::Publisher     twist_pub;
     ros::ServiceClient set_ctrl_srv;
@@ -435,11 +439,7 @@ private:
     const std::string init_string = "<string>";
     const std::string end_string  = "</string>";
 
-    std::shared_ptr<manipulation::OutboundPlaceFromParam> oub;
-    std::shared_ptr<manipulation::InboundPickFromParam>   inb;
-    std::shared_ptr<manipulation::GoToLocationFromParam>  go_to;
 
-    bool t_finito = false;
     bool tc_finito = false;
 };
 

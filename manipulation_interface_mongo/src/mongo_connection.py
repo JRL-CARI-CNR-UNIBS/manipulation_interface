@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 
 import pymongo
 import pprint
@@ -114,19 +114,19 @@ if __name__ == '__main__':
 
 	rospy.set_param("/outbound/slots_group", groups)
 
-	objects_ = []
-	for data in objects_mongo:
-		del data['_id']
-		objects_.append( data )
-
-	rospy.set_param("/manipulation/objects", objects_)
-
 	objects = []
 	for data in objects_mongo:
-		str = '/manipulation_objects/'
-		str = str + data['name']
-		del data['name']
-		rospy.set_param(str, data)
+		del data['_id']
+		objects.append( data )
+
+	rospy.set_param("/manipulation_object_types", objects)
+
+#	objects = []
+#	for data in objects_mongo:
+#		str = '/manipulation_object_types/'
+#		str = str + data['name']
+#		del data['name']
+#		rospy.set_param(str, data)
 
 	recipes = []
 	for data in recipes_mongo:

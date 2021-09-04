@@ -1,4 +1,4 @@
-manipulation_objects_geometry:
+object_geometries:
   oggetto_prova:
     color: [0.2,0.2,0.2, 0.4]
     box:  [0.03,0.03,0.03]
