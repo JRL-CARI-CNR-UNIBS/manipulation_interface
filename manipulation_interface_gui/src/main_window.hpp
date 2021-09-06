@@ -151,9 +151,11 @@ public Q_SLOTS:
     void on_combo_configuration__currentIndexChanged (int index);
     void on_combo_ref_frame_currentIndexChanged      (int index);
     void on_TF_list_currentIndexChanged              (int index);
-    void on_gripper_percentage_valueChanged   (int value);
-    void on_gripper_percentage_2_valueChanged (int value);
-    void on_velocity_slider_valueChanged      (int value);
+    void on_gripper_percentage_valueChanged          (int value);
+    void on_gripper_force_percentage_valueChanged    (int value);
+    void on_gripper_percentage_2_valueChanged        (int value);
+    void on_gripper_force_percentage_2_valueChanged  (int value);
+    void on_velocity_slider_valueChanged             (int value);
     void on_list_location_modify_pressed (const QModelIndex &index);
     void on_list_box_modify_pressed      (const QModelIndex &index);
     void on_list_slot_modify_pressed     (const QModelIndex &index);
@@ -177,8 +179,10 @@ private:
     std::vector<location>    actual_object_grasp;
     std::vector<position>    actual_object_approach;
     std::vector<position>    actual_object_leave;
-    std::vector<std::string> actual_approach_gripper_states;
-    std::vector<std::string> actual_leave_gripper_states;
+    std::vector<double>      actual_pre_gripper_position;
+    std::vector<double>      actual_post_gripper_position;
+    std::vector<double>      actual_approach_gripper_position;
+    std::vector<double>      actual_gripper_grasp_force;
     std::vector<std::string> actual_tool_approach;
     std::vector<std::string> actual_tool_grasp;
     std::vector<std::string> actual_tool_leave;
@@ -189,7 +193,7 @@ private:
     location                 actual_slot_leave;
     location                 actual_box_leave;
     object_type              actual_object_to_modify;
-    std::string              actual_gripper_state = "open";
+    double                   actual_gripper_force = 100;
     bool init_approach_object = false;
     bool init_slot_approach   = false;
     bool init_slot_final      = false;
@@ -201,6 +205,9 @@ private:
     float max_vel  = 0.1;
     float max_rot  = 0.7;
     int   perc_vel = 50;
+    double max_gripper_position = 85;
+    double min_gripper_position = 0;
+    double max_force_gripper    = 100;
     std::string tf_name_space = "NAME_SPACE";
 };
 

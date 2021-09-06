@@ -37,6 +37,7 @@
   <exec_depend>rosparam_utilities</exec_depend>
   <exec_depend>tf</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>message_runtime</exec_depend>
+	<exec_depend>message_runtime</exec_depend>
+	<depend>subscription_notifier</depend>
 
 </package>

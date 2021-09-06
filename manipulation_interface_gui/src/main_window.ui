@@ -3656,7 +3656,7 @@
              </size>
             </property>
             <property name="currentIndex">
-             <number>3</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="tab_6">
              <attribute name="title">
@@ -6378,18 +6378,18 @@
                      <colorrole role="Button">
                       <brush brushstyle="SolidPattern">
                        <color alpha="255">
-                        <red>85</red>
-                        <green>87</green>
-                        <blue>83</blue>
+                        <red>238</red>
+                        <green>238</green>
+                        <blue>236</blue>
                        </color>
                       </brush>
                      </colorrole>
                      <colorrole role="ButtonText">
                       <brush brushstyle="SolidPattern">
-                       <color alpha="96">
-                        <red>164</red>
-                        <green>166</green>
-                        <blue>168</blue>
+                       <color alpha="255">
+                        <red>211</red>
+                        <green>215</green>
+                        <blue>207</blue>
                        </color>
                       </brush>
                      </colorrole>
@@ -6710,9 +6710,9 @@
                      <colorrole role="Button">
                       <brush brushstyle="SolidPattern">
                        <color alpha="255">
-                        <red>85</red>
-                        <green>87</green>
-                        <blue>83</blue>
+                        <red>238</red>
+                        <green>238</green>
+                        <blue>236</blue>
                        </color>
                       </brush>
                      </colorrole>
@@ -6773,9 +6773,9 @@
                      <colorrole role="ButtonText">
                       <brush brushstyle="SolidPattern">
                        <color alpha="255">
-                        <red>42</red>
-                        <green>43</green>
-                        <blue>41</blue>
+                        <red>211</red>
+                        <green>215</green>
+                        <blue>207</blue>
                        </color>
                       </brush>
                      </colorrole>
@@ -6974,31 +6974,37 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSlider" name="gripper_percentage">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="maximum">
-                   <number>100</number>
-                  </property>
-                  <property name="singleStep">
-                   <number>10</number>
-                  </property>
-                  <property name="value">
-                   <number>100</number>
-                  </property>
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_23">
+                 <layout class="QHBoxLayout" name="horizontalLayout_25">
+                  <item>
+                   <widget class="QSlider" name="gripper_percentage">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="maximum">
+                     <number>100</number>
+                    </property>
+                    <property name="singleStep">
+                     <number>1</number>
+                    </property>
+                    <property name="value">
+                     <number>100</number>
+                    </property>
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
                   <item>
                    <widget class="QLabel" name="open_gripper_label">
+                    <property name="minimumSize">
+                     <size>
+                      <width>36</width>
+                      <height>0</height>
+                     </size>
+                    </property>
                     <property name="maximumSize">
                      <size>
                       <width>40</width>
@@ -7012,6 +7018,49 @@
                   </item>
                   <item>
                    <widget class="QLabel" name="label_111">
+                    <property name="text">
+                     <string>%</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_26">
+                  <item>
+                   <widget class="QSlider" name="gripper_force_percentage">
+                    <property name="maximum">
+                     <number>100</number>
+                    </property>
+                    <property name="value">
+                     <number>100</number>
+                    </property>
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="gripper_force_label">
+                    <property name="minimumSize">
+                     <size>
+                      <width>36</width>
+                      <height>0</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>100</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_151">
                     <property name="text">
                      <string>%</string>
                     </property>
@@ -13994,84 +14043,8 @@
             </item>
             <item row="0" column="1">
              <layout class="QGridLayout" name="gridLayout_2">
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_37">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>x:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="3">
-               <widget class="QLineEdit" name="edit_location_quaternion_w"/>
-              </item>
-              <item row="9" column="0">
-               <widget class="QLabel" name="label_102">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>24</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="2">
-               <widget class="QLineEdit" name="edit_location_quaternion_z"/>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLineEdit" name="edit_location_position_x"/>
-              </item>
-              <item row="3" column="1">
-               <widget class="QLabel" name="label_35">
-                <property name="text">
-                 <string>y:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1">
-               <widget class="QLabel" name="label_38">
-                <property name="text">
-                 <string>y:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_33">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>x:</string>
-                </property>
-               </widget>
-              </item>
               <item row="12" column="0">
                <widget class="QLabel" name="label_143">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="2">
-               <widget class="QLabel" name="label_39">
-                <property name="text">
-                 <string>z:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="11" column="0">
-               <widget class="QLabel" name="label_104">
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -14080,6 +14053,59 @@
                 </property>
                 <property name="text">
                  <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="0">
+               <widget class="QLabel" name="label_104">
+                <property name="minimumSize">
+                 <size>
+                  <width>136</width>
+                  <height>32</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="0">
+               <widget class="QLabel" name="label_102">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="3">
+               <widget class="QLabel" name="label_39">
+                <property name="text">
+                 <string>z:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="4">
+               <widget class="QLabel" name="label_40">
+                <property name="minimumSize">
+                 <size>
+                  <width>195</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>w:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_35">
+                <property name="text">
+                 <string>y [m]:</string>
                 </property>
                </widget>
               </item>
@@ -14114,7 +14140,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>32</height>
+                  <height>24</height>
                  </size>
                 </property>
                 <property name="text">
@@ -14125,16 +14151,16 @@
               <item row="0" column="1">
                <widget class="QLineEdit" name="edit_location_frame"/>
               </item>
-              <item row="6" column="3">
-               <widget class="QLabel" name="label_40">
-                <property name="minimumSize">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_43">
+                <property name="maximumSize">
                  <size>
-                  <width>195</width>
-                  <height>0</height>
+                  <width>16777215</width>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="text">
-                 <string>w:</string>
+                 <string>Frame:</string>
                 </property>
                </widget>
               </item>
@@ -14150,9 +14176,6 @@
                  <string>Position</string>
                 </property>
                </widget>
-              </item>
-              <item row="4" column="2">
-               <widget class="QLineEdit" name="edit_location_position_z"/>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_31">
@@ -14180,24 +14203,11 @@
                 </property>
                </widget>
               </item>
-              <item row="7" column="1">
-               <widget class="QLineEdit" name="edit_location_quaternion_y"/>
+              <item row="7" column="4">
+               <widget class="QLineEdit" name="edit_location_quaternion_w"/>
               </item>
-              <item row="4" column="1">
-               <widget class="QLineEdit" name="edit_location_position_y"/>
-              </item>
-              <item row="7" column="0">
-               <widget class="QLineEdit" name="edit_location_quaternion_x"/>
-              </item>
-              <item row="3" column="2">
-               <widget class="QLabel" name="label_34">
-                <property name="text">
-                 <string>z:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_43">
+              <item row="5" column="1">
+               <widget class="QLabel" name="label_37">
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -14205,22 +14215,54 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>Frame:</string>
+                 <string>x:</string>
                 </property>
                </widget>
               </item>
-              <item row="14" column="0">
-               <widget class="QLabel" name="label_145">
-                <property name="minimumSize">
+              <item row="4" column="3">
+               <widget class="QLineEdit" name="edit_location_position_z"/>
+              </item>
+              <item row="7" column="3">
+               <widget class="QLineEdit" name="edit_location_quaternion_z"/>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="edit_location_position_x"/>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLabel" name="label_34">
+                <property name="text">
+                 <string>z [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="2">
+               <widget class="QLineEdit" name="edit_location_quaternion_y"/>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="label_33">
+                <property name="maximumSize">
                  <size>
-                  <width>0</width>
-                  <height>32</height>
+                  <width>16777215</width>
+                  <height>30</height>
                  </size>
                 </property>
                 <property name="text">
-                 <string/>
+                 <string>x [m]:</string>
                 </property>
                </widget>
+              </item>
+              <item row="5" column="2">
+               <widget class="QLabel" name="label_38">
+                <property name="text">
+                 <string>y:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QLineEdit" name="edit_location_quaternion_x"/>
+              </item>
+              <item row="4" column="2">
+               <widget class="QLineEdit" name="edit_location_position_y"/>
               </item>
              </layout>
             </item>
@@ -16406,6 +16448,16 @@
                 </property>
                </widget>
               </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="label_21">
+                <property name="text">
+                 <string>New name:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLineEdit" name="edit_new_object"/>
+              </item>
               <item row="0" column="4">
                <widget class="QPushButton" name="button_reset_object_info">
                 <property name="palette">
@@ -17698,20 +17750,69 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="1">
-               <widget class="QLabel" name="label_21">
-                <property name="text">
-                 <string>New name:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QLineEdit" name="edit_new_object"/>
-              </item>
              </layout>
+            </item>
+            <item row="0" column="0" rowspan="2">
+             <widget class="QListView" name="list_object_modify">
+              <property name="maximumSize">
+               <size>
+                <width>300</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
             </item>
             <item row="0" column="1">
              <layout class="QGridLayout" name="gridLayout_7">
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_46">
+                <property name="text">
+                 <string>y [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="edit_object_tool"/>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_55">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Tool:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_54">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Position</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_41">
+                <property name="text">
+                 <string>Grasp numer:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="2">
+               <widget class="QLineEdit" name="edit_object_quaternion_y"/>
+              </item>
+              <item row="15" column="3">
+               <widget class="QLineEdit" name="edit_object_leave_z"/>
+              </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_56">
                 <property name="maximumSize">
@@ -17727,13 +17828,16 @@
               </item>
               <item row="12" column="0">
                <widget class="QLabel" name="label_142">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Leave</string>
                 </property>
                </widget>
-              </item>
-              <item row="7" column="0">
-               <widget class="QLineEdit" name="edit_object_quaternion_x"/>
               </item>
               <item row="1" column="3">
                <widget class="QPushButton" name="button_copy_grasp">
@@ -18157,20 +18261,55 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
+              <item row="0" column="3">
+               <widget class="QComboBox" name="combo_grasp_number"/>
+              </item>
+              <item row="6" column="1">
+               <widget class="QLineEdit" name="edit_object_quaternion_x"/>
+              </item>
+              <item row="12" column="2">
+               <widget class="QLabel" name="label_141">
+                <property name="text">
+                 <string>y [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="15" column="1">
+               <widget class="QLineEdit" name="edit_object_leave_x"/>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="label_47">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>x [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="2">
                <widget class="QLineEdit" name="edit_object_position_y"/>
               </item>
               <item row="9" column="1">
-               <widget class="QLabel" name="label_59">
+               <widget class="QLineEdit" name="edit_object_approach_x"/>
+              </item>
+              <item row="5" column="2">
+               <widget class="QLabel" name="label_49">
                 <property name="text">
                  <string>y:</string>
                 </property>
                </widget>
               </item>
-              <item row="15" column="1">
-               <widget class="QLineEdit" name="edit_gripper_state"/>
+              <item row="6" column="4">
+               <widget class="QLineEdit" name="edit_object_quaternion_w"/>
               </item>
-              <item row="9" column="0">
+              <item row="4" column="3">
+               <widget class="QLineEdit" name="edit_object_position_z"/>
+              </item>
+              <item row="8" column="1">
                <widget class="QLabel" name="label_58">
                 <property name="maximumSize">
                  <size>
@@ -18179,27 +18318,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>x:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_41">
-                <property name="text">
-                 <string>Grasp numer:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="14" column="0">
-               <widget class="QLineEdit" name="edit_object_leave_x"/>
-              </item>
-              <item row="4" column="2">
-               <widget class="QLineEdit" name="edit_object_position_z"/>
-              </item>
-              <item row="6" column="3">
-               <widget class="QLabel" name="label_50">
-                <property name="text">
-                 <string>w:</string>
+                 <string>x [m]:</string>
                 </property>
                </widget>
               </item>
@@ -18229,54 +18348,64 @@
                 </property>
                </widget>
               </item>
-              <item row="10" column="1">
-               <widget class="QLineEdit" name="edit_object_approach_y"/>
-              </item>
-              <item row="6" column="1">
-               <widget class="QLabel" name="label_49">
+              <item row="8" column="3">
+               <widget class="QLabel" name="label_60">
                 <property name="text">
-                 <string>y:</string>
+                 <string>z [m]:</string>
                 </property>
                </widget>
               </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="edit_object_position_x"/>
+              </item>
+              <item row="8" column="2">
+               <widget class="QLabel" name="label_59">
+                <property name="text">
+                 <string>y [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="3">
+               <widget class="QLineEdit" name="edit_object_approach_z"/>
+              </item>
               <item row="9" column="2">
-               <widget class="QLabel" name="label_60">
+               <widget class="QLineEdit" name="edit_object_approach_y"/>
+              </item>
+              <item row="15" column="2">
+               <widget class="QLineEdit" name="edit_object_leave_y"/>
+              </item>
+              <item row="6" column="3">
+               <widget class="QLineEdit" name="edit_object_quaternion_z"/>
+              </item>
+              <item row="12" column="1">
+               <widget class="QLabel" name="label_140">
+                <property name="text">
+                 <string>x [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QLabel" name="label_53">
+                <property name="text">
+                 <string>z [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="3">
+               <widget class="QLabel" name="label_146">
+                <property name="text">
+                 <string>z [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="3">
+               <widget class="QLabel" name="label_51">
                 <property name="text">
                  <string>z:</string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QLabel" name="label_46">
-                <property name="text">
-                 <string>y:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="12" column="2">
-               <widget class="QLabel" name="label_100">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>32</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="3">
-               <widget class="QLineEdit" name="edit_object_quaternion_w"/>
-              </item>
-              <item row="13" column="0">
-               <widget class="QLabel" name="label_140">
-                <property name="text">
-                 <string>x:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
+              <item row="5" column="1">
                <widget class="QLabel" name="label_48">
                 <property name="maximumSize">
                  <size>
@@ -18289,118 +18418,57 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_55">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
+              <item row="5" column="4">
+               <widget class="QLabel" name="label_50">
                 <property name="text">
-                 <string>Tool:</string>
+                 <string>w:</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_54">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Position</string>
-                </property>
-               </widget>
-              </item>
-              <item row="15" column="0">
+              <item row="16" column="0">
                <widget class="QLabel" name="label_113">
-                <property name="text">
-                 <string>Gripper state:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="2">
-               <widget class="QLabel" name="label_51">
-                <property name="text">
-                 <string>z:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="10" column="2">
-               <widget class="QLineEdit" name="edit_object_approach_z"/>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLineEdit" name="edit_object_position_x"/>
-              </item>
-              <item row="7" column="2">
-               <widget class="QLineEdit" name="edit_object_quaternion_z"/>
-              </item>
-              <item row="0" column="3">
-               <widget class="QComboBox" name="combo_grasp_number"/>
-              </item>
-              <item row="7" column="1">
-               <widget class="QLineEdit" name="edit_object_quaternion_y"/>
-              </item>
-              <item row="3" column="2">
-               <widget class="QLabel" name="label_53">
-                <property name="text">
-                 <string>z:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_47">
-                <property name="maximumSize">
+                <property name="minimumSize">
                  <size>
-                  <width>16777215</width>
-                  <height>30</height>
+                  <width>136</width>
+                  <height>32</height>
                  </size>
                 </property>
                 <property name="text">
-                 <string>x:</string>
+                 <string>Gripper info:</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="0">
-               <widget class="QLineEdit" name="edit_object_approach_x"/>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="edit_object_tool"/>
-              </item>
-              <item row="14" column="1">
-               <widget class="QLineEdit" name="edit_object_leave_y"/>
-              </item>
-              <item row="14" column="2">
-               <widget class="QLineEdit" name="edit_object_leave_z"/>
-              </item>
-              <item row="13" column="1">
-               <widget class="QLabel" name="label_141">
+              <item row="16" column="1">
+               <widget class="QLabel" name="label_100">
                 <property name="text">
-                 <string>y:</string>
+                 <string>Pre position [mm]:</string>
                 </property>
                </widget>
               </item>
-              <item row="13" column="2">
-               <widget class="QLabel" name="label_146">
+              <item row="17" column="1">
+               <widget class="QLineEdit" name="edit_pre_gripper_state"/>
+              </item>
+              <item row="16" column="2">
+               <widget class="QLabel" name="label_148">
                 <property name="text">
-                 <string>z:</string>
+                 <string>Post position [mm]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="17" column="2">
+               <widget class="QLineEdit" name="edit_post_gripper_state"/>
+              </item>
+              <item row="17" column="3">
+               <widget class="QLineEdit" name="edit_gripper_state"/>
+              </item>
+              <item row="16" column="3">
+               <widget class="QLabel" name="label_147">
+                <property name="text">
+                 <string>Force [%]:</string>
                 </property>
                </widget>
               </item>
              </layout>
-            </item>
-            <item row="0" column="0" rowspan="2">
-             <widget class="QListView" name="list_object_modify">
-              <property name="maximumSize">
-               <size>
-                <width>300</width>
-                <height>16777215</height>
-               </size>
-              </property>
-             </widget>
             </item>
            </layout>
           </widget>
@@ -20162,11 +20230,32 @@
             </item>
             <item row="0" column="1">
              <layout class="QGridLayout" name="gridLayout_10">
-              <item row="14" column="1">
-               <widget class="QLineEdit" name="edit_slot_max_objects"/>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_71">
+                <property name="text">
+                 <string>y [m]:</string>
+                </property>
+               </widget>
               </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_64">
+              <item row="2" column="3">
+               <widget class="QLabel" name="label_76">
+                <property name="text">
+                 <string>z [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="3">
+               <widget class="QLineEdit" name="edit_slot_quaternion_z"/>
+              </item>
+              <item row="11" column="2">
+               <widget class="QLabel" name="label_134">
+                <property name="text">
+                 <string>y [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_63">
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -20174,30 +20263,114 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>x:</string>
+                 <string>Position</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="0">
-               <widget class="QLineEdit" name="edit_slot_approach_x"/>
+              <item row="13" column="3">
+               <widget class="QLineEdit" name="edit_slot_leave_z"/>
               </item>
-              <item row="9" column="0">
-               <widget class="QLabel" name="label_62">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>x:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1">
+              <item row="5" column="2">
                <widget class="QLabel" name="label_70">
                 <property name="text">
                  <string>y:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="3">
+               <widget class="QLabel" name="label_135">
+                <property name="text">
+                 <string>z [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_77">
+                <property name="text">
+                 <string>Slot group:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_73">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Frame:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="14" column="1">
+               <widget class="QLineEdit" name="edit_slot_max_objects"/>
+              </item>
+              <item row="11" column="1">
+               <widget class="QLabel" name="label_133">
+                <property name="text">
+                 <string>x [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="13" column="1">
+               <widget class="QLineEdit" name="edit_slot_leave_x"/>
+              </item>
+              <item row="14" column="0">
+               <widget class="QLabel" name="label_78">
+                <property name="minimumSize">
+                 <size>
+                  <width>136</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Max objects</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLineEdit" name="edit_slot_group"/>
+              </item>
+              <item row="11" column="0">
+               <widget class="QLabel" name="label_132">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Leave</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="edit_slot_frame"/>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_75">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Quaternion</string>
                 </property>
                </widget>
               </item>
@@ -20211,16 +20384,6 @@
                 </property>
                 <property name="text">
                  <string>Approach</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="2">
-               <widget class="QLineEdit" name="edit_slot_quaternion_z"/>
-              </item>
-              <item row="6" column="2">
-               <widget class="QLabel" name="label_67">
-                <property name="text">
-                 <string>z:</string>
                 </property>
                </widget>
               </item>
@@ -20243,15 +20406,72 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="2">
-               <widget class="QLabel" name="label_77">
+              <item row="8" column="3">
+               <widget class="QLabel" name="label_74">
                 <property name="text">
-                 <string>Slot group:</string>
+                 <string>z [m]:</string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="0">
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="edit_slot_position_x"/>
+              </item>
+              <item row="2" column="1">
                <widget class="QLabel" name="label_72">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>x [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="13" column="2">
+               <widget class="QLineEdit" name="edit_slot_leave_y"/>
+              </item>
+              <item row="10" column="1">
+               <widget class="QLineEdit" name="edit_slot_approach_x"/>
+              </item>
+              <item row="6" column="2">
+               <widget class="QLineEdit" name="edit_slot_quaternion_y"/>
+              </item>
+              <item row="6" column="4">
+               <widget class="QLineEdit" name="edit_slot_quaternion_w"/>
+              </item>
+              <item row="5" column="3">
+               <widget class="QLabel" name="label_67">
+                <property name="text">
+                 <string>z:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="2">
+               <widget class="QLineEdit" name="edit_slot_approach_y"/>
+              </item>
+              <item row="4" column="2">
+               <widget class="QLineEdit" name="edit_slot_position_y"/>
+              </item>
+              <item row="8" column="2">
+               <widget class="QLabel" name="label_68">
+                <property name="text">
+                 <string>y [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="3">
+               <widget class="QLineEdit" name="edit_slot_position_z"/>
+              </item>
+              <item row="10" column="3">
+               <widget class="QLineEdit" name="edit_slot_approach_z"/>
+              </item>
+              <item row="6" column="1">
+               <widget class="QLineEdit" name="edit_slot_quaternion_x"/>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLabel" name="label_64">
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -20263,67 +20483,7 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QLabel" name="label_71">
-                <property name="text">
-                 <string>y:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLineEdit" name="edit_slot_position_x"/>
-              </item>
-              <item row="9" column="2">
-               <widget class="QLabel" name="label_74">
-                <property name="text">
-                 <string>z:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_73">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Frame:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="1">
-               <widget class="QLabel" name="label_68">
-                <property name="text">
-                 <string>y:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_63">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Position</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="2">
-               <widget class="QLabel" name="label_76">
-                <property name="text">
-                 <string>z:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="10" column="1">
-               <widget class="QLineEdit" name="edit_slot_approach_y"/>
-              </item>
-              <item row="6" column="3">
+              <item row="5" column="4">
                <widget class="QLabel" name="label_65">
                 <property name="minimumSize">
                  <size>
@@ -20336,23 +20496,8 @@
                 </property>
                </widget>
               </item>
-              <item row="7" column="3">
-               <widget class="QLineEdit" name="edit_slot_quaternion_w"/>
-              </item>
-              <item row="10" column="2">
-               <widget class="QLineEdit" name="edit_slot_approach_z"/>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLineEdit" name="edit_slot_frame"/>
-              </item>
-              <item row="4" column="1">
-               <widget class="QLineEdit" name="edit_slot_position_y"/>
-              </item>
-              <item row="7" column="1">
-               <widget class="QLineEdit" name="edit_slot_quaternion_y"/>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_75">
+              <item row="8" column="1">
+               <widget class="QLabel" name="label_62">
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -20360,34 +20505,12 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>Quaternion</string>
+                 <string>x [m]:</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="2">
-               <widget class="QLineEdit" name="edit_slot_position_z"/>
-              </item>
-              <item row="7" column="0">
-               <widget class="QLineEdit" name="edit_slot_quaternion_x"/>
-              </item>
-              <item row="14" column="0">
-               <widget class="QLabel" name="label_78">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Max objects</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
-               <widget class="QLineEdit" name="edit_slot_group"/>
-              </item>
-              <item row="11" column="0">
-               <widget class="QLabel" name="label_132">
+              <item row="15" column="0">
+               <widget class="QLabel" name="label_145">
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -20395,39 +20518,9 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>Leave</string>
+                 <string/>
                 </property>
                </widget>
-              </item>
-              <item row="12" column="0">
-               <widget class="QLabel" name="label_133">
-                <property name="text">
-                 <string>x:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="13" column="0">
-               <widget class="QLineEdit" name="edit_slot_leave_x"/>
-              </item>
-              <item row="12" column="1">
-               <widget class="QLabel" name="label_134">
-                <property name="text">
-                 <string>y:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="12" column="2">
-               <widget class="QLabel" name="label_135">
-                <property name="text">
-                 <string>z:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="13" column="1">
-               <widget class="QLineEdit" name="edit_slot_leave_y"/>
-              </item>
-              <item row="13" column="2">
-               <widget class="QLineEdit" name="edit_slot_leave_z"/>
               </item>
              </layout>
             </item>
@@ -20453,29 +20546,29 @@
             </item>
             <item row="0" column="1">
              <layout class="QGridLayout" name="gridLayout_13">
-              <item row="7" column="3">
-               <widget class="QLineEdit" name="edit_box_quaternion_w"/>
+              <item row="13" column="2">
+               <widget class="QLineEdit" name="edit_box_leave_y"/>
               </item>
-              <item row="7" column="0">
-               <widget class="QLineEdit" name="edit_box_quaternion_x"/>
-              </item>
-              <item row="4" column="1">
-               <widget class="QLineEdit" name="edit_box_position_y"/>
-              </item>
-              <item row="9" column="1">
-               <widget class="QLabel" name="label_86">
+              <item row="8" column="1">
+               <widget class="QLabel" name="label_80">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>30</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>y:</string>
+                 <string>x [m]:</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="1">
-               <widget class="QLineEdit" name="edit_box_approach_y"/>
+              <item row="13" column="1">
+               <widget class="QLineEdit" name="edit_box_leave_x"/>
               </item>
-              <item row="3" column="2">
+              <item row="2" column="3">
                <widget class="QLabel" name="label_94">
                 <property name="text">
-                 <string>z:</string>
+                 <string>z [m]:</string>
                 </property>
                </widget>
               </item>
@@ -20495,11 +20588,8 @@
                 </property>
                </widget>
               </item>
-              <item row="10" column="0">
-               <widget class="QLineEdit" name="edit_box_approach_x"/>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_82">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_91">
                 <property name="maximumSize">
                  <size>
                   <width>16777215</width>
@@ -20507,7 +20597,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>x:</string>
+                 <string>Frame:</string>
                 </property>
                </widget>
               </item>
@@ -20543,89 +20633,11 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="2">
-               <widget class="QLabel" name="label_85">
-                <property name="text">
-                 <string>z:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="3">
-               <widget class="QLabel" name="label_83">
-                <property name="minimumSize">
-                 <size>
-                  <width>195</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>w:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLineEdit" name="edit_box_position_x"/>
-              </item>
-              <item row="9" column="0">
-               <widget class="QLabel" name="label_80">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>x:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="2">
-               <widget class="QLineEdit" name="edit_box_position_z"/>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_91">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Frame:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="1">
-               <widget class="QLineEdit" name="edit_box_quaternion_y"/>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_90">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>30</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>x:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1">
-               <widget class="QLabel" name="label_88">
-                <property name="text">
-                 <string>y:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="10" column="2">
-               <widget class="QLineEdit" name="edit_box_approach_z"/>
-              </item>
               <item row="14" column="0">
                <widget class="QLabel" name="label_99">
                 <property name="minimumSize">
                  <size>
-                  <width>0</width>
+                  <width>136</width>
                   <height>32</height>
                  </size>
                 </property>
@@ -20639,7 +20651,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>32</height>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="text">
@@ -20660,52 +20672,146 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QLabel" name="label_89">
-                <property name="text">
-                 <string>y:</string>
-                </property>
-               </widget>
+              <item row="10" column="2">
+               <widget class="QLineEdit" name="edit_box_approach_y"/>
               </item>
-              <item row="9" column="2">
-               <widget class="QLabel" name="label_92">
+              <item row="10" column="1">
+               <widget class="QLineEdit" name="edit_box_approach_x"/>
+              </item>
+              <item row="5" column="3">
+               <widget class="QLabel" name="label_85">
                 <property name="text">
                  <string>z:</string>
                 </property>
                </widget>
               </item>
-              <item row="7" column="2">
+              <item row="11" column="1">
+               <widget class="QLabel" name="label_137">
+                <property name="text">
+                 <string>x [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="4">
+               <widget class="QLineEdit" name="edit_box_quaternion_w"/>
+              </item>
+              <item row="11" column="3">
+               <widget class="QLabel" name="label_139">
+                <property name="text">
+                 <string>z [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="3">
+               <widget class="QLineEdit" name="edit_box_approach_z"/>
+              </item>
+              <item row="7" column="1">
+               <widget class="QLineEdit" name="edit_box_quaternion_x"/>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="edit_box_position_x"/>
+              </item>
+              <item row="13" column="3">
+               <widget class="QLineEdit" name="edit_box_leave_z"/>
+              </item>
+              <item row="5" column="4">
+               <widget class="QLabel" name="label_83">
+                <property name="minimumSize">
+                 <size>
+                  <width>195</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>w:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="label_90">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>30</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>x [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="3">
                <widget class="QLineEdit" name="edit_box_quaternion_z"/>
               </item>
-              <item row="13" column="0">
-               <widget class="QLineEdit" name="edit_box_leave_x"/>
+              <item row="4" column="2">
+               <widget class="QLineEdit" name="edit_box_position_y"/>
               </item>
-              <item row="12" column="0">
-               <widget class="QLabel" name="label_137">
+              <item row="4" column="3">
+               <widget class="QLineEdit" name="edit_box_position_z"/>
+              </item>
+              <item row="11" column="2">
+               <widget class="QLabel" name="label_138">
+                <property name="text">
+                 <string>y [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="2">
+               <widget class="QLineEdit" name="edit_box_quaternion_y"/>
+              </item>
+              <item row="8" column="2">
+               <widget class="QLabel" name="label_86">
+                <property name="text">
+                 <string>y [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLabel" name="label_89">
+                <property name="text">
+                 <string>y [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="3">
+               <widget class="QLabel" name="label_92">
+                <property name="text">
+                 <string>z [m]:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLabel" name="label_82">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>30</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>x:</string>
                 </property>
                </widget>
               </item>
-              <item row="12" column="1">
-               <widget class="QLabel" name="label_138">
+              <item row="5" column="2">
+               <widget class="QLabel" name="label_88">
                 <property name="text">
                  <string>y:</string>
                 </property>
                </widget>
               </item>
-              <item row="12" column="2">
-               <widget class="QLabel" name="label_139">
+              <item row="15" column="0">
+               <widget class="QLabel" name="label_149">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>z:</string>
+                 <string/>
                 </property>
                </widget>
-              </item>
-              <item row="13" column="1">
-               <widget class="QLineEdit" name="edit_box_leave_y"/>
-              </item>
-              <item row="13" column="2">
-               <widget class="QLineEdit" name="edit_box_leave_z"/>
               </item>
              </layout>
             </item>
@@ -36577,437 +36683,443 @@
                 </widget>
                </item>
                <item>
-                <widget class="QSlider" name="gripper_percentage_2">
-                 <property name="palette">
-                  <palette>
-                   <active>
-                    <colorrole role="WindowText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Button">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>114</red>
-                       <green>159</green>
-                       <blue>207</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Light">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>196</red>
-                       <green>225</green>
-                       <blue>255</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Midlight">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>155</red>
-                       <green>192</green>
-                       <blue>231</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Dark">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>57</red>
-                       <green>79</green>
-                       <blue>103</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Mid">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>76</red>
-                       <green>106</green>
-                       <blue>138</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Text">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="BrightText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>255</red>
-                       <green>255</green>
-                       <blue>255</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="ButtonText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Base">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>255</red>
-                       <green>255</green>
-                       <blue>255</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Window">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>114</red>
-                       <green>159</green>
-                       <blue>207</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Shadow">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="AlternateBase">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>184</red>
-                       <green>207</green>
-                       <blue>231</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="ToolTipBase">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>255</red>
-                       <green>255</green>
-                       <blue>220</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="ToolTipText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                   </active>
-                   <inactive>
-                    <colorrole role="WindowText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Button">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>114</red>
-                       <green>159</green>
-                       <blue>207</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Light">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>196</red>
-                       <green>225</green>
-                       <blue>255</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Midlight">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>155</red>
-                       <green>192</green>
-                       <blue>231</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Dark">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>57</red>
-                       <green>79</green>
-                       <blue>103</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Mid">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>76</red>
-                       <green>106</green>
-                       <blue>138</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Text">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="BrightText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>255</red>
-                       <green>255</green>
-                       <blue>255</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="ButtonText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Base">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>255</red>
-                       <green>255</green>
-                       <blue>255</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Window">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>114</red>
-                       <green>159</green>
-                       <blue>207</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Shadow">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="AlternateBase">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>184</red>
-                       <green>207</green>
-                       <blue>231</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="ToolTipBase">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>255</red>
-                       <green>255</green>
-                       <blue>220</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="ToolTipText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                   </inactive>
-                   <disabled>
-                    <colorrole role="WindowText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>57</red>
-                       <green>79</green>
-                       <blue>103</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Button">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>114</red>
-                       <green>159</green>
-                       <blue>207</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Light">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>196</red>
-                       <green>225</green>
-                       <blue>255</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Midlight">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>155</red>
-                       <green>192</green>
-                       <blue>231</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Dark">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>57</red>
-                       <green>79</green>
-                       <blue>103</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Mid">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>76</red>
-                       <green>106</green>
-                       <blue>138</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Text">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>57</red>
-                       <green>79</green>
-                       <blue>103</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="BrightText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>255</red>
-                       <green>255</green>
-                       <blue>255</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="ButtonText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>57</red>
-                       <green>79</green>
-                       <blue>103</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Base">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>114</red>
-                       <green>159</green>
-                       <blue>207</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Window">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>114</red>
-                       <green>159</green>
-                       <blue>207</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="Shadow">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="AlternateBase">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>114</red>
-                       <green>159</green>
-                       <blue>207</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="ToolTipBase">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>255</red>
-                       <green>255</green>
-                       <blue>220</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                    <colorrole role="ToolTipText">
-                     <brush brushstyle="SolidPattern">
-                      <color alpha="255">
-                       <red>0</red>
-                       <green>0</green>
-                       <blue>0</blue>
-                      </color>
-                     </brush>
-                    </colorrole>
-                   </disabled>
-                  </palette>
-                 </property>
-                 <property name="maximum">
-                  <number>100</number>
-                 </property>
-                 <property name="value">
-                  <number>100</number>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_24">
                  <item>
+                  <widget class="QSlider" name="gripper_percentage_2">
+                   <property name="palette">
+                    <palette>
+                     <active>
+                      <colorrole role="WindowText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Button">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Light">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>196</red>
+                         <green>225</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Midlight">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>155</red>
+                         <green>192</green>
+                         <blue>231</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Dark">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Mid">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>76</red>
+                         <green>106</green>
+                         <blue>138</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Text">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="BrightText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ButtonText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Base">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Window">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Shadow">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="AlternateBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>184</red>
+                         <green>207</green>
+                         <blue>231</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>220</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                     </active>
+                     <inactive>
+                      <colorrole role="WindowText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Button">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Light">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>196</red>
+                         <green>225</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Midlight">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>155</red>
+                         <green>192</green>
+                         <blue>231</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Dark">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Mid">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>76</red>
+                         <green>106</green>
+                         <blue>138</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Text">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="BrightText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ButtonText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Base">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Window">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Shadow">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="AlternateBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>184</red>
+                         <green>207</green>
+                         <blue>231</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>220</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                     </inactive>
+                     <disabled>
+                      <colorrole role="WindowText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Button">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Light">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>196</red>
+                         <green>225</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Midlight">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>155</red>
+                         <green>192</green>
+                         <blue>231</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Dark">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Mid">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>76</red>
+                         <green>106</green>
+                         <blue>138</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Text">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="BrightText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ButtonText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Base">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Window">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Shadow">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="AlternateBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>220</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                     </disabled>
+                    </palette>
+                   </property>
+                   <property name="maximum">
+                    <number>100</number>
+                   </property>
+                   <property name="value">
+                    <number>100</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLabel" name="open_gripper_label_2">
+                   <property name="minimumSize">
+                    <size>
+                     <width>36</width>
+                     <height>0</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>40</width>
@@ -37021,6 +37133,464 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="label_112">
+                   <property name="text">
+                    <string>%</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_23">
+                 <item>
+                  <widget class="QSlider" name="gripper_force_percentage_2">
+                   <property name="palette">
+                    <palette>
+                     <active>
+                      <colorrole role="WindowText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Button">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Light">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>196</red>
+                         <green>225</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Midlight">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>155</red>
+                         <green>192</green>
+                         <blue>231</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Dark">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Mid">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>76</red>
+                         <green>106</green>
+                         <blue>138</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Text">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="BrightText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ButtonText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Base">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Window">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Shadow">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="AlternateBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>184</red>
+                         <green>207</green>
+                         <blue>231</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>220</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                     </active>
+                     <inactive>
+                      <colorrole role="WindowText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Button">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Light">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>196</red>
+                         <green>225</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Midlight">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>155</red>
+                         <green>192</green>
+                         <blue>231</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Dark">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Mid">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>76</red>
+                         <green>106</green>
+                         <blue>138</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Text">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="BrightText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ButtonText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Base">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Window">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Shadow">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="AlternateBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>184</red>
+                         <green>207</green>
+                         <blue>231</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>220</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                     </inactive>
+                     <disabled>
+                      <colorrole role="WindowText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Button">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Light">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>196</red>
+                         <green>225</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Midlight">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>155</red>
+                         <green>192</green>
+                         <blue>231</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Dark">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Mid">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>76</red>
+                         <green>106</green>
+                         <blue>138</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Text">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="BrightText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>255</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ButtonText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>57</red>
+                         <green>79</green>
+                         <blue>103</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Base">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Window">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="Shadow">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="AlternateBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>114</red>
+                         <green>159</green>
+                         <blue>207</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipBase">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>255</red>
+                         <green>255</green>
+                         <blue>220</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                      <colorrole role="ToolTipText">
+                       <brush brushstyle="SolidPattern">
+                        <color alpha="255">
+                         <red>0</red>
+                         <green>0</green>
+                         <blue>0</blue>
+                        </color>
+                       </brush>
+                      </colorrole>
+                     </disabled>
+                    </palette>
+                   </property>
+                   <property name="maximum">
+                    <number>100</number>
+                   </property>
+                   <property name="value">
+                    <number>100</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="gripper_force_label_2">
+                   <property name="minimumSize">
+                    <size>
+                     <width>36</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>40</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>100</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_152">
                    <property name="text">
                     <string>%</string>
                    </property>

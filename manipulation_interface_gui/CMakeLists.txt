@@ -22,7 +22,8 @@ find_package(catkin REQUIRED COMPONENTS
 	configuration_msgs
 	manipulation_msgs
   manipulation_utils
-	geometry_msgs)
+	geometry_msgs
+	subscription_notifier)
 
 ## Generate services in the 'srv' folder
  add_service_files(
@@ -49,6 +50,7 @@ catkin_package(
 	manipulation_msgs
 	manipulation_utils
 	geometry_msgs
+	subscription_notifier
 )
 
 include_directories(

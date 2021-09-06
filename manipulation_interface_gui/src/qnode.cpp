@@ -34,7 +34,6 @@
 #include <manipulation_msgs/RemoveObjects.h>
 #include <manipulation_msgs/RemoveSlots.h>
 #include <manipulation_msgs/RemoveSlotsGroup.h>
-#include <manipulation_msgs/Location.h>
 
 #include <Eigen/Geometry>
 #include <geometry_msgs/PoseStamped.h>
@@ -82,7 +81,7 @@ QNode::~QNode()
 
 bool QNode::init()
 {
-    twist_pub=n.advertise<geometry_msgs::TwistStamped>("/target_cart_twist",1);
+    twist_pub= n.advertise<geometry_msgs::TwistStamped>("/target_cart_twist",1);
     set_ctrl_srv = n.serviceClient<configuration_msgs::StartConfiguration>("/configuration_manager/start_configuration");
     gripper_srv = n.serviceClient<manipulation_msgs::JobExecution>("/robotiq_gripper");
 
@@ -108,9 +107,7 @@ bool QNode::init()
     load_TF();
     load_robots();
 
-//    inb = std::make_shared<manipulation::InboundPickFromParam>(nh_i);
-//    oub = std::make_shared<manipulation::OutboundPlaceFromParam>(nh_o);
-//    go_to = std::make_shared<manipulation::GoToLocationFromParam>(nh_g);
+    js_sub = std::make_shared<ros_helper::SubscriptionNotifier<sensor_msgs::JointState>>(n,"/gripper/joint_states",10);
 
     add_locations_client_      = n.serviceClient<manipulation_msgs::AddLocations>     ("/go_to_location_server/add_locations");
     add_boxes_client_          = n.serviceClient<manipulation_msgs::AddBoxes>         ("/inbound_pick_server/add_boxes");
@@ -235,7 +232,7 @@ void QNode::load_objects_in_manipulation()
             for ( int j = 0; j < objects[index].grasp.size(); j++ )
             {
                 obj.grasping_locations[j].tool_name = objects[index].tool[j];
-                obj.grasping_locations[j].location.name = obj.name+"/grasp"+std::to_string(j)+"_"+objects[index].tool[j];
+                obj.grasping_locations[j].location.name = obj.name+"/grasp_"+std::to_string(j)+"_"+objects[index].tool[j];
                 obj.grasping_locations[j].location.frame = obj.name;
 
                 obj.grasping_locations[j].location.pose.position.x    = objects[index].grasp[j].pos.origin_x;
@@ -988,6 +985,14 @@ std::string QNode::return_box_list_text(int ind)
     return logging_model_box.data( logging_model_box.index( ind ), 0 ).toString().toStdString();
 }
 
+double QNode::return_gripper_position()
+{
+    gripper_state = js_sub->getData();
+    std::vector<double> state = gripper_state.position;
+    return state[0];
+}
+
+
 void QNode::log_go_to(const std::string &msg)
 {
     logging_model_go_to.insertRows(logging_model_go_to.rowCount(),1);
@@ -1294,6 +1299,8 @@ void QNode::move_gripper( std::string str )
         ROS_ERROR("Unable to move gripper t %s state",gripper_req.request.property_id.c_str());
         return;
     }
+
+    gripper_state = js_sub->getData();
 }
 
 std::string QNode::get_xml_max_number_string(int value )
@@ -1329,6 +1336,23 @@ std::string QNode::get_xml_double_string( double value )
     xml_body.append(str);
     xml_body.append(end_double);
     xml_body.append(end_value);
+
+    return xml_body;
+}
+
+std::string QNode::get_xml_double_string_with_name(std::string param_name, double value)
+{
+    std::string xml_body;
+
+    xml_body.append(init_member);
+
+    xml_body.append(init_name);
+    xml_body.append(param_name);
+    xml_body.append(end_name);
+
+    xml_body.append( get_xml_double_string(value) );
+
+    xml_body.append(end_member);
 
     return xml_body;
 }
@@ -1452,8 +1476,9 @@ std::string QNode::get_xml_object_grasp_string( int index, int index2 )
     xml_body.append(get_xml_quaternion_string(objects[index].grasp[index2].quat));
     xml_body.append(get_xml_position_string("approach_distance", objects[index].approach[index2]));
     xml_body.append(get_xml_position_string("leave_distance", objects[index].leave[index2]));
-    xml_body.append(get_xml_string_param("approach_gripper_state", objects[index].approach_gripper_state[index2]));
-    xml_body.append(get_xml_string_param("leave_gripper_state", objects[index].leave_gripper_state[index2]));
+    xml_body.append(get_xml_double_string_with_name("pre_gripper_position", objects[index].pre_gripper_position[index2]));
+    xml_body.append(get_xml_double_string_with_name("post_gripper_position", objects[index].post_gripper_position[index2]));
+    xml_body.append(get_xml_double_string_with_name("gripper_force", objects[index].gripper_force[index2]));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1591,68 +1616,6 @@ XmlRpc::XmlRpcValue QNode::get_group_param(int index)
     return param;
 }
 
-//XmlRpc::XmlRpcValue QNode::get_object_name_param(int index)
-//{
-//    std::string xml_body;
-
-//    xml_body.append(init_value);
-//    xml_body.append(init_struct);
-
-//    xml_body.append(get_xml_string_param("type", objects[index].type));
-
-//    xml_body.append(end_struct);
-//    xml_body.append(end_value);
-
-//    int offset = 0;
-//    int* offset_ptr = &offset;
-//    XmlRpc::XmlRpcValue param;
-//    param.fromXml(xml_body,offset_ptr);
-
-//    return param;
-//}
-
-XmlRpc::XmlRpcValue QNode::get_pick_param(int index)
-{
-    std::string xml_body;
-
-    xml_body.append(init_value);
-    xml_body.append(init_struct);
-
-    xml_body.append(get_xml_string_param("name", pick_actions[index].name));
-    xml_body.append(get_xml_group_string("objects", pick_actions[index].objects));
-
-    xml_body.append(end_struct);
-    xml_body.append(end_value);
-
-    int offset = 0;
-    int* offset_ptr = &offset;
-    XmlRpc::XmlRpcValue param;
-    param.fromXml(xml_body,offset_ptr);
-
-    return param;
-}
-
-XmlRpc::XmlRpcValue QNode::get_place_param(int index)
-{
-    std::string xml_body;
-
-    xml_body.append(init_value);
-    xml_body.append(init_struct);
-
-    xml_body.append(get_xml_string_param("name", place_actions[index].name));
-    xml_body.append(get_xml_group_string("groups", place_actions[index].groups));
-
-    xml_body.append(end_struct);
-    xml_body.append(end_value);
-
-    int offset = 0;
-    int* offset_ptr = &offset;
-    XmlRpc::XmlRpcValue param;
-    param.fromXml(xml_body,offset_ptr);
-
-    return param;
-}
-
 XmlRpc::XmlRpcValue QNode::get_slot_param(int index)
 {
     std::string xml_body;
@@ -1680,7 +1643,7 @@ XmlRpc::XmlRpcValue QNode::get_slot_param(int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::get_go_to_param_(int index)
+XmlRpc::XmlRpcValue QNode::get_go_to_param(int index)
 {
     std::string xml_body;
 
@@ -1704,7 +1667,7 @@ XmlRpc::XmlRpcValue QNode::get_go_to_param_(int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::get_pick_param_(int index)
+XmlRpc::XmlRpcValue QNode::get_pick_param(int index)
 {
     std::string xml_body;
 
@@ -1728,7 +1691,7 @@ XmlRpc::XmlRpcValue QNode::get_pick_param_(int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::get_place_param_(int index)
+XmlRpc::XmlRpcValue QNode::get_place_param(int index)
 {
     std::string xml_body;
 
@@ -2400,15 +2363,15 @@ bool QNode::save_actions()
 
     for ( int i = 0; i < go_to_actions.size(); i++)
     {
-        param[i] = get_go_to_param_(i);
+        param[i] = get_go_to_param(i);
     }
     for ( int i = 0; i < pick_actions.size(); i++)
     {
-        param[ i + go_to_actions.size() ] = get_pick_param_(i);
+        param[ i + go_to_actions.size() ] = get_pick_param(i);
     }
     for ( int i = 0; i < place_actions.size(); i++)
     {
-        param[ i + go_to_actions.size() + pick_actions.size() ] = get_place_param_(i);
+        param[ i + go_to_actions.size() + pick_actions.size() ] = get_place_param(i);
     }
     n.setParam("/multi_skills/tasks", param);
     param.clear();
@@ -2427,8 +2390,9 @@ bool QNode::add_object(std::string object_name,
                        std::vector<location> object_grasp,
                        std::vector<position> object_leave,
                        std::vector<std::string> object_tools,
-                       std::vector<std::string> approach_gripper_states,
-                       std::vector<std::string> leave_gripper_states)
+                       std::vector<double> pre_gripper_position,
+                       std::vector<double> post_gripper_position,
+                       std::vector<double> gripper_force)
 {
     if ( logging_model_object.rowCount()!=0 )
     {
@@ -2451,8 +2415,9 @@ bool QNode::add_object(std::string object_name,
     obj.approach = object_approach;
     obj.grasp    = object_grasp;
     obj.leave    = object_leave;
-    obj.approach_gripper_state = approach_gripper_states;
-    obj.leave_gripper_state = leave_gripper_states;
+    obj.pre_gripper_position  = pre_gripper_position;
+    obj.post_gripper_position = post_gripper_position;
+    obj.gripper_force         = gripper_force;
     objects.push_back(obj);
 
     //    changed_objects.push_back( obj );
@@ -3195,21 +3160,32 @@ bool QNode::readObjectFromParam()
 
             object_.tool.push_back( rosparam_utilities::toString(single_grasp["tool"]) );
 
-            if ( !single_grasp.hasMember("approach_gripper_state"))
+            if ( !single_grasp.hasMember("pre_gripper_position"))
             {
-                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'approach_gripper_state'", j, i);
+                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'pre_gripper_position'", j, i);
                 continue;
             }
 
-            object_.approach_gripper_state.push_back( rosparam_utilities::toString(single_grasp["approach_gripper_state"]) );
+            object_.pre_gripper_position.push_back( rosparam_utilities::toDouble(single_grasp["pre_gripper_position"]) );
 
-            if ( !single_grasp.hasMember("leave_gripper_state"))
+            if ( !single_grasp.hasMember("post_gripper_position"))
             {
-                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'leave_gripper_state'", j, i);
+                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'post_gripper_position'", j, i);
                 continue;
             }
 
-            object_.leave_gripper_state.push_back( rosparam_utilities::toString(single_grasp["leave_gripper_state"]) );
+            object_.post_gripper_position.push_back( rosparam_utilities::toDouble(single_grasp["post_gripper_position"]) );
+
+            if ( !single_grasp.hasMember("gripper_force"))
+            {
+                ROS_WARN("The grasp element #%zu of object element #%zu has not the field 'gripper_force'", j, i);
+                continue;
+            }
+
+            object_.gripper_force.push_back( rosparam_utilities::toDouble(single_grasp["gripper_force"]) );
+
+            ROS_ERROR("Fatto");
+
         }
         objects.push_back( object_ );
     }

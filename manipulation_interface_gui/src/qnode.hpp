@@ -28,6 +28,9 @@
 #include <configuration_msgs/StartConfiguration.h>
 #include <manipulation_msgs/JobExecution.h>
 #include <manipulation_utils/manipulation_load_params_utils.h>
+#include <subscription_notifier/subscription_notifier.h>
+#include <sensor_msgs/JointState.h>
+
 
 /*****************************************************************************
 ** Namespaces
@@ -94,8 +97,9 @@ struct object_type
     std::vector<position>    approach;
     std::vector<location>    grasp;
     std::vector<position>    leave;
-    std::vector<std::string> approach_gripper_state;
-    std::vector<std::string> leave_gripper_state;
+    std::vector<double>         pre_gripper_position;
+    std::vector<double>         post_gripper_position;
+    std::vector<double>         gripper_force;
 };
 
 struct manipulation_slot
@@ -172,8 +176,9 @@ public:
                        std::vector<location> object_grasp,
                        std::vector<position> object_leave,
                        std::vector<std::string> object_tools,
-                       std::vector<std::string> approach_gripper_states,
-                       std::vector<std::string> leave_gripper_states);
+                       std::vector<double> pre_gripper_position,
+                       std::vector<double> post_gripper_position,
+                       std::vector<double> gripper_force);
     bool add_slot     (std::string slot_name, location slot_approach, location slot_final_pos, location slot_leave, std::string goup_name, int max_number);
     bool add_box      (std::string box_name, location approach_position, location final_position, location leave_position);
     void add_object_type          (int ind);
@@ -220,9 +225,11 @@ public:
     std::string       return_object_list_text   (int ind);
     std::string       return_obj_dist_list_text (int ind);
     std::string       return_box_list_text      (int ind);
+    double return_gripper_position();
 
     std::string get_xml_max_number_string         (int value);
     std::string get_xml_double_string             (double value);
+    std::string get_xml_double_string_with_name   ( std::string param_name, double value);
     std::string get_xml_string_param              (std::string param_name, std::string value);
     std::string get_xml_position_string           (std::string name_pos,  position pos);
     std::string get_xml_quaternion_string         (quaternion quat);
@@ -236,12 +243,10 @@ public:
     XmlRpc::XmlRpcValue get_box_param            (int index);
     XmlRpc::XmlRpcValue get_group_param          (int index);
     XmlRpc::XmlRpcValue get_object_name_param    (int index);
+    XmlRpc::XmlRpcValue get_slot_param           (int index);
+    XmlRpc::XmlRpcValue get_go_to_param          (int index);
     XmlRpc::XmlRpcValue get_pick_param           (int index);
     XmlRpc::XmlRpcValue get_place_param          (int index);
-    XmlRpc::XmlRpcValue get_slot_param           (int index);
-    XmlRpc::XmlRpcValue get_go_to_param_         (int index);
-    XmlRpc::XmlRpcValue get_pick_param_          (int index);
-    XmlRpc::XmlRpcValue get_place_param_         (int index);
 
     void load_TF                       ();
     void load_robots                   ();
@@ -351,6 +356,9 @@ private:
     ros::NodeHandle nh_i;
     ros::NodeHandle nh_o;
     ros::NodeHandle nh_g;
+
+    std::shared_ptr<ros_helper::SubscriptionNotifier<sensor_msgs::JointState>> js_sub;
+    sensor_msgs::JointState gripper_state;
 
     ros::ServiceClient add_objs_to_scene_client_;
     ros::ServiceClient add_locations_client_;

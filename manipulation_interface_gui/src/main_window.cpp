@@ -426,8 +426,10 @@ void MainWindow::on_button_add_grasp_clicked(bool check)
     pos.origin_z = -0.10;
     actual_object_approach.push_back(pos);
     actual_object_leave.push_back(pos);
-    actual_approach_gripper_states.push_back("open");
-    actual_leave_gripper_states.push_back("open");
+    actual_pre_gripper_position.push_back(max_gripper_position);
+    actual_approach_gripper_position.push_back(std::nan("1"));
+    actual_post_gripper_position.push_back(qnode.return_gripper_position());
+    actual_gripper_grasp_force.push_back(actual_gripper_force);
     actual_tool_approach.push_back(qnode.target_frame);
     actual_tool_leave.push_back(qnode.target_frame);
 }
@@ -456,7 +458,8 @@ void MainWindow::on_button_set_approach_clicked(bool check)
     actual_object_approach[index].origin_x = dist_tool[0];
     actual_object_approach[index].origin_y = dist_tool[1];
     actual_object_approach[index].origin_z = dist_tool[2];
-    actual_approach_gripper_states[index] = actual_gripper_state;
+    actual_approach_gripper_position[index] = qnode.return_gripper_position();
+    actual_pre_gripper_position[index] = actual_approach_gripper_position[index];
     actual_tool_approach[index] = qnode.target_frame;
 }
 
@@ -484,7 +487,10 @@ void MainWindow::on_button_set_leave_clicked(bool check)
     actual_object_leave[index].origin_x = dist_tool[0];
     actual_object_leave[index].origin_y = dist_tool[1];
     actual_object_leave[index].origin_z = dist_tool[2];
-    actual_leave_gripper_states[index] = actual_gripper_state;
+    if ( std::isnan(actual_approach_gripper_position[index]) )
+    {
+        actual_pre_gripper_position[index] = qnode.return_gripper_position();
+    }
     actual_tool_leave[index] = qnode.target_frame;
 }
 
@@ -806,7 +812,7 @@ void MainWindow::on_button_remove_grasp_clicked(bool check)
         actual_object_grasp.erase(actual_object_grasp.begin()+index);
         actual_tool_grasp.erase(actual_tool_grasp.begin()+index);
         actual_object_approach.erase(actual_object_approach.begin()+index);
-        actual_approach_gripper_states.erase(actual_approach_gripper_states.begin()+index);
+        actual_pre_gripper_position.erase(actual_pre_gripper_position.begin()+index);
         actual_tool_approach.erase(actual_tool_approach.begin()+index);
         return;
     }
@@ -875,58 +881,67 @@ void MainWindow::on_button_run_recipe_clicked(bool check)
 
 void MainWindow::on_button_gripper_clicked(bool check)
 {
-    int perc = ui.gripper_percentage->value();
+    double actual_gripper_position_target = (max_gripper_position/100) * ui.gripper_percentage->value();
+    actual_gripper_force    = ui.gripper_force_percentage->value();
 
-    switch(perc) {
+    std::string name_action = "pos_";
+    name_action.append( std::to_string(actual_gripper_position_target) );
+    name_action.append("_force_");
+    name_action.append( std::to_string(actual_gripper_force) );
 
-        case 0  :
-           qnode.move_gripper("close");
-           actual_gripper_state = "close";
-           break;
-        case 10  :
-           qnode.move_gripper("open_225");
-           actual_gripper_state = "open_225";
-           break;
-        case 20  :
-           qnode.move_gripper("open_200");
-           actual_gripper_state = "open_200";
-           break;
-        case 30  :
-           qnode.move_gripper("open_175");
-           actual_gripper_state = "open_175";
-           break;
-        case 40  :
-           qnode.move_gripper("open_150");
-           actual_gripper_state = "open_150";
-           break;
-        case 50  :
-           qnode.move_gripper("open_125");
-           actual_gripper_state = "open_125";
-           break;
-        case 60  :
-           qnode.move_gripper("open_100");
-           actual_gripper_state = "open_100";
-           break;
-        case 70  :
-           qnode.move_gripper("open_75");
-           actual_gripper_state = "open_75";
-           break;
-        case 80  :
-           qnode.move_gripper("open_50");
-           actual_gripper_state = "open_50";
-           break;
-        case 90  :
-           qnode.move_gripper("open_25");
-           actual_gripper_state = "open_25";
-           break;
-        case 100  :
-           qnode.move_gripper("open");
-           actual_gripper_state = "open";
-           break;
-        default :
-            qnode.move_gripper("open");
-            actual_gripper_state = "open";
-    }
+
+//    int perc = ui.gripper_percentage->value();
+
+//    switch(perc) {
+
+//        case 0  :
+//           qnode.move_gripper("close");
+//           actual_gripper_state = "close";
+//           break;
+//        case 10  :
+//           qnode.move_gripper("open_225");
+//           actual_gripper_state = "open_225";
+//           break;
+//        case 20  :
+//           qnode.move_gripper("open_200");
+//           actual_gripper_state = "open_200";
+//           break;
+//        case 30  :
+//           qnode.move_gripper("open_175");
+//           actual_gripper_state = "open_175";
+//           break;
+//        case 40  :
+//           qnode.move_gripper("open_150");
+//           actual_gripper_state = "open_150";
+//           break;
+//        case 50  :
+//           qnode.move_gripper("open_125");
+//           actual_gripper_state = "open_125";
+//           break;
+//        case 60  :
+//           qnode.move_gripper("open_100");
+//           actual_gripper_state = "open_100";
+//           break;
+//        case 70  :
+//           qnode.move_gripper("open_75");
+//           actual_gripper_state = "open_75";
+//           break;
+//        case 80  :
+//           qnode.move_gripper("open_50");
+//           actual_gripper_state = "open_50";
+//           break;
+//        case 90  :
+//           qnode.move_gripper("open_25");
+//           actual_gripper_state = "open_25";
+//           break;
+//        case 100  :
+//           qnode.move_gripper("open");
+//           actual_gripper_state = "open";
+//           break;
+//        default :
+//            qnode.move_gripper("open");
+//            actual_gripper_state = "open";
+//    }
     return;
 }
 
@@ -962,7 +977,7 @@ void MainWindow::on_button_add_object_clicked(bool check)
         {
             if ( actual_object_grasp.size() == actual_object_approach.size() )
             {
-                if ( actual_object_approach.size() == actual_approach_gripper_states.size() )
+                if ( actual_object_approach.size() == actual_pre_gripper_position.size() )
                 {
                     if ( actual_tool_approach == actual_tool_grasp )
                     {
@@ -973,8 +988,9 @@ void MainWindow::on_button_add_object_clicked(bool check)
                                                   actual_object_grasp,
                                                   actual_object_leave,
                                                   actual_tool_grasp,
-                                                  actual_approach_gripper_states,
-                                                  actual_leave_gripper_states) )
+                                                  actual_pre_gripper_position,
+                                                  actual_post_gripper_position,
+                                                  actual_gripper_grasp_force) )
                             {
                                 ROS_ERROR("Object just set");
                                 QMessageBox msgBox;
@@ -991,8 +1007,10 @@ void MainWindow::on_button_add_object_clicked(bool check)
                                 actual_object_grasp.clear();
                                 actual_object_approach.clear();
                                 actual_object_leave.clear();
-                                actual_approach_gripper_states.clear();
-                                actual_leave_gripper_states.clear();
+                                actual_pre_gripper_position.clear();
+                                actual_post_gripper_position.clear();
+                                actual_approach_gripper_position.clear();
+                                actual_gripper_grasp_force.clear();
                                 actual_tool_approach.clear();
                                 actual_tool_leave.clear();
                                 if ( ui.combo_action_type->currentIndex() == 1 )
@@ -1016,7 +1034,7 @@ void MainWindow::on_button_add_object_clicked(bool check)
                     }
                 }
                 else {
-                    ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach.size(), actual_approach_gripper_states.size() );
+                    ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach.size(), actual_pre_gripper_position.size() );
                     QMessageBox msgBox;
                     msgBox.setText("Apporach and gripper have different sizes");
                     msgBox.exec();
@@ -1982,6 +2000,8 @@ void MainWindow::reset_object(int index)
     ui.edit_object_approach_z   ->clear();
     ui.edit_object_tool         ->clear();
     ui.edit_gripper_state       ->clear();
+    ui.edit_pre_gripper_state   ->clear();
+    ui.edit_post_gripper_state  ->clear();
     ui.edit_object_leave_x      ->clear();
     ui.edit_object_leave_y      ->clear();
     ui.edit_object_leave_z      ->clear();
@@ -2010,7 +2030,9 @@ void MainWindow::reset_object(int index)
     QString leav_z = QString::fromStdString( std::to_string(actual_object_to_modify.leave[i].origin_z) );
     QString tool   = QString::fromStdString( actual_object_to_modify.tool[i] );
     QString type_  = QString::fromStdString( actual_object_to_modify.type );
-    QString state  = QString::fromStdString( actual_object_to_modify.approach_gripper_state[i] );
+    QString gripper_force  = QString::fromStdString( std::to_string( actual_object_to_modify.gripper_force[i] ) );
+    QString pre_position   = QString::fromStdString( std::to_string( actual_object_to_modify.pre_gripper_position[i] ) );
+    QString post_position  = QString::fromStdString( std::to_string( actual_object_to_modify.post_gripper_position[i] ) );
 
     ui.edit_object_position_x   ->insert(pos_x);
     ui.edit_object_position_y   ->insert(pos_y);
@@ -2026,7 +2048,9 @@ void MainWindow::reset_object(int index)
     ui.edit_object_leave_y      ->insert(leav_y);
     ui.edit_object_leave_z      ->insert(leav_z);
     ui.edit_object_tool         ->insert(tool);
-    ui.edit_gripper_state       ->insert(state);
+    ui.edit_gripper_state       ->insert(gripper_force);
+    ui.edit_pre_gripper_state   ->insert(pre_position);
+    ui.edit_post_gripper_state  ->insert(post_position);
 }
 
 void MainWindow::on_check_robot_TF_stateChanged(int state)
@@ -2062,6 +2086,8 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
     ui.edit_object_approach_z   ->clear();
     ui.edit_object_tool         ->clear();
     ui.edit_gripper_state       ->clear();
+    ui.edit_pre_gripper_state   ->clear();
+    ui.edit_post_gripper_state  ->clear();
     ui.edit_object_leave_x      ->clear();
     ui.edit_object_leave_y      ->clear();
     ui.edit_object_leave_z      ->clear();
@@ -2079,7 +2105,9 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
         QString appr_y = QString::fromStdString( std::to_string(actual_object_to_modify.approach[index].origin_y) );
         QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify.approach[index].origin_z) );
         QString tool   = QString::fromStdString( actual_object_to_modify.tool[index] );
-        QString state  = QString::fromStdString( actual_object_to_modify.approach_gripper_state[index] );
+        QString gripper_force  = QString::fromStdString( std::to_string( actual_object_to_modify.gripper_force[index] ) );
+        QString pre_position   = QString::fromStdString( std::to_string( actual_object_to_modify.pre_gripper_position[index] ) );
+        QString post_position  = QString::fromStdString( std::to_string( actual_object_to_modify.post_gripper_position[index] ) );
         QString leav_x = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_z) );
         QString leav_y = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_z) );
         QString leav_z = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_z) );
@@ -2095,10 +2123,12 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
         ui.edit_object_approach_y   ->insert(appr_y);
         ui.edit_object_approach_z   ->insert(appr_z);
         ui.edit_object_tool         ->insert(tool);
-        ui.edit_gripper_state       ->insert(state);
+        ui.edit_gripper_state       ->insert(gripper_force);
         ui.edit_object_leave_x      ->insert(leav_x);
         ui.edit_object_leave_y      ->insert(leav_y);
         ui.edit_object_leave_z      ->insert(leav_z);
+        ui.edit_pre_gripper_state   ->insert(pre_position);
+        ui.edit_post_gripper_state  ->insert(post_position);
     }
 }
 
@@ -2193,48 +2223,48 @@ void MainWindow::on_list_object_modify_pressed(const QModelIndex &index)
 
 void MainWindow::on_gripper_percentage_valueChanged (int value)
 {
-  if ( value < 5)
-  {
-    value = 0;
-  }
-  else if ( value < 15 )
-  {
-    value = 10;
-  }else if ( value < 25 )
-  {
-    value = 20;
-  }else if ( value < 35 )
-  {
-    value = 30;
-  }
-  else if ( value < 45 )
-  {
-    value = 40;
-  }
-  else if ( value < 55 )
-  {
-    value = 50;
-  }
-  else if ( value < 65 )
-  {
-    value = 60;
-  }
-  else if ( value < 75 )
-  {
-    value = 70;
-  }
-  else if ( value < 85 )
-  {
-    value = 80;
-  }
-  else if ( value < 95 )
-  {
-    value = 90;
-  }
-  else
-  {
-    value = 100;
-  }
+//  if ( value < 5)
+//  {
+//    value = 0;
+//  }
+//  else if ( value < 15 )
+//  {
+//    value = 10;
+//  }else if ( value < 25 )
+//  {
+//    value = 20;
+//  }else if ( value < 35 )
+//  {
+//    value = 30;
+//  }
+//  else if ( value < 45 )
+//  {
+//    value = 40;
+//  }
+//  else if ( value < 55 )
+//  {
+//    value = 50;
+//  }
+//  else if ( value < 65 )
+//  {
+//    value = 60;
+//  }
+//  else if ( value < 75 )
+//  {
+//    value = 70;
+//  }
+//  else if ( value < 85 )
+//  {
+//    value = 80;
+//  }
+//  else if ( value < 95 )
+//  {
+//    value = 90;
+//  }
+//  else
+//  {
+//    value = 100;
+//  }
 
   ui.gripper_percentage->setValue(value);
   ui.gripper_percentage_2->setValue(value);
@@ -2244,9 +2274,67 @@ void MainWindow::on_gripper_percentage_valueChanged (int value)
   ui.open_gripper_label_2->setText(qstr);
 }
 
+void MainWindow::on_gripper_force_percentage_valueChanged (int value)
+{
+//    if ( value < 5)
+//    {
+//      value = 0;
+//    }
+//    else if ( value < 15 )
+//    {
+//      value = 10;
+//    }else if ( value < 25 )
+//    {
+//      value = 20;
+//    }else if ( value < 35 )
+//    {
+//      value = 30;
+//    }
+//    else if ( value < 45 )
+//    {
+//      value = 40;
+//    }
+//    else if ( value < 55 )
+//    {
+//      value = 50;
+//    }
+//    else if ( value < 65 )
+//    {
+//      value = 60;
+//    }
+//    else if ( value < 75 )
+//    {
+//      value = 70;
+//    }
+//    else if ( value < 85 )
+//    {
+//      value = 80;
+//    }
+//    else if ( value < 95 )
+//    {
+//      value = 90;
+//    }
+//    else
+//    {
+//      value = 100;
+//    }
+
+    ui.gripper_force_percentage->setValue(value);
+    ui.gripper_force_percentage_2->setValue(value);
+    std::string str = std::to_string(value);
+    QString qstr = QString::fromStdString(str);
+    ui.gripper_force_label->setText(qstr);
+    ui.gripper_force_label_2->setText(qstr);
+}
+
 void MainWindow::on_gripper_percentage_2_valueChanged (int value)
 {
     ui.gripper_percentage->setValue(value);
+}
+
+void MainWindow::on_gripper_force_percentage_2_valueChanged (int value)
+{
+    ui.gripper_force_percentage->setValue(value);
 }
 
 void MainWindow::on_velocity_slider_valueChanged(int value)
