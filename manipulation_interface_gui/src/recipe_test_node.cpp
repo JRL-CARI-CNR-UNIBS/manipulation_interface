@@ -59,16 +59,6 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
     actionlib::SimpleActionClient<manipulation_msgs::PlaceObjectsAction> place_ac("/outbound_place_server/"+req.input+"/place");
     actionlib::SimpleActionClient<manipulation_msgs::GoToAction>         go_to_ac("/go_to_location_server/"+req.input+"/go_to");
 
-//    ROS_INFO("Waiting for pick server");
-//    pick_ac.waitForServer();
-//    ROS_INFO("Connection ok");
-//    ROS_INFO("Waiting for place server");
-//    place_ac.waitForServer();
-//    ROS_INFO("Connection ok");
-//    ROS_INFO("Waiting for goto server");
-//    go_to_ac.waitForServer();
-//    ROS_INFO("Connection ok");
-
     ROS_WARN("Waiting for pick server");
     pick_ac.waitForServer();
     ROS_WARN("Connection ok");

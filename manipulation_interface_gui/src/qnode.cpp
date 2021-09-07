@@ -121,9 +121,6 @@ bool QNode::init()
     remove_slots_client_       = n.serviceClient<manipulation_msgs::RemoveSlots>      ("/outbound_place_server/remove_slots");
     list_objects_client_       = n.serviceClient<object_loader_msgs::ListObjects>     ("/list_objects");
 
-    ROS_ERROR("Start");
-
-
 
     ROS_INFO("Waiting for: %s server", add_locations_client_.getService().c_str());
     add_locations_client_.waitForExistence();
@@ -165,8 +162,6 @@ bool QNode::init()
     remove_slots_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", remove_slots_client_.getService().c_str());
 
-    ROS_ERROR("Init finish");
-
     return true;
 }
 
@@ -196,7 +191,7 @@ void QNode::initial_add_components_in_manipulation()
 void QNode::load_objects_in_manipulation()
 {
     object_loader_msgs::ListObjects objects_list;
-    if ( list_objects_client_.call( objects_list ) )
+    if ( !list_objects_client_.call( objects_list ) )
     {
         ROS_ERROR("Unable to obtain the object list");
         return;
@@ -2035,10 +2030,10 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
                                             std::vector<box>               boxes_to_remove_,
                                             std::vector<std::string>       groups_to_remove_)
 {
-    ROS_FATAL("Inizio caricamento componenti nel manipulator");
+    ROS_WARN("Inizio caricamento componenti nel manipulator");
 
     manipulation_msgs::RemoveLocations remove_location_srv;
-    ROS_FATAL("Locations da rimuovere: %zu", locations_to_remove_.size());
+    ROS_WARN("Locations da rimuovere: %zu", locations_to_remove_.size());
     for ( int i = 0; i < locations_to_remove_.size(); i++ )
     {
         remove_location_srv.request.location_names.push_back(locations_to_remove_[i].name);
@@ -2049,7 +2044,7 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
     }
 
     manipulation_msgs::RemoveSlots remove_slots_srv;
-    ROS_FATAL("Slot da rimuovere: %zu", slots_to_remove_.size());
+    ROS_WARN("Slot da rimuovere: %zu", slots_to_remove_.size());
     for ( int i = 0; i < slots_to_remove_.size(); i++ )
     {
         remove_slots_srv.request.slots_names.push_back(slots_to_remove_[i].name);
@@ -2060,7 +2055,7 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
     }
 
     manipulation_msgs::RemoveBoxes remove_boxes_srv;
-    ROS_FATAL("Box da rimuovere: %zu", boxes_to_remove_.size());
+    ROS_WARN("Box da rimuovere: %zu", boxes_to_remove_.size());
     for ( int i = 0; i < boxes_to_remove_.size(); i++ )
     {
         remove_boxes_srv.request.box_names.push_back(boxes_to_remove_[i].name);
@@ -2071,7 +2066,7 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
     }
 
     manipulation_msgs::RemoveSlotsGroup remove_groups_srv;
-    ROS_FATAL("Gruppi da rimuovere: %zu", groups_to_remove_.size());
+    ROS_WARN("Gruppi da rimuovere: %zu", groups_to_remove_.size());
     for ( int i = 0; i < groups_to_remove_.size(); i++ )
     {
         remove_groups_srv.request.slots_group_names.push_back(groups_to_remove_.at(i));
@@ -2082,7 +2077,7 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
     }
 
     manipulation_msgs::AddLocations add_locations_srv;
-    ROS_FATAL("Locations da aggiungere: %zu", changed_locations_.size());
+    ROS_WARN("Locations da aggiungere: %zu", changed_locations_.size());
     for ( int i = 0; i < changed_locations_.size(); i++ )
     {
         manipulation_msgs::Location location_;
@@ -2148,7 +2143,7 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
 
     manipulation_msgs::AddSlotsGroup add_groups_srv;
     manipulation_msgs::SlotsGroup group_srv;
-    ROS_FATAL("Gruppi da aggiungere: %zu", changed_groups_.size());
+    ROS_WARN("Gruppi da aggiungere: %zu", changed_groups_.size());
     for ( int i = 0; i < changed_groups_.size(); i++ )
     {
         group_srv.name = changed_groups_.at(i);
@@ -2161,7 +2156,7 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
     }
 
     manipulation_msgs::AddSlots add_slots_srv;
-    ROS_FATAL("Slot da aggiungere: %zu", changed_slots_.size());
+    ROS_WARN("Slot da aggiungere: %zu", changed_slots_.size());
     for ( int i = 0; i < changed_groups.size(); i++ )
     {
         for ( int j = 0; j < changed_slots_.size(); j++ )
@@ -2258,7 +2253,7 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
     }
 
     manipulation_msgs::AddBoxes add_boxes_srv;
-    ROS_FATAL("Box da aggiungere: %zu", changed_boxes_.size());
+    ROS_WARN("Box da aggiungere: %zu", changed_boxes_.size());
     for ( int i = 0; i < changed_boxes_.size(); i++ )
     {
         manipulation_msgs::Box box_;
@@ -2350,7 +2345,7 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
 
     tc_finito = true;
 
-    ROS_FATAL("Finito caricamento dei componenti sul manipulator");
+    ROS_WARN("Finito caricamento dei componenti sul manipulator");
 }
 
 bool QNode::save_actions()
@@ -2607,15 +2602,15 @@ void QNode::load_param( int ind )
         set_target_frame(0);
 
         readBoxesFromParam();
-        ROS_ERROR("Read boxes finish");
+        ROS_INFO("Read boxes finish");
         readObjectFromParam();
-        ROS_ERROR("Read objects finish");
+        ROS_INFO("Read objects finish");
         readSlotsGroupFromParam();
-        ROS_ERROR("Read slot group finish");
+        ROS_INFO("Read slot group finish");
         readSlotsFromParam();
-        ROS_ERROR("Read slots finish");
+        ROS_INFO("Read slots finish");
         readLocationsFromParam();
-        ROS_ERROR("Read locations finish");
+        ROS_INFO("Read locations finish");
     }
     else if ( ind == 2 )
     {
@@ -3039,7 +3034,7 @@ bool QNode::readObjectFromParam()
         return false;
     }
 
-    ROS_ERROR("Reading of manipulation_object_types is finish ");
+    ROS_INFO("Reading of manipulation_object_types is finish ");
 
     for ( std::size_t i = 0; i < param.size(); i++ )
     {
@@ -3059,9 +3054,6 @@ bool QNode::readObjectFromParam()
         }
         object_.type = rosparam_utilities::toString(single_object["type"]);
 
-        ROS_ERROR("Reading of objects %zu name is finish ",i);
-
-
         XmlRpc::XmlRpcValue grasp_poses_;
         if ( !single_object.hasMember("grasp_poses") )
         {
@@ -3069,8 +3061,6 @@ bool QNode::readObjectFromParam()
             continue;
         }
         grasp_poses_ = single_object["grasp_poses"];
-
-        ROS_ERROR("Reading of objects %zu grasp_poses_ is finish ",i);
 
         if ( grasp_poses_.getType() != XmlRpc::XmlRpcValue::TypeArray )
         {
@@ -3103,8 +3093,6 @@ bool QNode::readObjectFromParam()
             loc.pos.origin_x = pos.at(0);
             loc.pos.origin_y = pos.at(1);
             loc.pos.origin_z = pos.at(2);
-
-            ROS_ERROR("Reading of objects %zu location #%zu is finish ",i,j);
 
             std::vector<double> quat;
             if( !rosparam_utilities::getParam(single_grasp,"quaternion",quat,what) )
@@ -3183,8 +3171,6 @@ bool QNode::readObjectFromParam()
             }
 
             object_.gripper_force.push_back( rosparam_utilities::toDouble(single_grasp["gripper_force"]) );
-
-            ROS_ERROR("Fatto");
 
         }
         objects.push_back( object_ );
