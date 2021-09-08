@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<launch>
+<arg name="pipeline" default="dirrt" />
+<arg name="collision_detection" default="gpuvoxel" />
+<arg name="load_param" default="load" />
+<arg name="debug" default="false" />
+  <arg name="baseline" default="false"/>
+<arg if="$(arg debug)" name="launch_prefix" default="xterm -e gdb -ex run  --args" />
+<arg unless="$(arg debug)" name="launch_prefix" default="" />
+
+<!--<rosparam if="$(eval pipeline == 'human_aware')" command="load" file="$(find sharework_cembre_moveit_config)/config/ha_planning.yaml"/>-->
+<!--<rosparam if="$(eval pipeline == 'dirrt')" command="load" file="$(find sharework_cembre_moveit_config)/config/dirrt_planning.yaml"/>-->
+<rosparam if="$(arg baseline)" command="load" file="$(find sharework_cembre_moveit_config)/config/dirrt_planning_base.yaml" ns="inbound_pick_server"/>
+<rosparam unless="$(arg baseline)" command="load" file="$(find sharework_cembre_moveit_config)/config/dirrt_planning.yaml" ns="inbound_pick_server"/>
+
+<node pkg="inbound_pick" type="inbound_pick_server" name="inbound_pick_server" launch-prefix="$(arg launch_prefix)" output="screen" >
+  <param if="$(eval pipeline == 'ompl')" name="manipulator/planning_plugin" value="ompl_interface/OMPLPlanner" />
+  <param if="$(eval pipeline == 'human_aware')" name="manipulator/planning_plugin" value="ha_planner/DgacoPlannerManager" />
+  <param if="$(eval pipeline == 'dirrt')" name="manipulator/planning_plugin" value="pathplan/DIRRTStar" />
+  <remap from="/centroids" to="/centroid_detection_rs1/poses" />
+  <remap from="/inbound_pick_server/job/pick" to="/robotiq_gripper"/>
+</node>
+
+<!-- <node pkg="inbound_pick"  type="inbound_pick_loader" name="inbound_pick_loader" output="screen"/> -->
+</launch>

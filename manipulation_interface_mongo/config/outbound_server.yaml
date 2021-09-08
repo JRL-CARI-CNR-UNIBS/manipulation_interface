@@ -1,0 +1,22 @@
+outbound_place_server:
+
+  ik_sol_number: 512
+  max_stall_iter: 512
+  collision_detector: FCL
+
+  groups:
+    manipulator: open_tip
+
+  manipulator:
+    preferred_configuration: [1.248980837684973, -1.2228279109171156, 1.9792593061627755, -2.2428737618677026, 1.553286774142281, 3.2935401617108626]
+
+    preferred_configuration_weight: [0, 1, 1, 1, 1, 1]
+    max_ik_goal_number: 512
+    use_single_goal: false
+
+  request_adapters:
+  - default_planner_request_adapters/AddTimeParameterization
+  - default_planner_request_adapters/FixWorkspaceBounds
+  - default_planner_request_adapters/FixStartStateBounds
+  - default_planner_request_adapters/FixStartStateCollision
+  - default_planner_request_adapters/FixStartStatePathConstraints

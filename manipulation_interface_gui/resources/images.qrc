@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/icon.png</file>
+        <file>images/freccia_destra.png</file>
+        <file>images/freccia_giu.png</file>
+        <file>images/freccia_sinistra.png</file>
+        <file>images/freccia_su.png</file>
+        <file>images/antiorario.png</file>
+        <file>images/orario.png</file>
+    </qresource>
+</RCC>
