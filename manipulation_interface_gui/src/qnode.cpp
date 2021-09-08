@@ -199,9 +199,11 @@ void QNode::load_objects_in_manipulation()
 
     manipulation_msgs::RemoveObjects remove_objects_srv;
     manipulation_msgs::AddObjects add_objects_srv;
+
     if ( !objects_list.response.ids.empty() )
     {
         remove_objects_srv.request.object_names = objects_list.response.ids;
+
         if ( !remove_objs_client_.call(remove_objects_srv) )
         {
             ROS_ERROR("Unable to remove the objects by the manipulation");
@@ -226,25 +228,28 @@ void QNode::load_objects_in_manipulation()
 
             for ( int j = 0; j < objects[index].grasp.size(); j++ )
             {
-                obj.grasping_locations[j].tool_name = objects[index].tool[j];
-                obj.grasping_locations[j].location.name = obj.name+"/grasp_"+std::to_string(j)+"_"+objects[index].tool[j];
-                obj.grasping_locations[j].location.frame = obj.name;
+                manipulation_msgs::Grasp grasp_;
+                grasp_.tool_name = objects[index].tool[j];
+                grasp_.location.name = obj.name+"/grasp_"+std::to_string(j)+"_"+objects[index].tool[j];
+                grasp_.location.frame = obj.name;
 
-                obj.grasping_locations[j].location.pose.position.x    = objects[index].grasp[j].pos.origin_x;
-                obj.grasping_locations[j].location.pose.position.x    = objects[index].grasp[j].pos.origin_x;
-                obj.grasping_locations[j].location.pose.position.x    = objects[index].grasp[j].pos.origin_x;
-                obj.grasping_locations[j].location.pose.orientation.w = objects[index].grasp[j].quat.rotation_w;
-                obj.grasping_locations[j].location.pose.orientation.x = objects[index].grasp[j].quat.rotation_x;
-                obj.grasping_locations[j].location.pose.orientation.y = objects[index].grasp[j].quat.rotation_y;
-                obj.grasping_locations[j].location.pose.orientation.z = objects[index].grasp[j].quat.rotation_z;
+                grasp_.location.pose.position.x    = objects[index].grasp[j].pos.origin_x;
+                grasp_.location.pose.position.y    = objects[index].grasp[j].pos.origin_y;
+                grasp_.location.pose.position.z    = objects[index].grasp[j].pos.origin_z;
+                grasp_.location.pose.orientation.w = objects[index].grasp[j].quat.rotation_w;
+                grasp_.location.pose.orientation.x = objects[index].grasp[j].quat.rotation_x;
+                grasp_.location.pose.orientation.y = objects[index].grasp[j].quat.rotation_y;
+                grasp_.location.pose.orientation.z = objects[index].grasp[j].quat.rotation_z;
 
-                obj.grasping_locations[j].location.approach_relative_pose.position.x = objects[index].approach[j].origin_x;
-                obj.grasping_locations[j].location.approach_relative_pose.position.y = objects[index].approach[j].origin_y;
-                obj.grasping_locations[j].location.approach_relative_pose.position.z = objects[index].approach[j].origin_z;
+                grasp_.location.approach_relative_pose.position.x = objects[index].approach[j].origin_x;
+                grasp_.location.approach_relative_pose.position.y = objects[index].approach[j].origin_y;
+                grasp_.location.approach_relative_pose.position.z = objects[index].approach[j].origin_z;
 
-                obj.grasping_locations[j].location.leave_relative_pose.position.x = objects[index].leave[j].origin_x;
-                obj.grasping_locations[j].location.leave_relative_pose.position.y = objects[index].leave[j].origin_y;
-                obj.grasping_locations[j].location.leave_relative_pose.position.z = objects[index].leave[j].origin_z;
+                grasp_.location.leave_relative_pose.position.x = objects[index].leave[j].origin_x;
+                grasp_.location.leave_relative_pose.position.y = objects[index].leave[j].origin_y;
+                grasp_.location.leave_relative_pose.position.z = objects[index].leave[j].origin_z;
+
+                obj.grasping_locations.push_back(grasp_);
             }
 
             add_objects_srv.request.add_objects.push_back( obj );
@@ -1190,14 +1195,6 @@ void QNode::remove_pick(int ind)
 
 void QNode::remove_object(int ind)
 {
-    //    for ( int i = 0; i < changed_objects.size(); i++ )
-    //    {
-    //        if ( !objects[ind].name.compare( changed_objects[i].name ) )
-    //        {
-    //            changed_objects.erase( changed_objects.begin() + i );
-    //        }
-    //    }
-
     objects.erase(objects.begin()+ind);
 }
 
@@ -2092,49 +2089,6 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
         location_.pose.orientation.z = changed_locations_[i].location_.quat.rotation_z;
 
         add_locations_srv.request.locations.push_back(location_);
-
-//        Eigen::Quaterniond q( changed_locations_[i].location_.quat.rotation_w,
-//                              changed_locations_[i].location_.quat.rotation_x,
-//                              changed_locations_[i].location_.quat.rotation_y,
-//                              changed_locations_[i].location_.quat.rotation_z);
-//        Eigen::Affine3d T_frame_tool;
-//        T_frame_tool = q;
-//        T_frame_tool.translation()(0) = changed_locations_[i].location_.pos.origin_x;
-//        T_frame_tool.translation()(1) = changed_locations_[i].location_.pos.origin_y;
-//        T_frame_tool.translation()(2) = changed_locations_[i].location_.pos.origin_z;
-
-//        std::string frame = changed_locations_[i].frame;
-
-//        tf::TransformListener listener;
-//        tf::StampedTransform transform;
-//        ros::Time t0 = ros::Time::now();
-//        if (!listener.waitForTransform("world",frame,t0,ros::Duration(10)))
-//        {
-//            ROS_WARN("Unable to find a transform from world to %s", frame.c_str());
-//        }
-
-//        try
-//        {
-//            listener.lookupTransform("world", frame, t0, transform);
-//        }
-//        catch (tf::TransformException ex)
-//        {
-//            ROS_ERROR("Exception %s",ex.what());
-//            ros::Duration(1.0).sleep();
-//        }
-
-//        Eigen::Affine3d T_w_frame;
-//        tf::poseTFToEigen(transform,T_w_frame);
-
-//        Eigen::Affine3d T_w_tool = T_w_frame * T_frame_tool;
-
-//        manipulation_msgs::Location goto_location;
-
-//        goto_location.name = changed_locations_[i].name;
-//        goto_location.frame = "world";
-//        tf::poseEigenToMsg(T_w_tool,goto_location.pose);
-
-//        add_locations_srv.request.locations.push_back(goto_location);
     }
     if ( add_locations_srv.request.locations.size() != 0 )
     {
@@ -2142,10 +2096,10 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
     }
 
     manipulation_msgs::AddSlotsGroup add_groups_srv;
-    manipulation_msgs::SlotsGroup group_srv;
     ROS_WARN("Gruppi da aggiungere: %zu", changed_groups_.size());
     for ( int i = 0; i < changed_groups_.size(); i++ )
     {
+        manipulation_msgs::SlotsGroup group_srv;
         group_srv.name = changed_groups_.at(i);
 
         add_groups_srv.request.add_slots_groups.push_back(group_srv);
@@ -2155,102 +2109,76 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
         add_slots_group_client_.call(add_groups_srv);
     }
 
-    manipulation_msgs::AddSlots add_slots_srv;
     ROS_WARN("Slot da aggiungere: %zu", changed_slots_.size());
-    for ( int i = 0; i < changed_groups.size(); i++ )
+    for ( int i = 0; i < changed_slots_.size(); i++ )
     {
-        for ( int j = 0; j < changed_slots_.size(); j++ )
-        { 
-            if ( !changed_slots_[j].group.compare( changed_groups.at(i) ) )
-            {
-                manipulation_msgs::Slot slot_;
-                slot_.name                                       = changed_slots_[j].name;
-                slot_.slot_size                                  = changed_slots_[j].max_objects;
-                slot_.location.name                              = slot_.name;
-                slot_.location.frame                             = changed_slots_[j].frame;
-                slot_.location.pose.position.x                   = changed_slots_[j].location_.pos.origin_x;
-                slot_.location.pose.position.y                   = changed_slots_[j].location_.pos.origin_y;
-                slot_.location.pose.position.z                   = changed_slots_[j].location_.pos.origin_z;
-                slot_.location.pose.orientation.w                = changed_slots_[j].location_.quat.rotation_w;
-                slot_.location.pose.orientation.x                = changed_slots_[j].location_.quat.rotation_x;
-                slot_.location.pose.orientation.y                = changed_slots_[j].location_.quat.rotation_y;
-                slot_.location.pose.orientation.z                = changed_slots_[j].location_.quat.rotation_z;
-                slot_.location.approach_relative_pose.position.x = changed_slots_[j].approach.origin_x;
-                slot_.location.approach_relative_pose.position.y = changed_slots_[j].approach.origin_y;
-                slot_.location.approach_relative_pose.position.z = changed_slots_[j].approach.origin_z;
-                slot_.location.leave_relative_pose.position.x    = changed_slots_[j].leave.origin_x;
-                slot_.location.leave_relative_pose.position.y    = changed_slots_[j].leave.origin_y;
-                slot_.location.leave_relative_pose.position.z    = changed_slots_[j].leave.origin_z;
+        manipulation_msgs::AddSlots add_slots_srv;
+        std::vector<manipulation_msgs::Slot> slot_vct;
+        manipulation_msgs::Slot slot_;
+        slot_.name                                       = changed_slots_[i].name;
+        slot_.slot_size                                  = changed_slots_[i].max_objects;
+        slot_.location.name                              = slot_.name;
+        slot_.location.frame                             = changed_slots_[i].frame;
+        slot_.location.pose.position.x                   = changed_slots_[i].location_.pos.origin_x;
+        slot_.location.pose.position.y                   = changed_slots_[i].location_.pos.origin_y;
+        slot_.location.pose.position.z                   = changed_slots_[i].location_.pos.origin_z;
+        slot_.location.pose.orientation.w                = changed_slots_[i].location_.quat.rotation_w;
+        slot_.location.pose.orientation.x                = changed_slots_[i].location_.quat.rotation_x;
+        slot_.location.pose.orientation.y                = changed_slots_[i].location_.quat.rotation_y;
+        slot_.location.pose.orientation.z                = changed_slots_[i].location_.quat.rotation_z;
+        slot_.location.approach_relative_pose.position.x = changed_slots_[i].approach.origin_x;
+        slot_.location.approach_relative_pose.position.y = changed_slots_[i].approach.origin_y;
+        slot_.location.approach_relative_pose.position.z = changed_slots_[i].approach.origin_z;
+        slot_.location.leave_relative_pose.position.x    = changed_slots_[i].leave.origin_x;
+        slot_.location.leave_relative_pose.position.y    = changed_slots_[i].leave.origin_y;
+        slot_.location.leave_relative_pose.position.z    = changed_slots_[i].leave.origin_z;
 
-                add_slots_srv.request.add_slots.push_back( slot_ );
+        slot_vct.push_back(slot_);
 
-//                Eigen::Vector3d approach_distance_in_frame;
-//                approach_distance_in_frame(0) = changed_slots_[j].approach.origin_x;
-//                approach_distance_in_frame(1) = changed_slots_[j].approach.origin_y;
-//                approach_distance_in_frame(2) = changed_slots_[j].approach.origin_z;
+        add_slots_srv.request.slots_group_name = changed_slots_[i].group;
+        add_slots_srv.request.add_slots = slot_vct;
 
-//                Eigen::Quaterniond q(changed_slots_[j].location_.quat.rotation_w,
-//                                     changed_slots_[j].location_.quat.rotation_x,
-//                                     changed_slots_[j].location_.quat.rotation_y,
-//                                     changed_slots_[j].location_.quat.rotation_z);
+        if (!add_slots_client_.call(add_slots_srv))
+        {
+          ROS_WARN("Can't add slot to the location manager.");
+        }
 
-//                Eigen::Affine3d T_frame_slot;
-//                T_frame_slot = q;
-//                T_frame_slot.translation()(0) = changed_slots_[j].location_.pos.origin_x;
-//                T_frame_slot.translation()(1) = changed_slots_[j].location_.pos.origin_y;
-//                T_frame_slot.translation()(2) = changed_slots_[j].location_.pos.origin_z;
-
-//                std::string frame = changed_slots_[j].frame;
-
-//                tf::TransformListener listener;
-//                tf::StampedTransform transform;
-//                ros::Time t0 = ros::Time::now();
-//                if (!listener.waitForTransform("world",frame,t0,ros::Duration(10)))
-//                {
-//                    ROS_WARN("Unable to find a transform from world to %s", frame.c_str());
-//                }
-
-//                try
-//                {
-//                    listener.lookupTransform("world", frame, t0, transform);
-//                }
-//                catch (tf::TransformException ex)
-//                {
-//                    ROS_ERROR("Exception %s",ex.what());
-//                    ros::Duration(1.0).sleep();
-//                }
-
-//                Eigen::Affine3d T_w_frame;
-//                tf::poseTFToEigen(transform,T_w_frame);
-
-//                Eigen::Affine3d T_w_slot = T_w_frame * T_frame_slot;
-
-//                Eigen::Vector3d approach_distance_in_world = T_w_frame.linear()*approach_distance_in_frame;
-
-//                Eigen::Affine3d T_w_approach = T_w_slot;
-//                T_w_approach.translation() += approach_distance_in_world;
-
-//                Eigen::Affine3d T_slot_approach = T_w_slot.inverse() * T_w_approach;
-
+    }
+//    for ( int i = 0; i < changed_groups.size(); i++ )
+//    {
+//        for ( int j = 0; j < changed_slots_.size(); j++ )
+//        {
+//            if ( !changed_slots_[j].group.compare( changed_groups.at(i) ) )
+//            {
 //                manipulation_msgs::Slot slot_;
-//                slot_.name = changed_slots_[j].name;
-//                slot_.slot_size = changed_slots_[j].max_objects;
-//                slot_.location.name = slot_.name;
-//                slot_.location.frame = "world";
-//                tf::poseEigenToMsg(T_w_slot,slot_.location.pose);
-//                tf::poseEigenToMsg(T_slot_approach,slot_.location.approach_relative_pose);
-//                tf::poseEigenToMsg(T_slot_approach,slot_.location.leave_relative_pose);
+//                slot_.name                                       = changed_slots_[j].name;
+//                slot_.slot_size                                  = changed_slots_[j].max_objects;
+//                slot_.location.name                              = slot_.name;
+//                slot_.location.frame                             = changed_slots_[j].frame;
+//                slot_.location.pose.position.x                   = changed_slots_[j].location_.pos.origin_x;
+//                slot_.location.pose.position.y                   = changed_slots_[j].location_.pos.origin_y;
+//                slot_.location.pose.position.z                   = changed_slots_[j].location_.pos.origin_z;
+//                slot_.location.pose.orientation.w                = changed_slots_[j].location_.quat.rotation_w;
+//                slot_.location.pose.orientation.x                = changed_slots_[j].location_.quat.rotation_x;
+//                slot_.location.pose.orientation.y                = changed_slots_[j].location_.quat.rotation_y;
+//                slot_.location.pose.orientation.z                = changed_slots_[j].location_.quat.rotation_z;
+//                slot_.location.approach_relative_pose.position.x = changed_slots_[j].approach.origin_x;
+//                slot_.location.approach_relative_pose.position.y = changed_slots_[j].approach.origin_y;
+//                slot_.location.approach_relative_pose.position.z = changed_slots_[j].approach.origin_z;
+//                slot_.location.leave_relative_pose.position.x    = changed_slots_[j].leave.origin_x;
+//                slot_.location.leave_relative_pose.position.y    = changed_slots_[j].leave.origin_y;
+//                slot_.location.leave_relative_pose.position.z    = changed_slots_[j].leave.origin_z;
 
 //                add_slots_srv.request.add_slots.push_back( slot_ );
-            }
-        }
-        add_slots_srv.request.slots_group_name = changed_groups_.at(i);
+//            }
+//        }
+//        add_slots_srv.request.slots_group_name = changed_groups_.at(i);
 
-        if ( add_slots_srv.request.add_slots.size() != 0 )
-        {
-            add_slots_client_.call( add_slots_srv );
-        }
-    }
+//        if ( add_slots_srv.request.add_slots.size() != 0 )
+//        {
+//            add_slots_client_.call( add_slots_srv );
+//        }
+//    }
 
     manipulation_msgs::AddBoxes add_boxes_srv;
     ROS_WARN("Box da aggiungere: %zu", changed_boxes_.size());
@@ -2277,66 +2205,6 @@ void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    chang
         box_.location.leave_relative_pose.position.z    = changed_boxes_[i].leave.origin_z;
 
         add_boxes_srv.request.add_boxes.push_back( box_ );
-
-//        Eigen::Vector3d approach_distance_in_frame;
-//        approach_distance_in_frame(0) = changed_boxes_[i].approach.origin_x;
-//        approach_distance_in_frame(1) = changed_boxes_[i].approach.origin_y;
-//        approach_distance_in_frame(2) = changed_boxes_[i].approach.origin_z;
-
-//        Eigen::Quaterniond q(changed_boxes_[i].location_.quat.rotation_w,
-//                             changed_boxes_[i].location_.quat.rotation_x,
-//                             changed_boxes_[i].location_.quat.rotation_y,
-//                             changed_boxes_[i].location_.quat.rotation_z);
-
-//        Eigen::Affine3d T_frame_box;
-//        T_frame_box = q;
-//        T_frame_box.translation()(0) = changed_boxes_[i].location_.pos.origin_x;
-//        T_frame_box.translation()(1) = changed_boxes_[i].location_.pos.origin_y;
-//        T_frame_box.translation()(2) = changed_boxes_[i].location_.pos.origin_z;
-
-//        std::string frame_name = changed_boxes_[i].frame;
-
-//        tf::TransformListener listener;
-//        tf::StampedTransform transform;
-//        ros::Time t0 = ros::Time::now();
-//        if (!listener.waitForTransform("world",frame_name,t0,ros::Duration(10)))
-//        {
-//            ROS_WARN("Unable to find a transform from world to %s", frame_name.c_str());
-//            continue;
-//        }
-
-//        try
-//        {
-//            listener.lookupTransform("world", frame_name, t0, transform);
-//        }
-//        catch (tf::TransformException& ex)
-//        {
-//            ROS_ERROR("%s",ex.what());
-//            ros::Duration(1.0).sleep();
-//            continue;
-//        }
-
-//        Eigen::Affine3d T_w_frame;
-//        tf::poseTFToEigen(transform,T_w_frame);
-
-//        Eigen::Affine3d T_w_box = T_w_frame * T_frame_box;
-
-//        Eigen::Vector3d approach_distance_in_world = T_w_frame.linear() * approach_distance_in_frame;
-
-//        Eigen::Affine3d T_w_approach = T_w_box;
-//        T_w_approach.translation() += approach_distance_in_world;
-
-//        Eigen::Affine3d T_box_approach = T_w_box.inverse() * T_w_approach;
-
-//        manipulation_msgs::Box box_;
-//        box_.name = changed_boxes_[i].name;
-//        box_.location.name = box_.name;
-//        box_.location.frame = "world";
-//        tf::poseEigenToMsg(T_w_box,box_.location.pose);
-//        tf::poseEigenToMsg(T_box_approach,box_.location.approach_relative_pose);
-//        tf::poseEigenToMsg(T_box_approach,box_.location.leave_relative_pose);
-
-//        add_boxes_srv.request.add_boxes.push_back( box_ );
     }
     if ( add_boxes_srv.request.add_boxes.size() != 0 )
     {
@@ -2414,9 +2282,6 @@ bool QNode::add_object(std::string object_name,
     obj.post_gripper_position = post_gripper_position;
     obj.gripper_force         = gripper_force;
     objects.push_back(obj);
-
-    //    changed_objects.push_back( obj );
-
     return true;
 }
 

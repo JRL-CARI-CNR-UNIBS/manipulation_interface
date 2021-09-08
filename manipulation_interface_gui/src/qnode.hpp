@@ -97,9 +97,9 @@ struct object_type
     std::vector<position>    approach;
     std::vector<location>    grasp;
     std::vector<position>    leave;
-    std::vector<double>         pre_gripper_position;
-    std::vector<double>         post_gripper_position;
-    std::vector<double>         gripper_force;
+    std::vector<double>      pre_gripper_position;
+    std::vector<double>      post_gripper_position;
+    std::vector<double>      gripper_force;
 };
 
 struct manipulation_slot

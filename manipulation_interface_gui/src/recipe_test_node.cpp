@@ -425,7 +425,7 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
         }
         else
         {
-          ROS_ERROR("unable to execute action go_to");
+          ROS_ERROR("Unable to execute the action because its type is wrong");
           return 0;
         }
 
