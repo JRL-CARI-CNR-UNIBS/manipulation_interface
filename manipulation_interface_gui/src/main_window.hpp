@@ -208,7 +208,8 @@ private:
     double max_gripper_position = 85;
     double min_gripper_position = 0;
     double max_force_gripper    = 100;
-    std::string tf_name_space = "NAME_SPACE";
+    std::string tf_name_space = "manipulation";
+
 };
 
 }  // namespace manipulation_interface_gui

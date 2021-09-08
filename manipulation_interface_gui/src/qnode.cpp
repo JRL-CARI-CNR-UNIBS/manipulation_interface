@@ -258,7 +258,18 @@ void QNode::load_objects_in_manipulation()
         if ( !add_objs_client_.call(add_objects_srv) )
         {
             ROS_ERROR("Unable to add the objects to the manipulation");
-            return;
+        }
+        if ( add_objects_srv.response.results == manipulation_msgs::AddObjects::Response::Success )
+        {
+          ROS_INFO("The objects are added");
+        }
+        if ( add_objects_srv.response.results == manipulation_msgs::AddObjects::Response::Error )
+        {
+          ROS_ERROR("Error");
+        }
+        if ( add_objects_srv.response.results == manipulation_msgs::AddObjects::Response::BoxNotFound )
+        {
+          ROS_ERROR("Box not fount");
         }
     }
 }

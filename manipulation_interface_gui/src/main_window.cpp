@@ -410,8 +410,9 @@ void MainWindow::on_button_add_action_clicked(bool check)
 
 void MainWindow::on_button_add_grasp_clicked(bool check)
 {
-    std::string actual_base_frame = ui.TF_list->currentText().toStdString();
-    actual_object_grasp.push_back(qnode.return_position(actual_base_frame, qnode.target_frame));
+  std::string actual_base_frame = tf_name_space+"/";
+  actual_base_frame.append(ui.TF_list->currentText().toStdString());
+  actual_object_grasp.push_back(qnode.return_position(actual_base_frame, qnode.target_frame));
     actual_tool_grasp.push_back(qnode.target_frame);
     num_grasp++;
     std::string str = "grasp";
@@ -442,7 +443,8 @@ void MainWindow::on_button_set_approach_clicked(bool check)
         return;
     }
     int index = ui.grasp_list->currentIndex();
-    std::string actual_base_frame = ui.TF_list->currentText().toStdString();
+    std::string actual_base_frame = tf_name_space+"/";
+    actual_base_frame.append( ui.TF_list->currentText().toStdString() );
     location actual_approach = qnode.return_position(actual_base_frame, qnode.target_frame);
     double dist_x = actual_approach.pos.origin_x - actual_object_grasp[index].pos.origin_x;
     double dist_y = actual_approach.pos.origin_y - actual_object_grasp[index].pos.origin_y;
@@ -472,7 +474,8 @@ void MainWindow::on_button_set_leave_clicked(bool check)
         return;
     }
     int index = ui.grasp_list->currentIndex();
-    std::string actual_base_frame = ui.TF_list->currentText().toStdString();
+    std::string actual_base_frame = tf_name_space+"/";
+    actual_base_frame.append( ui.TF_list->currentText().toStdString() );
     location actual_leave = qnode.return_position(actual_base_frame, qnode.target_frame);
     double dist_x = actual_leave.pos.origin_x - actual_object_grasp[index].pos.origin_x;
     double dist_y = actual_leave.pos.origin_y - actual_object_grasp[index].pos.origin_y;
@@ -817,6 +820,7 @@ void MainWindow::on_button_remove_grasp_clicked(bool check)
         actual_object_approach.erase(actual_object_approach.begin()+index);
         actual_pre_gripper_position.erase(actual_pre_gripper_position.begin()+index);
         actual_tool_approach.erase(actual_tool_approach.begin()+index);
+        actual_tool_leave.erase(actual_tool_leave.begin()+index);
         return;
     }
 
@@ -1012,7 +1016,6 @@ void MainWindow::on_button_add_object_clicked(bool check)
                             else
                             {
                                 num_grasp = 0;
-                                ui.edit_object_name->clear();
                                 ui.grasp_list->clear();
                                 init_approach_object = false;
                                 actual_object_grasp.clear();
@@ -1024,6 +1027,7 @@ void MainWindow::on_button_add_object_clicked(bool check)
                                 actual_gripper_grasp_force.clear();
                                 actual_tool_approach.clear();
                                 actual_tool_leave.clear();
+                                actual_tool_grasp.clear();
                                 if ( ui.combo_action_type->currentIndex() == 1 )
                                 {
                                     qnode.write_objects();
@@ -1035,6 +1039,12 @@ void MainWindow::on_button_add_object_clicked(bool check)
                             QMessageBox msgBox;
                             msgBox.setText("Leave and grasp have different tool");
                             msgBox.exec();
+                            for ( int i = 0; i < actual_tool_grasp.size(); i++)
+                            {
+                              ROS_ERROR("Grasp_tool: %s",actual_tool_grasp[i].c_str());
+                              ROS_ERROR("Leave_tool: %s",actual_tool_leave[i].c_str());
+                            }
+
                         }
                     }
                     else
@@ -1042,6 +1052,11 @@ void MainWindow::on_button_add_object_clicked(bool check)
                         QMessageBox msgBox;
                         msgBox.setText("Apporach and grasp have different tool");
                         msgBox.exec();
+                        for ( int i = 0; i < actual_tool_grasp.size(); i++)
+                        {
+                          ROS_ERROR("Grasp_tool: %s",actual_tool_grasp[i].c_str());
+                          ROS_ERROR("Approach_tool: %s",actual_tool_approach[i].c_str());
+                        }
                     }
                 }
                 else {
@@ -1118,6 +1133,8 @@ void MainWindow::on_button_add_slot_clicked(bool check)
                                 ui.button_remove_approach_slot->setEnabled(false);
                                 ui.button_add_final_position_slot->setEnabled(true);
                                 ui.button_remove_final_position_slot->setEnabled(false);
+                                ui.button_add_leave_position_slot->setEnabled(true);
+                                ui.button_remove_leave_position_slot->setEnabled(false);
                                 if ( ui.combo_action_type->currentIndex() == 2 )
                                 {
                                     qnode.write_groups();
@@ -1202,6 +1219,9 @@ void MainWindow::on_button_add_box_clicked(bool check)
                     ui.button_remove_approach_box->setEnabled(false);
                     ui.button_add_final_box->setEnabled(true);
                     ui.button_remove_final_box->setEnabled(false);
+                    ui.button_add_leave_position_box->setEnabled(true);
+                    ui.button_remove_leave_position_box->setEnabled(false);
+
                 }
             }
             else
@@ -1409,8 +1429,12 @@ void MainWindow::on_button_load_TF_clicked(bool chack)
             tf_name = qnode.TFs[i];
             found = tf_name.find("/",2);
             tf_name.erase( 0, found+1 );
-            tf = QString::fromStdString(qnode.TFs[i]);
+            tf = QString::fromStdString(tf_name);
             ui.TF_list->addItem(tf);
+        }
+        else
+        {
+          ROS_ERROR("Namespace not found");
         }
     }
 }
