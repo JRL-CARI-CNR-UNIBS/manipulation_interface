@@ -428,7 +428,8 @@ void MainWindow::on_button_add_grasp_clicked(bool check)
     actual_object_leave.push_back(pos);
     actual_pre_gripper_position.push_back(max_gripper_position);
     actual_approach_gripper_position.push_back(std::nan("1"));
-    actual_post_gripper_position.push_back(qnode.return_gripper_position());
+//    actual_post_gripper_position.push_back(qnode.return_gripper_position());
+    actual_post_gripper_position.push_back(0.0);
     actual_gripper_grasp_force.push_back(actual_gripper_force);
     actual_tool_approach.push_back(qnode.target_frame);
     actual_tool_leave.push_back(qnode.target_frame);
@@ -458,7 +459,8 @@ void MainWindow::on_button_set_approach_clicked(bool check)
     actual_object_approach[index].origin_x = dist_tool[0];
     actual_object_approach[index].origin_y = dist_tool[1];
     actual_object_approach[index].origin_z = dist_tool[2];
-    actual_approach_gripper_position[index] = qnode.return_gripper_position();
+//    actual_approach_gripper_position[index] = qnode.return_gripper_position();
+    actual_approach_gripper_position[index] = 85;
     actual_pre_gripper_position[index] = actual_approach_gripper_position[index];
     actual_tool_approach[index] = qnode.target_frame;
 }
@@ -489,7 +491,8 @@ void MainWindow::on_button_set_leave_clicked(bool check)
     actual_object_leave[index].origin_z = dist_tool[2];
     if ( std::isnan(actual_approach_gripper_position[index]) )
     {
-        actual_pre_gripper_position[index] = qnode.return_gripper_position();
+//      actual_pre_gripper_position[index] = qnode.return_gripper_position();
+      actual_pre_gripper_position[index] = 85;
     }
     actual_tool_leave[index] = qnode.target_frame;
 }
@@ -881,67 +884,75 @@ void MainWindow::on_button_run_recipe_clicked(bool check)
 
 void MainWindow::on_button_gripper_clicked(bool check)
 {
-    double actual_gripper_position_target = (max_gripper_position/100) * ui.gripper_percentage->value();
-    actual_gripper_force    = ui.gripper_force_percentage->value();
+//    double actual_gripper_position_target = (max_gripper_position/100) * ui.gripper_percentage->value();
+//    actual_gripper_force    = ui.gripper_force_percentage->value();
 
-    std::string name_action = "pos_";
-    name_action.append( std::to_string(actual_gripper_position_target) );
-    name_action.append("_force_");
-    name_action.append( std::to_string(actual_gripper_force) );
+//    std::string name_action = "pos_";
+//    name_action.append( std::to_string(actual_gripper_position_target) );
+//    name_action.append("_force_");
+//    name_action.append( std::to_string(actual_gripper_force) );
 
+  int perc = ui.gripper_percentage->value();
 
-//    int perc = ui.gripper_percentage->value();
+  if (perc < 50)
+  {
+    perc = 0;
+  }
+  else
+  {
+    perc = 100;
+  }
 
-//    switch(perc) {
+    switch(perc) {
 
-//        case 0  :
-//           qnode.move_gripper("close");
+        case 0  :
+           qnode.move_gripper("close");
 //           actual_gripper_state = "close";
-//           break;
-//        case 10  :
-//           qnode.move_gripper("open_225");
+           break;
+        case 10  :
+           qnode.move_gripper("open_225");
 //           actual_gripper_state = "open_225";
-//           break;
-//        case 20  :
-//           qnode.move_gripper("open_200");
+           break;
+        case 20  :
+           qnode.move_gripper("open_200");
 //           actual_gripper_state = "open_200";
-//           break;
-//        case 30  :
-//           qnode.move_gripper("open_175");
+           break;
+        case 30  :
+           qnode.move_gripper("open_175");
 //           actual_gripper_state = "open_175";
-//           break;
-//        case 40  :
-//           qnode.move_gripper("open_150");
+           break;
+        case 40  :
+           qnode.move_gripper("open_150");
 //           actual_gripper_state = "open_150";
-//           break;
-//        case 50  :
-//           qnode.move_gripper("open_125");
+           break;
+        case 50  :
+           qnode.move_gripper("open_125");
 //           actual_gripper_state = "open_125";
-//           break;
-//        case 60  :
-//           qnode.move_gripper("open_100");
+           break;
+        case 60  :
+           qnode.move_gripper("open_100");
 //           actual_gripper_state = "open_100";
-//           break;
-//        case 70  :
-//           qnode.move_gripper("open_75");
+           break;
+        case 70  :
+           qnode.move_gripper("open_75");
 //           actual_gripper_state = "open_75";
-//           break;
-//        case 80  :
-//           qnode.move_gripper("open_50");
+           break;
+        case 80  :
+           qnode.move_gripper("open_50");
 //           actual_gripper_state = "open_50";
-//           break;
-//        case 90  :
-//           qnode.move_gripper("open_25");
+           break;
+        case 90  :
+           qnode.move_gripper("open_25");
 //           actual_gripper_state = "open_25";
-//           break;
-//        case 100  :
-//           qnode.move_gripper("open");
+           break;
+        case 100  :
+           qnode.move_gripper("open");
 //           actual_gripper_state = "open";
-//           break;
-//        default :
-//            qnode.move_gripper("open");
+           break;
+        default :
+            qnode.move_gripper("open");
 //            actual_gripper_state = "open";
-//    }
+    }
     return;
 }
 

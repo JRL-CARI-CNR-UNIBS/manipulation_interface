@@ -111,6 +111,8 @@ struct manipulation_slot
     location    location_;
     int         max_objects;
     std::string frame;
+    int max_gripper_position;
+    int min_gripper_position;
 };
 
 struct box
