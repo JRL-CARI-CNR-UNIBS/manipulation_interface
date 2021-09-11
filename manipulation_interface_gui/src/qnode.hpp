@@ -181,8 +181,8 @@ public:
                        std::vector<double> pre_gripper_position,
                        std::vector<double> post_gripper_position,
                        std::vector<double> gripper_force);
-    bool add_slot     (std::string slot_name, location slot_approach, location slot_final_pos, location slot_leave, std::string goup_name, int max_number);
-    bool add_box      (std::string box_name, location approach_position, location final_position, location leave_position);
+    bool add_slot     (std::string slot_name, position slot_approach, location slot_final_pos, position slot_leave, std::string goup_name, int max_number);
+    bool add_box      (std::string box_name, position approach_position, location final_position, position leave_position);
     void add_object_type          (int ind);
     void add_slot_groups          (int ind);
     void add_location_info        (int ind);
