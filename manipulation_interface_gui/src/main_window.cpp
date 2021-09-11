@@ -503,10 +503,34 @@ void MainWindow::on_button_set_leave_clicked(bool check)
 
 void MainWindow::on_button_add_approach_slot_clicked(bool check)
 {
-    actual_slot_approach = qnode.return_position(qnode.base_frame, qnode.target_frame);
-    init_slot_approach = true;
-    ui.button_add_approach_slot->setEnabled(false);
-    ui.button_remove_approach_slot->setEnabled(true);
+    if ( init_slot_final )
+    {
+        location actual_approach = qnode.return_position(qnode.base_frame, qnode.target_frame);
+        double dist_x = actual_approach.pos.origin_x - actual_slot_final_position.pos.origin_x;
+        double dist_y = actual_approach.pos.origin_y - actual_slot_final_position.pos.origin_y;
+        double dist_z = actual_approach.pos.origin_z - actual_slot_final_position.pos.origin_z;
+        Eigen::Vector3d dist_slot(dist_x,dist_y,dist_z);
+        double w = actual_slot_final_position.quat.rotation_w;
+        double x = actual_slot_final_position.quat.rotation_x;
+        double y = actual_slot_final_position.quat.rotation_y;
+        double z = actual_slot_final_position.quat.rotation_z;
+        Eigen::Quaterniond quat_slot( w, x, y, z);
+        Eigen::MatrixXd matrix(quat_slot.toRotationMatrix());
+        Eigen::Vector3d dist_tool;
+        dist_tool = matrix.inverse() * dist_slot;
+        actual_slot_approach.origin_x = dist_tool[0];
+        actual_slot_approach.origin_y = dist_tool[1];
+        actual_slot_approach.origin_z = dist_tool[2];
+        init_slot_approach = true;
+        ui.button_add_approach_slot->setEnabled(false);
+        ui.button_remove_approach_slot->setEnabled(true);
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Final position is not set.");
+        msgBox.exec();
+    }
 }
 
 void MainWindow::on_button_add_final_position_slot_clicked(bool check)
@@ -586,10 +610,34 @@ void MainWindow::on_button_add_recipe_clicked(bool check)
 
 void MainWindow::on_button_add_approach_box_clicked(bool check)
 {
-    actual_box_approach = qnode.return_position(qnode.base_frame, qnode.target_frame);
-    init_box_approach = true;
-    ui.button_add_approach_box->setEnabled(false);
-    ui.button_remove_approach_box->setEnabled(true);
+    if ( init_box_final )
+    {
+        location actual_approach = qnode.return_position(qnode.base_frame, qnode.target_frame);
+        double dist_x = actual_approach.pos.origin_x - actual_box_final.pos.origin_x;
+        double dist_y = actual_approach.pos.origin_y - actual_box_final.pos.origin_y;
+        double dist_z = actual_approach.pos.origin_z - actual_box_final.pos.origin_z;
+        Eigen::Vector3d dist_box(dist_x,dist_y,dist_z);
+        double w = actual_box_final.quat.rotation_w;
+        double x = actual_box_final.quat.rotation_x;
+        double y = actual_box_final.quat.rotation_y;
+        double z = actual_box_final.quat.rotation_z;
+        Eigen::Quaterniond quat_box( w, x, y, z);
+        Eigen::MatrixXd matrix(quat_box.toRotationMatrix());
+        Eigen::Vector3d dist_tool;
+        dist_tool = matrix.inverse() * dist_box;
+        actual_box_approach.origin_x = dist_tool[0];
+        actual_box_approach.origin_y = dist_tool[1];
+        actual_box_approach.origin_z = dist_tool[2];
+        init_box_approach = true;
+        ui.button_add_approach_box->setEnabled(false);
+        ui.button_remove_approach_box->setEnabled(true);
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Final position is not set.");
+        msgBox.exec();
+    }
 }
 
 void MainWindow::on_button_add_final_box_clicked(bool check)
@@ -1537,8 +1585,8 @@ void MainWindow::reset_slot(int index)
     QString appr_z = QString::fromStdString( std::to_string(sl.approach.origin_z) );
     QString max_ob = QString::fromStdString( std::to_string(sl.max_objects) );
     QString name_  = QString::fromStdString( sl.name );
-    QString leav_x = QString::fromStdString( std::to_string(sl.leave.origin_z) );
-    QString leav_y = QString::fromStdString( std::to_string(sl.leave.origin_z) );
+    QString leav_x = QString::fromStdString( std::to_string(sl.leave.origin_x) );
+    QString leav_y = QString::fromStdString( std::to_string(sl.leave.origin_y) );
     QString leav_z = QString::fromStdString( std::to_string(sl.leave.origin_z) );
 
     ui.edit_slot_frame        ->insert(frame_);
@@ -1988,8 +2036,8 @@ void MainWindow::reset_box(int index)
     QString appr_x = QString::fromStdString( std::to_string(bx.approach.origin_x) );
     QString appr_y = QString::fromStdString( std::to_string(bx.approach.origin_y) );
     QString appr_z = QString::fromStdString( std::to_string(bx.approach.origin_z) );
-    QString leav_x = QString::fromStdString( std::to_string(bx.leave.origin_z) );
-    QString leav_y = QString::fromStdString( std::to_string(bx.leave.origin_z) );
+    QString leav_x = QString::fromStdString( std::to_string(bx.leave.origin_x) );
+    QString leav_y = QString::fromStdString( std::to_string(bx.leave.origin_y) );
     QString leav_z = QString::fromStdString( std::to_string(bx.leave.origin_z) );
     QString name_  = QString::fromStdString( bx.name );
 
@@ -2060,8 +2108,8 @@ void MainWindow::reset_object(int index)
     QString appr_x = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_x) );
     QString appr_y = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_y) );
     QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify.approach[i].origin_z) );
-    QString leav_x = QString::fromStdString( std::to_string(actual_object_to_modify.leave[i].origin_z) );
-    QString leav_y = QString::fromStdString( std::to_string(actual_object_to_modify.leave[i].origin_z) );
+    QString leav_x = QString::fromStdString( std::to_string(actual_object_to_modify.leave[i].origin_x) );
+    QString leav_y = QString::fromStdString( std::to_string(actual_object_to_modify.leave[i].origin_y) );
     QString leav_z = QString::fromStdString( std::to_string(actual_object_to_modify.leave[i].origin_z) );
     QString tool   = QString::fromStdString( actual_object_to_modify.tool[i] );
     QString type_  = QString::fromStdString( actual_object_to_modify.type );
@@ -2143,8 +2191,8 @@ void MainWindow::on_combo_grasp_number_currentIndexChanged(int index)
         QString gripper_force  = QString::fromStdString( std::to_string( actual_object_to_modify.gripper_force[index] ) );
         QString pre_position   = QString::fromStdString( std::to_string( actual_object_to_modify.pre_gripper_position[index] ) );
         QString post_position  = QString::fromStdString( std::to_string( actual_object_to_modify.post_gripper_position[index] ) );
-        QString leav_x = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_z) );
-        QString leav_y = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_z) );
+        QString leav_x = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_x) );
+        QString leav_y = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_y) );
         QString leav_z = QString::fromStdString( std::to_string(actual_object_to_modify.leave[index].origin_z) );
 
         ui.edit_object_position_x   ->insert(pos_x);
@@ -2671,18 +2719,66 @@ void MainWindow::on_pick_list_pressed (const QModelIndex &index)
 
 void MainWindow::on_button_add_leave_position_slot_clicked(bool check)
 {
-    actual_slot_leave = qnode.return_position(qnode.base_frame, qnode.target_frame);
-    init_slot_leave = true;
-    ui.button_add_leave_position_slot->setEnabled(false);
-    ui.button_remove_leave_position_slot->setEnabled(true);
+    if ( init_slot_final )
+    {
+        location actual_approach = qnode.return_position(qnode.base_frame, qnode.target_frame);
+        double dist_x = actual_approach.pos.origin_x - actual_slot_final_position.pos.origin_x;
+        double dist_y = actual_approach.pos.origin_y - actual_slot_final_position.pos.origin_y;
+        double dist_z = actual_approach.pos.origin_z - actual_slot_final_position.pos.origin_z;
+        Eigen::Vector3d dist_slot(dist_x,dist_y,dist_z);
+        double w = actual_slot_final_position.quat.rotation_w;
+        double x = actual_slot_final_position.quat.rotation_x;
+        double y = actual_slot_final_position.quat.rotation_y;
+        double z = actual_slot_final_position.quat.rotation_z;
+        Eigen::Quaterniond quat_slot( w, x, y, z);
+        Eigen::MatrixXd matrix(quat_slot.toRotationMatrix());
+        Eigen::Vector3d dist_tool;
+        dist_tool = matrix.inverse() * dist_slot;
+        actual_slot_leave.origin_x = dist_tool[0];
+        actual_slot_leave.origin_y = dist_tool[1];
+        actual_slot_leave.origin_z = dist_tool[2];
+        init_slot_leave = true;
+        ui.button_add_leave_position_slot->setEnabled(false);
+        ui.button_remove_leave_position_slot->setEnabled(true);
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Final position is not set.");
+        msgBox.exec();
+    }
 }
 
 void MainWindow::on_button_add_leave_position_box_clicked(bool check)
 {
-    actual_box_leave =  qnode.return_position(qnode.base_frame, qnode.target_frame);
-    init_box_leave = true;
-    ui.button_add_leave_position_box->setEnabled(false);
-    ui.button_remove_leave_position_box->setEnabled(true);
+    if ( init_box_final )
+    {
+        location actual_approach = qnode.return_position(qnode.base_frame, qnode.target_frame);
+        double dist_x = actual_approach.pos.origin_x - actual_box_final.pos.origin_x;
+        double dist_y = actual_approach.pos.origin_y - actual_box_final.pos.origin_y;
+        double dist_z = actual_approach.pos.origin_z - actual_box_final.pos.origin_z;
+        Eigen::Vector3d dist_box(dist_x,dist_y,dist_z);
+        double w = actual_box_final.quat.rotation_w;
+        double x = actual_box_final.quat.rotation_x;
+        double y = actual_box_final.quat.rotation_y;
+        double z = actual_box_final.quat.rotation_z;
+        Eigen::Quaterniond quat_box( w, x, y, z);
+        Eigen::MatrixXd matrix(quat_box.toRotationMatrix());
+        Eigen::Vector3d dist_tool;
+        dist_tool = matrix.inverse() * dist_box;
+        actual_box_leave.origin_x = dist_tool[0];
+        actual_box_leave.origin_y = dist_tool[1];
+        actual_box_leave.origin_z = dist_tool[2];
+        init_box_leave = true;
+        ui.button_add_leave_position_box->setEnabled(false);
+        ui.button_remove_leave_position_box->setEnabled(true);
+    }
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Final position is not set.");
+        msgBox.exec();
+    }
 }
 
 void MainWindow::on_button_remove_leave_position_slot_clicked(bool check)

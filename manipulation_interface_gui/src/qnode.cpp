@@ -213,11 +213,10 @@ void QNode::load_objects_in_manipulation()
         for ( int i = 0; i < objects_list.response.ids.size(); i++ )
         {
             manipulation_msgs::Object obj;
-
             obj.name = objects_list.response.ids[i];
             obj.type = objects_list.response.types[i];
-
-            int index;
+            std::string type_ = obj.type;
+            int index = -1;
             for ( int j = 0; j < objects.size(); j++ )
             {
                 if ( !obj.type.compare( objects[j].type ) )
@@ -226,30 +225,37 @@ void QNode::load_objects_in_manipulation()
                 }
             }
 
-            for ( int j = 0; j < objects[index].grasp.size(); j++ )
+            if ( index != -1)
             {
-                manipulation_msgs::Grasp grasp_;
-                grasp_.tool_name = objects[index].tool[j];
-                grasp_.location.name = obj.name+"/grasp_"+std::to_string(j)+"_"+objects[index].tool[j];
-                grasp_.location.frame = obj.name;
+                for ( int j = 0; j < objects[index].grasp.size(); j++ )
+                {
+                    manipulation_msgs::Grasp grasp_;
+                    grasp_.tool_name = objects[index].tool[j];
+                    grasp_.location.name = obj.name+"/grasp_"+std::to_string(j)+"_"+objects[index].tool[j];
+                    grasp_.location.frame = obj.name;
 
-                grasp_.location.pose.position.x    = objects[index].grasp[j].pos.origin_x;
-                grasp_.location.pose.position.y    = objects[index].grasp[j].pos.origin_y;
-                grasp_.location.pose.position.z    = objects[index].grasp[j].pos.origin_z;
-                grasp_.location.pose.orientation.w = objects[index].grasp[j].quat.rotation_w;
-                grasp_.location.pose.orientation.x = objects[index].grasp[j].quat.rotation_x;
-                grasp_.location.pose.orientation.y = objects[index].grasp[j].quat.rotation_y;
-                grasp_.location.pose.orientation.z = objects[index].grasp[j].quat.rotation_z;
+                    grasp_.location.pose.position.x    = objects[index].grasp[j].pos.origin_x;
+                    grasp_.location.pose.position.y    = objects[index].grasp[j].pos.origin_y;
+                    grasp_.location.pose.position.z    = objects[index].grasp[j].pos.origin_z;
+                    grasp_.location.pose.orientation.w = objects[index].grasp[j].quat.rotation_w;
+                    grasp_.location.pose.orientation.x = objects[index].grasp[j].quat.rotation_x;
+                    grasp_.location.pose.orientation.y = objects[index].grasp[j].quat.rotation_y;
+                    grasp_.location.pose.orientation.z = objects[index].grasp[j].quat.rotation_z;
 
-                grasp_.location.approach_relative_pose.position.x = objects[index].approach[j].origin_x;
-                grasp_.location.approach_relative_pose.position.y = objects[index].approach[j].origin_y;
-                grasp_.location.approach_relative_pose.position.z = objects[index].approach[j].origin_z;
+                    grasp_.location.approach_relative_pose.position.x = objects[index].approach[j].origin_x;
+                    grasp_.location.approach_relative_pose.position.y = objects[index].approach[j].origin_y;
+                    grasp_.location.approach_relative_pose.position.z = objects[index].approach[j].origin_z;
 
-                grasp_.location.leave_relative_pose.position.x = objects[index].leave[j].origin_x;
-                grasp_.location.leave_relative_pose.position.y = objects[index].leave[j].origin_y;
-                grasp_.location.leave_relative_pose.position.z = objects[index].leave[j].origin_z;
+                    grasp_.location.leave_relative_pose.position.x = objects[index].leave[j].origin_x;
+                    grasp_.location.leave_relative_pose.position.y = objects[index].leave[j].origin_y;
+                    grasp_.location.leave_relative_pose.position.z = objects[index].leave[j].origin_z;
 
-                obj.grasping_locations.push_back(grasp_);
+                    obj.grasping_locations.push_back(grasp_);
+                }
+            }
+            else
+            {
+                ROS_INFO("There isn't a grasp description of %s", type_.c_str() );
             }
 
             add_objects_srv.request.add_objects.push_back( obj );
@@ -2296,7 +2302,7 @@ bool QNode::add_object(std::string object_name,
     return true;
 }
 
-bool QNode::add_slot(std::string slot_name, location slot_approach, location slot_final_pos, location slot_leave, std::string group_name, int max_number )
+bool QNode::add_slot(std::string slot_name, position slot_approach, location slot_final_pos, position slot_leave, std::string group_name, int max_number )
 {
     if ( logging_model_slot.rowCount()!=0 )
     {
@@ -2334,22 +2340,14 @@ bool QNode::add_slot(std::string slot_name, location slot_approach, location slo
         changed_groups.push_back(group_name);
     }
 
-    position approach;
-    approach.origin_x = slot_approach.pos.origin_x-slot_final_pos.pos.origin_x;
-    approach.origin_y = slot_approach.pos.origin_y-slot_final_pos.pos.origin_y;
-    approach.origin_z = slot_approach.pos.origin_z-slot_final_pos.pos.origin_z;
-    position leave;
-    leave.origin_x = slot_leave.pos.origin_x-slot_final_pos.pos.origin_x;
-    leave.origin_y = slot_leave.pos.origin_y-slot_final_pos.pos.origin_y;
-    leave.origin_z = slot_leave.pos.origin_z-slot_final_pos.pos.origin_z;
-
     log_slot(slot_name);
     log_slot_modify(slot_name);
+
     manipulation_slot slt;
     slt.name           = slot_name;
     slt.group          = group_name;
-    slt.approach       = approach;
-    slt.leave          = leave;
+    slt.approach       = slot_approach;
+    slt.leave          = slot_leave;
     slt.location_      = slot_final_pos;
     slt.max_objects    = max_number;
     slt.frame          = base_frame;
@@ -2360,7 +2358,7 @@ bool QNode::add_slot(std::string slot_name, location slot_approach, location slo
     return true;
 }
 
-bool QNode::add_box(std::string box_name, location approach_position, location final_position, location leave_position)
+bool QNode::add_box(std::string box_name, position approach_position, location final_position, position leave_position)
 {
     if ( logging_model_box.rowCount()!=0 )
     {
@@ -2373,21 +2371,14 @@ bool QNode::add_box(std::string box_name, location approach_position, location f
         }
     }
 
-    position approach;
-    approach.origin_x = approach_position.pos.origin_x-final_position.pos.origin_x;
-    approach.origin_y = approach_position.pos.origin_y-final_position.pos.origin_y;
-    approach.origin_z = approach_position.pos.origin_z-final_position.pos.origin_z;
-    position leave;
-    leave.origin_x = leave_position.pos.origin_x-final_position.pos.origin_x;
-    leave.origin_y = leave_position.pos.origin_y-final_position.pos.origin_y;
-    leave.origin_z = leave_position.pos.origin_z-final_position.pos.origin_z;
     log_box(box_name);
     log_box_modify(box_name);
+
     box bx;
     bx.name      = box_name;
     bx.location_ = final_position;
-    bx.approach  = approach;
-    bx.leave     = leave;
+    bx.approach  = approach_position;
+    bx.leave     = leave_position;
     bx.frame     = base_frame;
     boxes.push_back(bx);
 
@@ -3049,7 +3040,20 @@ bool QNode::readObjectFromParam()
             object_.gripper_force.push_back( rosparam_utilities::toDouble(single_grasp["gripper_force"]) );
 
         }
-        objects.push_back( object_ );
+        bool presence = false;
+        for ( int j = 0; j < objects.size(); j++)
+        {
+            if ( !object_.type.compare(objects[j].type) )
+            {
+                presence = true;
+            }
+        }
+
+        if ( !presence )
+        {
+            objects.push_back( object_ );
+            objects_compare.push_back( object_ );
+        }
     }
 
     return true;

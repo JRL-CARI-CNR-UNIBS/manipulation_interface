@@ -186,12 +186,12 @@ private:
     std::vector<std::string> actual_tool_approach;
     std::vector<std::string> actual_tool_grasp;
     std::vector<std::string> actual_tool_leave;
-    location                 actual_slot_approach;
+    position                 actual_slot_approach;
     location                 actual_slot_final_position;
-    location                 actual_box_approach;
+    position                 actual_slot_leave;
+    position                 actual_box_approach;
     location                 actual_box_final;
-    location                 actual_slot_leave;
-    location                 actual_box_leave;
+    position                 actual_box_leave;
     object_type              actual_object_to_modify;
     double                   actual_gripper_force = 100;
     bool init_approach_object = false;
