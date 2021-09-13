@@ -167,25 +167,18 @@ bool QNode::init()
 
 void QNode::initial_add_components_in_manipulation()
 {
-    changed_boxes     = boxes;
-    changed_locations = go_to_locations;
-    changed_slots     = manipulation_slots;
-    changed_groups    = groups;
-
-    t_component = std::thread(&QNode::load_new_params_in_manipulation, this,
-                              changed_locations,
-                              changed_slots,
-                              changed_boxes,
-                              changed_groups,
-                              locations_to_remove,
-                              slots_to_remove,
-                              boxes_to_remove,
-                              groups_to_remove);
-
-    changed_locations.clear();
-    changed_slots.clear();
-    changed_boxes.clear();
-    changed_groups.clear();
+    for ( std::size_t i = 0; i < boxes.size(); i++ )
+    {
+      loadNewBox(boxes[i]);
+    }
+    for ( std::size_t i = 0; i < manipulation_slots.size(); i++ )
+    {
+      loadNewSlot(manipulation_slots[i]);
+    }
+    for ( std::size_t i = 0; i < go_to_locations.size(); i++ )
+    {
+      loadNewLocation(go_to_locations[i]);
+    }
 }
 
 void QNode::load_objects_in_manipulation()
@@ -1197,6 +1190,18 @@ void QNode::remove_location(int ind)
         }
     }
 
+    manipulation_msgs::RemoveLocations remove_location_srv;
+    if ( !go_to_locations[ind].name.empty() )
+    {
+      ROS_WARN("Locations da rimuovere: %s", go_to_locations[ind].name.c_str());
+      remove_location_srv.request.location_names.push_back(go_to_locations[ind].name);
+      if (remove_locations_client_.call(remove_location_srv))
+      {
+          ROS_ERROR("Error while calling remove locations service");
+      }
+
+    }
+
     go_to_locations.erase(go_to_locations.begin()+ind);
 }
 
@@ -1225,6 +1230,18 @@ void QNode::remove_slot(int ind)
         }
     }
 
+    manipulation_msgs::RemoveSlots remove_slots_srv;
+
+    if ( !manipulation_slots[ind].name.empty() )
+    {
+      ROS_WARN("Slot to remove: %s", manipulation_slots[ind].name.c_str());
+      remove_slots_srv.request.slots_names.push_back(manipulation_slots[ind].name);
+      if ( remove_slots_client_.call(remove_slots_srv) )
+      {
+        ROS_ERROR("Error while calling remove slots service");
+      }
+    }
+
     manipulation_slots.erase(manipulation_slots.begin()+ind);
 }
 
@@ -1236,6 +1253,17 @@ void QNode::remove_box(int ind)
         {
             changed_boxes.erase( changed_boxes.begin() + i );
         }
+    }
+
+    manipulation_msgs::RemoveBoxes remove_boxes_srv;
+    if ( !boxes[ind].name.empty() )
+    {
+      ROS_WARN("Box da rimuovere: %zu", boxes[ind].name.c_str());
+      remove_boxes_srv.request.box_names.push_back(boxes[ind].name);
+      if ( !remove_boxes_client_.call(remove_boxes_srv) )
+      {
+        ROS_ERROR("Error while calling remove boxes service");
+      }
     }
 
     boxes.erase(boxes.begin()+ind);
@@ -1261,15 +1289,21 @@ std::vector<int> QNode::remove_group(int ind)
     }
     for ( int i = indexes.size()-1; i >= 0; i--)
     {
-        for ( int j = 0; j < changed_slots.size(); j++ )
-        {
-            if ( !changed_slots[j].name.compare( manipulation_slots[indexes[i]].name ))
-            {
-                changed_slots.erase( changed_slots.begin()+j );
-            }
-        }
-        manipulation_slots.erase(manipulation_slots.begin()+indexes[i]);
+        remove_slot(indexes[i]);
     }
+
+    manipulation_msgs::RemoveSlotsGroup remove_groups_srv;
+
+    if ( !groups.at(ind).empty() )
+    {
+      ROS_WARN("Group to remove: %s", groups.at(ind).c_str());
+      remove_groups_srv.request.slots_group_names.push_back(groups.at(ind));
+      if ( !remove_slots_group_client_.call(remove_groups_srv))
+      {
+        ROS_ERROR("Error while calling remove groups service");
+      }
+    }
+
     groups.erase(groups.begin()+ind);
     return indexes;
 }
@@ -1998,240 +2032,401 @@ bool QNode::save_components()
 
     write_param(1);
 
-    if ( tc_finito )
-    {
-        t_component.join();
-        tc_finito = false;
-    }
+//    if ( tc_finito )
+//    {
+//        t_component.join();
+//        tc_finito = false;
+//    }
 
-    if ( t_component.joinable() )
-    {
-        ROS_ERROR("The previous thread did not finish");
-        return false;
-    }
-    else
-    {
+//    if ( t_component.joinable() )
+//    {
+//        ROS_ERROR("The previous thread did not finish");
+//        return false;
+//    }
+//    else
+//    {
 
-        t_component = std::thread(&QNode::load_new_params_in_manipulation, this,
-                                  changed_locations,
-                                  changed_slots,
-                                  changed_boxes,
-                                  changed_groups,
-                                  locations_to_remove,
-                                  slots_to_remove,
-                                  boxes_to_remove,
-                                  groups_to_remove);
+//        t_component = std::thread(&QNode::load_new_params_in_manipulation, this,
+//                                  changed_locations,
+//                                  changed_slots,
+//                                  changed_boxes,
+//                                  changed_groups,
+//                                  locations_to_remove,
+//                                  slots_to_remove,
+//                                  boxes_to_remove,
+//                                  groups_to_remove);
 
-        changed_locations.clear();
-        changed_slots.clear();
-        changed_boxes.clear();
-        changed_groups.clear();
-        locations_to_remove.clear();
-        slots_to_remove.clear();
-        boxes_to_remove.clear();
-        groups_to_remove.clear();
-    }
+//        changed_locations.clear();
+//        changed_slots.clear();
+//        changed_boxes.clear();
+//        changed_groups.clear();
+//        locations_to_remove.clear();
+//        slots_to_remove.clear();
+//        boxes_to_remove.clear();
+//        groups_to_remove.clear();
+//    }
 
     return true;
 }
 
-void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    changed_locations_,
-                                            std::vector<manipulation_slot> changed_slots_,
-                                            std::vector<box>               changed_boxes_,
-                                            std::vector<std::string>       changed_groups_,
-                                            std::vector<go_to_location>    locations_to_remove_,
-                                            std::vector<manipulation_slot> slots_to_remove_,
-                                            std::vector<box>               boxes_to_remove_,
-                                            std::vector<std::string>       groups_to_remove_)
+bool QNode::loadNewLocation(const go_to_location& changed_location_)
 {
-    ROS_WARN("Inizio caricamento componenti nel manipulator");
-
-    manipulation_msgs::RemoveLocations remove_location_srv;
-    ROS_WARN("Locations da rimuovere: %zu", locations_to_remove_.size());
-    for ( int i = 0; i < locations_to_remove_.size(); i++ )
-    {
-        remove_location_srv.request.location_names.push_back(locations_to_remove_[i].name);
-    }
-    if ( remove_location_srv.request.location_names.size() != 0 )
-    {
-        remove_locations_client_.call(remove_location_srv);
-    }
-
-    manipulation_msgs::RemoveSlots remove_slots_srv;
-    ROS_WARN("Slot da rimuovere: %zu", slots_to_remove_.size());
-    for ( int i = 0; i < slots_to_remove_.size(); i++ )
-    {
-        remove_slots_srv.request.slots_names.push_back(slots_to_remove_[i].name);
-    }
-    if ( remove_slots_srv.request.slots_names.size() != 0 )
-    {
-        remove_slots_client_.call(remove_slots_srv);
-    }
-
-    manipulation_msgs::RemoveBoxes remove_boxes_srv;
-    ROS_WARN("Box da rimuovere: %zu", boxes_to_remove_.size());
-    for ( int i = 0; i < boxes_to_remove_.size(); i++ )
-    {
-        remove_boxes_srv.request.box_names.push_back(boxes_to_remove_[i].name);
-    }
-    if ( remove_boxes_srv.request.box_names.size() != 0 )
-    {
-        remove_boxes_client_.call(remove_boxes_srv);
-    }
-
-    manipulation_msgs::RemoveSlotsGroup remove_groups_srv;
-    ROS_WARN("Gruppi da rimuovere: %zu", groups_to_remove_.size());
-    for ( int i = 0; i < groups_to_remove_.size(); i++ )
-    {
-        remove_groups_srv.request.slots_group_names.push_back(groups_to_remove_.at(i));
-    }
-    if ( remove_groups_srv.request.slots_group_names.size() != 0 )
-    {
-        remove_slots_group_client_.call(remove_groups_srv);
-    }
-
+  if ( !changed_location_.name.empty() )
+  {
     manipulation_msgs::AddLocations add_locations_srv;
-    ROS_WARN("Locations da aggiungere: %zu", changed_locations_.size());
-    for ( int i = 0; i < changed_locations_.size(); i++ )
-    {
-        manipulation_msgs::Location location_;
-        location_.name               = changed_locations_[i].name;
-        location_.frame              = changed_locations_[i].frame;
-        location_.pose.position.x    = changed_locations_[i].location_.pos.origin_x;
-        location_.pose.position.y    = changed_locations_[i].location_.pos.origin_y;
-        location_.pose.position.z    = changed_locations_[i].location_.pos.origin_z;
-        location_.pose.orientation.w = changed_locations_[i].location_.quat.rotation_w;
-        location_.pose.orientation.x = changed_locations_[i].location_.quat.rotation_x;
-        location_.pose.orientation.y = changed_locations_[i].location_.quat.rotation_y;
-        location_.pose.orientation.z = changed_locations_[i].location_.quat.rotation_z;
+    ROS_WARN("Locations da aggiungere: %s", changed_location_.name.c_str());
+    manipulation_msgs::Location location_;
+    location_.name               = changed_location_.name;
+    location_.frame              = changed_location_.frame;
+    location_.pose.position.x    = changed_location_.location_.pos.origin_x;
+    location_.pose.position.y    = changed_location_.location_.pos.origin_y;
+    location_.pose.position.z    = changed_location_.location_.pos.origin_z;
+    location_.pose.orientation.w = changed_location_.location_.quat.rotation_w;
+    location_.pose.orientation.x = changed_location_.location_.quat.rotation_x;
+    location_.pose.orientation.y = changed_location_.location_.quat.rotation_y;
+    location_.pose.orientation.z = changed_location_.location_.quat.rotation_z;
 
-        add_locations_srv.request.locations.push_back(location_);
-    }
-    if ( add_locations_srv.request.locations.size() != 0 )
+    add_locations_srv.request.locations.push_back(location_);
+
+    if (!add_locations_client_.call(add_locations_srv))
     {
-        add_locations_client_.call(add_locations_srv);
+      ROS_ERROR("Error while calling add locations service.");
     }
 
+    if ( add_locations_srv.response.results == manipulation_msgs::AddLocations::Response::Error )
+    {
+      ROS_WARN("Can't add the location to location manager");
+      return false;
+    }
+    else
+    {
+      ROS_INFO("Location added to location manager");
+    }
+  }
+  return true;
+}
+
+bool QNode::loadNewBox( const box &changed_box_)
+{
+  if ( !changed_box_.name.empty() )
+  {
+    manipulation_msgs::AddBoxes add_boxes_srv;
+    ROS_WARN("Box da aggiungere: %s", changed_box_.name.c_str());
+    manipulation_msgs::Box box_;
+    box_.name = changed_box_.name;
+    box_.location.name = box_.name;
+    box_.location.frame = changed_box_.frame;
+    box_.location.name                              = box_.name;
+    box_.location.frame                             = changed_box_.frame;
+    box_.location.pose.position.x                   = changed_box_.location_.pos.origin_x;
+    box_.location.pose.position.y                   = changed_box_.location_.pos.origin_y;
+    box_.location.pose.position.z                   = changed_box_.location_.pos.origin_z;
+    box_.location.pose.orientation.w                = changed_box_.location_.quat.rotation_w;
+    box_.location.pose.orientation.x                = changed_box_.location_.quat.rotation_x;
+    box_.location.pose.orientation.y                = changed_box_.location_.quat.rotation_y;
+    box_.location.pose.orientation.z                = changed_box_.location_.quat.rotation_z;
+    box_.location.approach_relative_pose.position.x = changed_box_.approach.origin_x;
+    box_.location.approach_relative_pose.position.y = changed_box_.approach.origin_y;
+    box_.location.approach_relative_pose.position.z = changed_box_.approach.origin_z;
+    box_.location.leave_relative_pose.position.x    = changed_box_.leave.origin_x;
+    box_.location.leave_relative_pose.position.y    = changed_box_.leave.origin_y;
+    box_.location.leave_relative_pose.position.z    = changed_box_.leave.origin_z;
+
+    add_boxes_srv.request.add_boxes.push_back( box_ );
+
+    if (!add_boxes_client_.call(add_boxes_srv))
+    {
+      ROS_ERROR("Error while calling add boxes service.");
+    }
+
+    if (add_boxes_srv.response.results == manipulation_msgs::AddBoxes::Response::Error)
+    {
+      ROS_WARN("Can't add the box to location manager");
+      return false;
+    }
+    else
+    {
+      ROS_INFO("Box added to location manager");
+    }
+
+  }
+  return true;
+}
+
+bool QNode::loadNewSlot( const manipulation_slot &changed_slot_)
+{
+  if ( !changed_slot_.group.empty() )
+  {
+    ROS_WARN("Group to add: %s", changed_slot_.group.c_str());
     manipulation_msgs::AddSlotsGroup add_groups_srv;
-    ROS_WARN("Gruppi da aggiungere: %zu", changed_groups_.size());
-    for ( int i = 0; i < changed_groups_.size(); i++ )
+    manipulation_msgs::SlotsGroup group_srv;
+    group_srv.name = changed_slot_.group;
+    add_groups_srv.request.add_slots_groups.push_back(group_srv);
+    if ( add_slots_group_client_.call(add_groups_srv) )
     {
-        manipulation_msgs::SlotsGroup group_srv;
-        group_srv.name = changed_groups_.at(i);
-
-        add_groups_srv.request.add_slots_groups.push_back(group_srv);
+      ROS_ERROR("Error while calling add groups service");
     }
-    if ( add_groups_srv.request.add_slots_groups.size() != 0 )
+    if ( add_groups_srv.response.results == manipulation_msgs::AddSlotsGroup::Response::Error )
     {
-        add_slots_group_client_.call(add_groups_srv);
+      ROS_WARN("Can't add the group to location manager");
+      return false;
     }
-
-    ROS_WARN("Slot da aggiungere: %zu", changed_slots_.size());
-    for ( int i = 0; i < changed_slots_.size(); i++ )
+    else
     {
-        manipulation_msgs::AddSlots add_slots_srv;
-        std::vector<manipulation_msgs::Slot> slot_vct;
-        manipulation_msgs::Slot slot_;
-        slot_.name                                       = changed_slots_[i].name;
-        slot_.slot_size                                  = changed_slots_[i].max_objects;
-        slot_.location.name                              = slot_.name;
-        slot_.location.frame                             = changed_slots_[i].frame;
-        slot_.location.pose.position.x                   = changed_slots_[i].location_.pos.origin_x;
-        slot_.location.pose.position.y                   = changed_slots_[i].location_.pos.origin_y;
-        slot_.location.pose.position.z                   = changed_slots_[i].location_.pos.origin_z;
-        slot_.location.pose.orientation.w                = changed_slots_[i].location_.quat.rotation_w;
-        slot_.location.pose.orientation.x                = changed_slots_[i].location_.quat.rotation_x;
-        slot_.location.pose.orientation.y                = changed_slots_[i].location_.quat.rotation_y;
-        slot_.location.pose.orientation.z                = changed_slots_[i].location_.quat.rotation_z;
-        slot_.location.approach_relative_pose.position.x = changed_slots_[i].approach.origin_x;
-        slot_.location.approach_relative_pose.position.y = changed_slots_[i].approach.origin_y;
-        slot_.location.approach_relative_pose.position.z = changed_slots_[i].approach.origin_z;
-        slot_.location.leave_relative_pose.position.x    = changed_slots_[i].leave.origin_x;
-        slot_.location.leave_relative_pose.position.y    = changed_slots_[i].leave.origin_y;
-        slot_.location.leave_relative_pose.position.z    = changed_slots_[i].leave.origin_z;
-
-        slot_vct.push_back(slot_);
-
-        add_slots_srv.request.slots_group_name = changed_slots_[i].group;
-        add_slots_srv.request.add_slots = slot_vct;
-
-        if (!add_slots_client_.call(add_slots_srv))
-        {
-          ROS_WARN("Can't add slot to the location manager.");
-        }
-
+      ROS_INFO("Added group");
     }
-//    for ( int i = 0; i < changed_groups.size(); i++ )
+
+  }
+  if ( !changed_slot_.name.empty() )
+  {
+    ROS_WARN("Slot to add: %s", changed_slot_.name.c_str() );
+    manipulation_msgs::AddSlots add_slots_srv;
+    std::vector<manipulation_msgs::Slot> slot_vct;
+    manipulation_msgs::Slot slot_;
+    slot_.name                                       = changed_slot_.name;
+    slot_.slot_size                                  = changed_slot_.max_objects;
+    slot_.location.name                              = slot_.name;
+    slot_.location.frame                             = changed_slot_.frame;
+    slot_.location.pose.position.x                   = changed_slot_.location_.pos.origin_x;
+    slot_.location.pose.position.y                   = changed_slot_.location_.pos.origin_y;
+    slot_.location.pose.position.z                   = changed_slot_.location_.pos.origin_z;
+    slot_.location.pose.orientation.w                = changed_slot_.location_.quat.rotation_w;
+    slot_.location.pose.orientation.x                = changed_slot_.location_.quat.rotation_x;
+    slot_.location.pose.orientation.y                = changed_slot_.location_.quat.rotation_y;
+    slot_.location.pose.orientation.z                = changed_slot_.location_.quat.rotation_z;
+    slot_.location.approach_relative_pose.position.x = changed_slot_.approach.origin_x;
+    slot_.location.approach_relative_pose.position.y = changed_slot_.approach.origin_y;
+    slot_.location.approach_relative_pose.position.z = changed_slot_.approach.origin_z;
+    slot_.location.leave_relative_pose.position.x    = changed_slot_.leave.origin_x;
+    slot_.location.leave_relative_pose.position.y    = changed_slot_.leave.origin_y;
+    slot_.location.leave_relative_pose.position.z    = changed_slot_.leave.origin_z;
+
+    slot_vct.push_back(slot_);
+
+    add_slots_srv.request.slots_group_name = changed_slot_.group;
+    add_slots_srv.request.add_slots = slot_vct;
+
+    if (!add_slots_client_.call(add_slots_srv))
+    {
+      ROS_ERROR("Error while calling add slots service.");
+      return false;
+    }
+
+    if (add_slots_srv.response.results == manipulation_msgs::AddSlots::Response::Error)
+    {
+      ROS_WARN("Can't add the slot to location manager");
+      return false;
+    }
+  }
+  return true;
+}
+
+
+
+//void QNode::load_new_params_in_manipulation(std::vector<go_to_location>    changed_locations_,
+//                                            std::vector<manipulation_slot> changed_slots_,
+//                                            std::vector<box>               changed_boxes_,
+//                                            std::vector<std::string>       changed_groups_,
+//                                            std::vector<go_to_location>    locations_to_remove_,
+//                                            std::vector<manipulation_slot> slots_to_remove_,
+//                                            std::vector<box>               boxes_to_remove_,
+//                                            std::vector<std::string>       groups_to_remove_)
+//{
+//    ROS_WARN("Inizio caricamento componenti nel manipulator");
+
+//    manipulation_msgs::RemoveLocations remove_location_srv;
+//    ROS_WARN("Locations da rimuovere: %zu", locations_to_remove_.size());
+//    for ( int i = 0; i < locations_to_remove_.size(); i++ )
 //    {
-//        for ( int j = 0; j < changed_slots_.size(); j++ )
-//        {
-//            if ( !changed_slots_[j].group.compare( changed_groups.at(i) ) )
-//            {
-//                manipulation_msgs::Slot slot_;
-//                slot_.name                                       = changed_slots_[j].name;
-//                slot_.slot_size                                  = changed_slots_[j].max_objects;
-//                slot_.location.name                              = slot_.name;
-//                slot_.location.frame                             = changed_slots_[j].frame;
-//                slot_.location.pose.position.x                   = changed_slots_[j].location_.pos.origin_x;
-//                slot_.location.pose.position.y                   = changed_slots_[j].location_.pos.origin_y;
-//                slot_.location.pose.position.z                   = changed_slots_[j].location_.pos.origin_z;
-//                slot_.location.pose.orientation.w                = changed_slots_[j].location_.quat.rotation_w;
-//                slot_.location.pose.orientation.x                = changed_slots_[j].location_.quat.rotation_x;
-//                slot_.location.pose.orientation.y                = changed_slots_[j].location_.quat.rotation_y;
-//                slot_.location.pose.orientation.z                = changed_slots_[j].location_.quat.rotation_z;
-//                slot_.location.approach_relative_pose.position.x = changed_slots_[j].approach.origin_x;
-//                slot_.location.approach_relative_pose.position.y = changed_slots_[j].approach.origin_y;
-//                slot_.location.approach_relative_pose.position.z = changed_slots_[j].approach.origin_z;
-//                slot_.location.leave_relative_pose.position.x    = changed_slots_[j].leave.origin_x;
-//                slot_.location.leave_relative_pose.position.y    = changed_slots_[j].leave.origin_y;
-//                slot_.location.leave_relative_pose.position.z    = changed_slots_[j].leave.origin_z;
-
-//                add_slots_srv.request.add_slots.push_back( slot_ );
-//            }
-//        }
-//        add_slots_srv.request.slots_group_name = changed_groups_.at(i);
-
-//        if ( add_slots_srv.request.add_slots.size() != 0 )
-//        {
-//            add_slots_client_.call( add_slots_srv );
-//        }
+//        remove_location_srv.request.location_names.push_back(locations_to_remove_[i].name);
+//    }
+//    if ( remove_location_srv.request.location_names.size() != 0 )
+//    {
+//        remove_locations_client_.call(remove_location_srv);
 //    }
 
-    manipulation_msgs::AddBoxes add_boxes_srv;
-    ROS_WARN("Box da aggiungere: %zu", changed_boxes_.size());
-    for ( int i = 0; i < changed_boxes_.size(); i++ )
-    {
-        manipulation_msgs::Box box_;
-        box_.name = changed_boxes_[i].name;
-        box_.location.name = box_.name;
-        box_.location.frame = changed_boxes_[i].frame;
-        box_.location.name                              = box_.name;
-        box_.location.frame                             = changed_boxes_[i].frame;
-        box_.location.pose.position.x                   = changed_boxes_[i].location_.pos.origin_x;
-        box_.location.pose.position.y                   = changed_boxes_[i].location_.pos.origin_y;
-        box_.location.pose.position.z                   = changed_boxes_[i].location_.pos.origin_z;
-        box_.location.pose.orientation.w                = changed_boxes_[i].location_.quat.rotation_w;
-        box_.location.pose.orientation.x                = changed_boxes_[i].location_.quat.rotation_x;
-        box_.location.pose.orientation.y                = changed_boxes_[i].location_.quat.rotation_y;
-        box_.location.pose.orientation.z                = changed_boxes_[i].location_.quat.rotation_z;
-        box_.location.approach_relative_pose.position.x = changed_boxes_[i].approach.origin_x;
-        box_.location.approach_relative_pose.position.y = changed_boxes_[i].approach.origin_y;
-        box_.location.approach_relative_pose.position.z = changed_boxes_[i].approach.origin_z;
-        box_.location.leave_relative_pose.position.x    = changed_boxes_[i].leave.origin_x;
-        box_.location.leave_relative_pose.position.y    = changed_boxes_[i].leave.origin_y;
-        box_.location.leave_relative_pose.position.z    = changed_boxes_[i].leave.origin_z;
+//    manipulation_msgs::RemoveSlots remove_slots_srv;
+//    ROS_WARN("Slot da rimuovere: %zu", slots_to_remove_.size());
+//    for ( int i = 0; i < slots_to_remove_.size(); i++ )
+//    {
+//        remove_slots_srv.request.slots_names.push_back(slots_to_remove_[i].name);
+//    }
+//    if ( remove_slots_srv.request.slots_names.size() != 0 )
+//    {
+//        remove_slots_client_.call(remove_slots_srv);
+//    }
 
-        add_boxes_srv.request.add_boxes.push_back( box_ );
-    }
-    if ( add_boxes_srv.request.add_boxes.size() != 0 )
-    {
-        add_boxes_client_.call(add_boxes_srv);
-    }
+//    manipulation_msgs::RemoveBoxes remove_boxes_srv;
+//    ROS_WARN("Box da rimuovere: %zu", boxes_to_remove_.size());
+//    for ( int i = 0; i < boxes_to_remove_.size(); i++ )
+//    {
+//        remove_boxes_srv.request.box_names.push_back(boxes_to_remove_[i].name);
+//    }
+//    if ( remove_boxes_srv.request.box_names.size() != 0 )
+//    {
+//        remove_boxes_client_.call(remove_boxes_srv);
+//    }
 
-    tc_finito = true;
+//    manipulation_msgs::RemoveSlotsGroup remove_groups_srv;
+//    ROS_WARN("Gruppi da rimuovere: %zu", groups_to_remove_.size());
+//    for ( int i = 0; i < groups_to_remove_.size(); i++ )
+//    {
+//        remove_groups_srv.request.slots_group_names.push_back(groups_to_remove_.at(i));
+//    }
+//    if ( remove_groups_srv.request.slots_group_names.size() != 0 )
+//    {
+//        remove_slots_group_client_.call(remove_groups_srv);
+//    }
 
-    ROS_WARN("Finito caricamento dei componenti sul manipulator");
-}
+//    manipulation_msgs::AddLocations add_locations_srv;
+//    ROS_WARN("Locations da aggiungere: %zu", changed_locations_.size());
+//    for ( int i = 0; i < changed_locations_.size(); i++ )
+//    {
+//        manipulation_msgs::Location location_;
+//        location_.name               = changed_locations_[i].name;
+//        location_.frame              = changed_locations_[i].frame;
+//        location_.pose.position.x    = changed_locations_[i].location_.pos.origin_x;
+//        location_.pose.position.y    = changed_locations_[i].location_.pos.origin_y;
+//        location_.pose.position.z    = changed_locations_[i].location_.pos.origin_z;
+//        location_.pose.orientation.w = changed_locations_[i].location_.quat.rotation_w;
+//        location_.pose.orientation.x = changed_locations_[i].location_.quat.rotation_x;
+//        location_.pose.orientation.y = changed_locations_[i].location_.quat.rotation_y;
+//        location_.pose.orientation.z = changed_locations_[i].location_.quat.rotation_z;
+
+//        add_locations_srv.request.locations.push_back(location_);
+//    }
+//    if ( add_locations_srv.request.locations.size() != 0 )
+//    {
+//        add_locations_client_.call(add_locations_srv);
+//    }
+
+//    manipulation_msgs::AddSlotsGroup add_groups_srv;
+//    ROS_WARN("Gruppi da aggiungere: %zu", changed_groups_.size());
+//    for ( int i = 0; i < changed_groups_.size(); i++ )
+//    {
+//        manipulation_msgs::SlotsGroup group_srv;
+//        group_srv.name = changed_groups_.at(i);
+
+//        add_groups_srv.request.add_slots_groups.push_back(group_srv);
+//    }
+//    if ( add_groups_srv.request.add_slots_groups.size() != 0 )
+//    {
+//        add_slots_group_client_.call(add_groups_srv);
+//    }
+
+//    ROS_WARN("Slot da aggiungere: %zu", changed_slots_.size());
+//    for ( int i = 0; i < changed_slots_.size(); i++ )
+//    {
+//        manipulation_msgs::AddSlots add_slots_srv;
+//        std::vector<manipulation_msgs::Slot> slot_vct;
+//        manipulation_msgs::Slot slot_;
+//        slot_.name                                       = changed_slots_[i].name;
+//        slot_.slot_size                                  = changed_slots_[i].max_objects;
+//        slot_.location.name                              = slot_.name;
+//        slot_.location.frame                             = changed_slots_[i].frame;
+//        slot_.location.pose.position.x                   = changed_slots_[i].location_.pos.origin_x;
+//        slot_.location.pose.position.y                   = changed_slots_[i].location_.pos.origin_y;
+//        slot_.location.pose.position.z                   = changed_slots_[i].location_.pos.origin_z;
+//        slot_.location.pose.orientation.w                = changed_slots_[i].location_.quat.rotation_w;
+//        slot_.location.pose.orientation.x                = changed_slots_[i].location_.quat.rotation_x;
+//        slot_.location.pose.orientation.y                = changed_slots_[i].location_.quat.rotation_y;
+//        slot_.location.pose.orientation.z                = changed_slots_[i].location_.quat.rotation_z;
+//        slot_.location.approach_relative_pose.position.x = changed_slots_[i].approach.origin_x;
+//        slot_.location.approach_relative_pose.position.y = changed_slots_[i].approach.origin_y;
+//        slot_.location.approach_relative_pose.position.z = changed_slots_[i].approach.origin_z;
+//        slot_.location.leave_relative_pose.position.x    = changed_slots_[i].leave.origin_x;
+//        slot_.location.leave_relative_pose.position.y    = changed_slots_[i].leave.origin_y;
+//        slot_.location.leave_relative_pose.position.z    = changed_slots_[i].leave.origin_z;
+
+//        slot_vct.push_back(slot_);
+
+//        add_slots_srv.request.slots_group_name = changed_slots_[i].group;
+//        add_slots_srv.request.add_slots = slot_vct;
+
+//        if (!add_slots_client_.call(add_slots_srv))
+//        {
+//          ROS_WARN("Can't add slot to the location manager.");
+//        }
+
+//        if (add_slots_srv.response.results == manipulation_msgs::AddBoxes::Response::Error)
+//        {
+
+//        }
+
+
+//    }
+////    for ( int i = 0; i < changed_groups.size(); i++ )
+////    {
+////        for ( int j = 0; j < changed_slots_.size(); j++ )
+////        {
+////            if ( !changed_slots_[j].group.compare( changed_groups.at(i) ) )
+////            {
+////                manipulation_msgs::Slot slot_;
+////                slot_.name                                       = changed_slots_[j].name;
+////                slot_.slot_size                                  = changed_slots_[j].max_objects;
+////                slot_.location.name                              = slot_.name;
+////                slot_.location.frame                             = changed_slots_[j].frame;
+////                slot_.location.pose.position.x                   = changed_slots_[j].location_.pos.origin_x;
+////                slot_.location.pose.position.y                   = changed_slots_[j].location_.pos.origin_y;
+////                slot_.location.pose.position.z                   = changed_slots_[j].location_.pos.origin_z;
+////                slot_.location.pose.orientation.w                = changed_slots_[j].location_.quat.rotation_w;
+////                slot_.location.pose.orientation.x                = changed_slots_[j].location_.quat.rotation_x;
+////                slot_.location.pose.orientation.y                = changed_slots_[j].location_.quat.rotation_y;
+////                slot_.location.pose.orientation.z                = changed_slots_[j].location_.quat.rotation_z;
+////                slot_.location.approach_relative_pose.position.x = changed_slots_[j].approach.origin_x;
+////                slot_.location.approach_relative_pose.position.y = changed_slots_[j].approach.origin_y;
+////                slot_.location.approach_relative_pose.position.z = changed_slots_[j].approach.origin_z;
+////                slot_.location.leave_relative_pose.position.x    = changed_slots_[j].leave.origin_x;
+////                slot_.location.leave_relative_pose.position.y    = changed_slots_[j].leave.origin_y;
+////                slot_.location.leave_relative_pose.position.z    = changed_slots_[j].leave.origin_z;
+
+////                add_slots_srv.request.add_slots.push_back( slot_ );
+////            }
+////        }
+////        add_slots_srv.request.slots_group_name = changed_groups_.at(i);
+
+////        if ( add_slots_srv.request.add_slots.size() != 0 )
+////        {
+////            add_slots_client_.call( add_slots_srv );
+////        }
+////    }
+
+//    manipulation_msgs::AddBoxes add_boxes_srv;
+//    ROS_WARN("Box da aggiungere: %zu", changed_boxes_.size());
+//    for ( int i = 0; i < changed_boxes_.size(); i++ )
+//    {
+//        manipulation_msgs::Box box_;
+//        box_.name = changed_boxes_[i].name;
+//        box_.location.name = box_.name;
+//        box_.location.frame = changed_boxes_[i].frame;
+//        box_.location.name                              = box_.name;
+//        box_.location.frame                             = changed_boxes_[i].frame;
+//        box_.location.pose.position.x                   = changed_boxes_[i].location_.pos.origin_x;
+//        box_.location.pose.position.y                   = changed_boxes_[i].location_.pos.origin_y;
+//        box_.location.pose.position.z                   = changed_boxes_[i].location_.pos.origin_z;
+//        box_.location.pose.orientation.w                = changed_boxes_[i].location_.quat.rotation_w;
+//        box_.location.pose.orientation.x                = changed_boxes_[i].location_.quat.rotation_x;
+//        box_.location.pose.orientation.y                = changed_boxes_[i].location_.quat.rotation_y;
+//        box_.location.pose.orientation.z                = changed_boxes_[i].location_.quat.rotation_z;
+//        box_.location.approach_relative_pose.position.x = changed_boxes_[i].approach.origin_x;
+//        box_.location.approach_relative_pose.position.y = changed_boxes_[i].approach.origin_y;
+//        box_.location.approach_relative_pose.position.z = changed_boxes_[i].approach.origin_z;
+//        box_.location.leave_relative_pose.position.x    = changed_boxes_[i].leave.origin_x;
+//        box_.location.leave_relative_pose.position.y    = changed_boxes_[i].leave.origin_y;
+//        box_.location.leave_relative_pose.position.z    = changed_boxes_[i].leave.origin_z;
+
+//        add_boxes_srv.request.add_boxes.push_back( box_ );
+//    }
+//    if ( add_boxes_srv.request.add_boxes.size() != 0 )
+//    {
+//        add_boxes_client_.call(add_boxes_srv);
+//    }
+
+//    tc_finito = true;
+
+//    ROS_WARN("Finito caricamento dei componenti sul manipulator");
+//}
+
 
 bool QNode::save_actions()
 {

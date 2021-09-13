@@ -546,6 +546,24 @@ void MainWindow::on_button_add_location_clicked(bool check)
     std::string location_name = ui.edit_location_name->text().toStdString();
     if ( !location_name.empty() )
     {
+      location loc = qnode.return_position(qnode.base_frame, qnode.target_frame);
+      go_to_location gt;
+      gt.name      = location_name;
+      gt.location_ = loc;
+      gt.frame     = qnode.base_frame;
+      if ( !qnode.loadNewLocation( gt ) )
+      {
+        QMessageBox msgBox;
+        msgBox.setText("Can't add the locatin to location manager");
+        msgBox.exec();
+        return;
+      }
+      else
+      {
+        QMessageBox msgBox;
+        msgBox.setText("Location added to location manager");
+        msgBox.exec();
+      }
         if ( !qnode.add_location(location_name) )
         {
             QMessageBox msgBox;
@@ -1162,7 +1180,29 @@ void MainWindow::on_button_add_slot_clicked(bool check)
                             {
                                 actual_slot_leave = actual_slot_approach;
                             }
-
+                            manipulation_slot slt;
+                            slt.name           = slot_name;
+                            slt.group          = group_name;
+                            slt.approach       = actual_slot_approach;
+                            slt.leave          = actual_slot_leave;
+                            slt.location_      = actual_slot_final_position;
+                            slt.max_objects    = num_max_obj;
+                            slt.frame          = qnode.base_frame;
+                            if ( !qnode.loadNewSlot( slt) )
+                            {
+                              QMessageBox msgBox;
+                              msgBox.setText("Can't add the slot to location manager");
+                              msgBox.exec();
+                              init_slot_approach = false;
+                              init_slot_final = false;
+                              ui.button_add_approach_slot->setEnabled(true);
+                              ui.button_remove_approach_slot->setEnabled(false);
+                              ui.button_add_final_position_slot->setEnabled(true);
+                              ui.button_remove_final_position_slot->setEnabled(false);
+                              ui.button_add_leave_position_slot->setEnabled(true);
+                              ui.button_remove_leave_position_slot->setEnabled(false);
+                              return;
+                            }
                             if( !qnode.add_slot(slot_name, actual_slot_approach, actual_slot_final_position, actual_slot_leave, group_name, num_max_obj ) )
                             {
                                 QMessageBox msgBox;
@@ -1249,7 +1289,27 @@ void MainWindow::on_button_add_box_clicked(bool check)
                 {
                     actual_box_leave = actual_box_approach;
                 }
-
+                box bx;
+                bx.name      = box_name;
+                bx.location_ = actual_box_final;
+                bx.approach  = actual_box_approach;
+                bx.leave     = actual_box_leave;
+                bx.frame     = qnode.base_frame;
+                if ( !qnode.loadNewBox( bx ) )
+                {
+                  QMessageBox msgBox;
+                  msgBox.setText("Can't add the box to location manager");
+                  msgBox.exec();
+                  init_box_approach = false;
+                  init_box_final = false;
+                  ui.button_add_approach_box->setEnabled(true);
+                  ui.button_remove_approach_box->setEnabled(false);
+                  ui.button_add_final_box->setEnabled(true);
+                  ui.button_remove_final_box->setEnabled(false);
+                  ui.button_add_leave_position_box->setEnabled(true);
+                  ui.button_remove_leave_position_box->setEnabled(false);
+                  return;
+                }
                 if( !qnode.add_box( box_name, actual_box_approach, actual_box_final, actual_box_leave ) )
                 {
                     ROS_ERROR("box just set");
@@ -1269,7 +1329,6 @@ void MainWindow::on_button_add_box_clicked(bool check)
                     ui.button_remove_final_box->setEnabled(false);
                     ui.button_add_leave_position_box->setEnabled(true);
                     ui.button_remove_leave_position_box->setEnabled(false);
-
                 }
             }
             else

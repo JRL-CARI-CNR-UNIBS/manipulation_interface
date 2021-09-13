@@ -204,14 +204,17 @@ public:
 
     void load_initial_param_in_manipulator();
     void load_objects_in_manipulation();
-    void load_new_params_in_manipulation(std::vector<go_to_location> changed_locations_,
-                                         std::vector<manipulation_slot> changed_slots_,
-                                         std::vector<box> changed_boxes_,
-                                         std::vector<std::string> changed_groups_,
-                                         std::vector<go_to_location> locations_to_remove_,
-                                         std::vector<manipulation_slot> slots_to_remove_,
-                                         std::vector<box> boxes_to_remove_,
-                                         std::vector<std::string> groups_to_remove_);
+    bool loadNewLocation(const go_to_location &changed_location_);
+    bool loadNewBox(const box &changed_box_);
+    bool loadNewSlot(const manipulation_slot &changed_slot_);
+    //    void load_new_params_in_manipulation(std::vector<go_to_location> changed_locations_,
+//                                         std::vector<manipulation_slot> changed_slots_,
+//                                         std::vector<box> changed_boxes_,
+//                                         std::vector<std::string> changed_groups_,
+//                                         std::vector<go_to_location> locations_to_remove_,
+//                                         std::vector<manipulation_slot> slots_to_remove_,
+//                                         std::vector<box> boxes_to_remove_,
+//                                         std::vector<std::string> groups_to_remove_);
 
     location          return_position(std::string base_frame, std::string target_frame);
     go_to_action      return_go_to_info         (int ind);
