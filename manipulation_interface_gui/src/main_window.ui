@@ -59,7 +59,7 @@
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
            <item row="5" column="6">
-            <widget class="QPushButton" name="button_remove_slot">
+            <widget class="QPushButton" name="buttonRemoveSlot">
              <property name="palette">
               <palette>
                <active>
@@ -502,10 +502,10 @@
             </widget>
            </item>
            <item row="4" column="7">
-            <widget class="QListView" name="group_list"/>
+            <widget class="QListView" name="groupList"/>
            </item>
            <item row="4" column="1">
-            <widget class="QListView" name="object_list"/>
+            <widget class="QListView" name="objectList"/>
            </item>
            <item row="0" column="0">
             <widget class="QLabel" name="label_18">
@@ -522,7 +522,7 @@
             </widget>
            </item>
            <item row="4" column="2">
-            <widget class="QListView" name="box_list"/>
+            <widget class="QListView" name="boxList"/>
            </item>
            <item row="2" column="1">
             <widget class="QLabel" name="label_6">
@@ -532,7 +532,7 @@
             </widget>
            </item>
            <item row="5" column="7">
-            <widget class="QPushButton" name="button_remove_group">
+            <widget class="QPushButton" name="buttonRemoveGroup">
              <property name="palette">
               <palette>
                <active>
@@ -954,7 +954,7 @@
             </widget>
            </item>
            <item row="5" column="0">
-            <widget class="QPushButton" name="button_remove_location">
+            <widget class="QPushButton" name="buttonRemoveLocation">
              <property name="palette">
               <palette>
                <active>
@@ -1376,7 +1376,7 @@
             </widget>
            </item>
            <item row="4" column="0">
-            <widget class="QListView" name="locations_list">
+            <widget class="QListView" name="locationsList">
              <property name="font">
               <font>
                <pointsize>16</pointsize>
@@ -1385,7 +1385,7 @@
             </widget>
            </item>
            <item row="4" column="6">
-            <widget class="QListView" name="slot_list"/>
+            <widget class="QListView" name="slotList"/>
            </item>
            <item row="2" column="7">
             <widget class="QLabel" name="label_25">
@@ -1395,7 +1395,7 @@
             </widget>
            </item>
            <item row="5" column="2">
-            <widget class="QPushButton" name="button_remove_box">
+            <widget class="QPushButton" name="buttonRemoveBox">
              <property name="palette">
               <palette>
                <active>
@@ -1817,7 +1817,7 @@
             </widget>
            </item>
            <item row="5" column="1">
-            <widget class="QPushButton" name="button_remove_object">
+            <widget class="QPushButton" name="buttonRemoveObject">
              <property name="palette">
               <palette>
                <active>
@@ -2239,7 +2239,7 @@
             </widget>
            </item>
            <item row="1" column="6">
-            <widget class="QComboBox" name="robot_list">
+            <widget class="QComboBox" name="robotList">
              <property name="palette">
               <palette>
                <active>
@@ -2665,7 +2665,7 @@
             </widget>
            </item>
            <item row="1" column="7">
-            <widget class="QComboBox" name="combo_configuration">
+            <widget class="QComboBox" name="comboConfiguration">
              <property name="palette">
               <palette>
                <active>
@@ -3109,7 +3109,7 @@
             </widget>
            </item>
            <item row="1" column="2">
-            <widget class="QPushButton" name="button_load">
+            <widget class="QPushButton" name="buttonLoad">
              <property name="palette">
               <palette>
                <active>
@@ -3209,7 +3209,7 @@
            <item row="1" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_6">
              <item>
-              <widget class="QComboBox" name="world_TF_list">
+              <widget class="QComboBox" name="worldTfList">
                <property name="palette">
                 <palette>
                  <active>
@@ -3628,7 +3628,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="check_robot_TF">
+              <widget class="QCheckBox" name="checkRobotTF">
                <property name="maximumSize">
                 <size>
                  <width>16</width>
@@ -3646,9 +3646,9 @@
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="lateral_layout">
+         <layout class="QVBoxLayout" name="lateralLayout">
           <item>
-           <widget class="QTabWidget" name="lateral_tab">
+           <widget class="QTabWidget" name="lateralTab">
             <property name="minimumSize">
              <size>
               <width>325</width>
@@ -3675,7 +3675,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="edit_location_name"/>
+                   <widget class="QLineEdit" name="editLocationName"/>
                   </item>
                  </layout>
                 </item>
@@ -3693,7 +3693,7 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_location">
+                 <widget class="QPushButton" name="buttonAddLocation">
                   <property name="palette">
                    <palette>
                     <active>
@@ -4154,7 +4154,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="edit_object_name"/>
+                   <widget class="QLineEdit" name="editObjectName"/>
                   </item>
                  </layout>
                 </item>
@@ -4166,7 +4166,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_load_TF">
+                 <widget class="QPushButton" name="buttonLoadTF">
                   <property name="palette">
                    <palette>
                     <active>
@@ -4597,7 +4597,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QComboBox" name="TF_list">
+                   <widget class="QComboBox" name="TfList">
                     <property name="palette">
                      <palette>
                       <active>
@@ -5025,7 +5025,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_grasp">
+                 <widget class="QPushButton" name="buttonAddGrasp">
                   <property name="palette">
                    <palette>
                     <active>
@@ -5447,7 +5447,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QComboBox" name="grasp_list">
+                 <widget class="QComboBox" name="graspList">
                   <property name="palette">
                    <palette>
                     <active>
@@ -5866,7 +5866,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_remove_grasp">
+                 <widget class="QPushButton" name="buttonRemoveGrasp">
                   <property name="palette">
                    <palette>
                     <active>
@@ -6295,7 +6295,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_set_approach">
+                 <widget class="QPushButton" name="buttonSetApproach">
                   <property name="palette">
                    <palette>
                     <active>
@@ -6420,7 +6420,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_set_leave">
+                 <widget class="QPushButton" name="buttonSetLeave">
                   <property name="palette">
                    <palette>
                     <active>
@@ -6849,7 +6849,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_gripper">
+                 <widget class="QPushButton" name="buttonGripper">
                   <property name="palette">
                    <palette>
                     <active>
@@ -6976,7 +6976,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_25">
                   <item>
-                   <widget class="QSlider" name="gripper_percentage">
+                   <widget class="QSlider" name="gripperPercentage">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                       <horstretch>0</horstretch>
@@ -6998,7 +6998,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLabel" name="open_gripper_label">
+                   <widget class="QLabel" name="openGripperLabel">
                     <property name="minimumSize">
                      <size>
                       <width>36</width>
@@ -7028,7 +7028,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_26">
                   <item>
-                   <widget class="QSlider" name="gripper_force_percentage">
+                   <widget class="QSlider" name="gripperForcePercentage">
                     <property name="maximum">
                      <number>100</number>
                     </property>
@@ -7041,7 +7041,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLabel" name="gripper_force_label">
+                   <widget class="QLabel" name="gripperForceLabel">
                     <property name="minimumSize">
                      <size>
                       <width>36</width>
@@ -7082,7 +7082,7 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_object">
+                 <widget class="QPushButton" name="buttonAddObject">
                   <property name="palette">
                    <palette>
                     <active>
@@ -7531,7 +7531,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="edit_slot_name"/>
+                   <widget class="QLineEdit" name="editSlotName"/>
                   </item>
                  </layout>
                 </item>
@@ -7543,7 +7543,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_approach_slot">
+                 <widget class="QPushButton" name="buttonAddApproachSlot">
                   <property name="palette">
                    <palette>
                     <active>
@@ -7965,7 +7965,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_remove_approach_slot">
+                 <widget class="QPushButton" name="buttonRemoveApproachSlot">
                   <property name="palette">
                    <palette>
                     <active>
@@ -8394,7 +8394,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_final_position_slot">
+                 <widget class="QPushButton" name="buttonAddFinalPositionSlot">
                   <property name="palette">
                    <palette>
                     <active>
@@ -8816,7 +8816,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_remove_final_position_slot">
+                 <widget class="QPushButton" name="buttonRemoveFinalPositionSlot">
                   <property name="palette">
                    <palette>
                     <active>
@@ -9245,7 +9245,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_leave_position_slot">
+                 <widget class="QPushButton" name="buttonAddLeavePositionSlot">
                   <property name="palette">
                    <palette>
                     <active>
@@ -9667,7 +9667,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_remove_leave_position_slot">
+                 <widget class="QPushButton" name="buttonRemoveLeavePositionSlot">
                   <property name="palette">
                    <palette>
                     <active>
@@ -10101,7 +10101,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="edit_group_name"/>
+                   <widget class="QLineEdit" name="editGroupName"/>
                   </item>
                  </layout>
                 </item>
@@ -10115,7 +10115,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="edit_max_object"/>
+                   <widget class="QLineEdit" name="editMaxObject"/>
                   </item>
                  </layout>
                 </item>
@@ -10133,7 +10133,7 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_slot">
+                 <widget class="QPushButton" name="buttonAddSlot">
                   <property name="palette">
                    <palette>
                     <active>
@@ -10582,7 +10582,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="edit_box_name"/>
+                   <widget class="QLineEdit" name="editBoxName"/>
                   </item>
                  </layout>
                 </item>
@@ -10594,7 +10594,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_approach_box">
+                 <widget class="QPushButton" name="buttonAddApproachBox">
                   <property name="palette">
                    <palette>
                     <active>
@@ -11016,7 +11016,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_remove_approach_box">
+                 <widget class="QPushButton" name="buttonRemoveApproachBox">
                   <property name="palette">
                    <palette>
                     <active>
@@ -11445,7 +11445,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_final_box">
+                 <widget class="QPushButton" name="buttonAddFinalBox">
                   <property name="palette">
                    <palette>
                     <active>
@@ -11867,7 +11867,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_remove_final_box">
+                 <widget class="QPushButton" name="buttonRemoveFinalBox">
                   <property name="palette">
                    <palette>
                     <active>
@@ -12296,7 +12296,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_leave_position_box">
+                 <widget class="QPushButton" name="buttonAddLeavePositionBox">
                   <property name="palette">
                    <palette>
                     <active>
@@ -12718,7 +12718,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_remove_leave_position_box">
+                 <widget class="QPushButton" name="buttonRemoveLeavePositionBox">
                   <property name="palette">
                    <palette>
                     <active>
@@ -13153,7 +13153,7 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="button_add_box">
+                 <widget class="QPushButton" name="buttonAddBox">
                   <property name="palette">
                    <palette>
                     <active>
@@ -13588,7 +13588,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="button_save_components">
+           <widget class="QPushButton" name="buttonSaveComponents">
             <property name="palette">
              <palette>
               <active>
@@ -14021,7 +14021,7 @@
         <item>
          <widget class="QTabWidget" name="tabWidget_2">
           <property name="currentIndex">
-           <number>0</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="tab_12">
            <attribute name="title">
@@ -14149,7 +14149,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="edit_location_frame"/>
+               <widget class="QLineEdit" name="editLocationFrame"/>
               </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_43">
@@ -14204,7 +14204,7 @@
                </widget>
               </item>
               <item row="7" column="4">
-               <widget class="QLineEdit" name="edit_location_quaternion_w"/>
+               <widget class="QLineEdit" name="editLocationQuaternionW"/>
               </item>
               <item row="5" column="1">
                <widget class="QLabel" name="label_37">
@@ -14220,13 +14220,13 @@
                </widget>
               </item>
               <item row="4" column="3">
-               <widget class="QLineEdit" name="edit_location_position_z"/>
+               <widget class="QLineEdit" name="editLocationPositionZ"/>
               </item>
               <item row="7" column="3">
-               <widget class="QLineEdit" name="edit_location_quaternion_z"/>
+               <widget class="QLineEdit" name="editLocationQuaternionZ"/>
               </item>
               <item row="4" column="1">
-               <widget class="QLineEdit" name="edit_location_position_x"/>
+               <widget class="QLineEdit" name="editLocationPositionX"/>
               </item>
               <item row="2" column="3">
                <widget class="QLabel" name="label_34">
@@ -14236,7 +14236,7 @@
                </widget>
               </item>
               <item row="7" column="2">
-               <widget class="QLineEdit" name="edit_location_quaternion_y"/>
+               <widget class="QLineEdit" name="editLocationQuaternionY"/>
               </item>
               <item row="2" column="1">
                <widget class="QLabel" name="label_33">
@@ -14259,17 +14259,17 @@
                </widget>
               </item>
               <item row="7" column="1">
-               <widget class="QLineEdit" name="edit_location_quaternion_x"/>
+               <widget class="QLineEdit" name="editLocationQuaternionX"/>
               </item>
               <item row="4" column="2">
-               <widget class="QLineEdit" name="edit_location_position_y"/>
+               <widget class="QLineEdit" name="editLocationPositionY"/>
               </item>
              </layout>
             </item>
             <item row="1" column="1">
              <layout class="QGridLayout" name="gridLayout_5">
               <item row="1" column="4">
-               <widget class="QPushButton" name="button_reset_location_info">
+               <widget class="QPushButton" name="buttonResetLocationInfo">
                 <property name="palette">
                  <palette>
                   <active>
@@ -14691,7 +14691,7 @@
                </widget>
               </item>
               <item row="2" column="0">
-               <widget class="QPushButton" name="button_copy_location">
+               <widget class="QPushButton" name="buttonCopyLocation">
                 <property name="palette">
                  <palette>
                   <active>
@@ -15113,7 +15113,7 @@
                </widget>
               </item>
               <item row="1" column="0">
-               <widget class="QPushButton" name="button_add_location_changes">
+               <widget class="QPushButton" name="buttonAddLocationChanges">
                 <property name="palette">
                  <palette>
                   <active>
@@ -15535,7 +15535,7 @@
                </widget>
               </item>
               <item row="4" column="0">
-               <widget class="QPushButton" name="button_save_all_changes0">
+               <widget class="QPushButton" name="buttonSaveAllChanges0">
                 <property name="palette">
                  <palette>
                   <active>
@@ -15983,7 +15983,7 @@
                </spacer>
               </item>
               <item row="2" column="2">
-               <widget class="QLineEdit" name="edit_new_location"/>
+               <widget class="QLineEdit" name="editNewLocation"/>
               </item>
               <item row="2" column="1">
                <widget class="QLabel" name="label_19">
@@ -15995,7 +15995,7 @@
              </layout>
             </item>
             <item row="0" column="0" rowspan="2">
-             <widget class="QListView" name="list_location_modify">
+             <widget class="QListView" name="listLocationModify">
               <property name="maximumSize">
                <size>
                 <width>300</width>
@@ -16027,7 +16027,7 @@
             <item row="1" column="1">
              <layout class="QGridLayout" name="gridLayout_8">
               <item row="1" column="0">
-               <widget class="QPushButton" name="button_copy_object">
+               <widget class="QPushButton" name="buttonCopyObject">
                 <property name="palette">
                  <palette>
                   <active>
@@ -16456,10 +16456,10 @@
                </widget>
               </item>
               <item row="1" column="2">
-               <widget class="QLineEdit" name="edit_new_object"/>
+               <widget class="QLineEdit" name="editNewObject"/>
               </item>
               <item row="0" column="4">
-               <widget class="QPushButton" name="button_reset_object_info">
+               <widget class="QPushButton" name="buttonResetObjectInfo">
                 <property name="palette">
                  <palette>
                   <active>
@@ -16881,7 +16881,7 @@
                </widget>
               </item>
               <item row="0" column="0">
-               <widget class="QPushButton" name="button_add_object_changes">
+               <widget class="QPushButton" name="buttonAddObjectChanges">
                 <property name="palette">
                  <palette>
                   <active>
@@ -17329,7 +17329,7 @@
                </spacer>
               </item>
               <item row="3" column="0">
-               <widget class="QPushButton" name="button_save_all_changes1">
+               <widget class="QPushButton" name="buttonSaveAllChanges1">
                 <property name="palette">
                  <palette>
                   <active>
@@ -17753,7 +17753,7 @@
              </layout>
             </item>
             <item row="0" column="0" rowspan="2">
-             <widget class="QListView" name="list_object_modify">
+             <widget class="QListView" name="listObjectModify">
               <property name="maximumSize">
                <size>
                 <width>300</width>
@@ -17772,7 +17772,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="edit_object_tool"/>
+               <widget class="QLineEdit" name="editObjectTool"/>
               </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_55">
@@ -17808,10 +17808,10 @@
                </widget>
               </item>
               <item row="6" column="2">
-               <widget class="QLineEdit" name="edit_object_quaternion_y"/>
+               <widget class="QLineEdit" name="editObjectQuaternionY"/>
               </item>
               <item row="15" column="3">
-               <widget class="QLineEdit" name="edit_object_leave_z"/>
+               <widget class="QLineEdit" name="editObjectLeaveZ"/>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_56">
@@ -17840,7 +17840,7 @@
                </widget>
               </item>
               <item row="1" column="3">
-               <widget class="QPushButton" name="button_copy_grasp">
+               <widget class="QPushButton" name="buttonCopyGrasp">
                 <property name="palette">
                  <palette>
                   <active>
@@ -18262,10 +18262,10 @@
                </widget>
               </item>
               <item row="0" column="3">
-               <widget class="QComboBox" name="combo_grasp_number"/>
+               <widget class="QComboBox" name="comboGraspNumber"/>
               </item>
               <item row="6" column="1">
-               <widget class="QLineEdit" name="edit_object_quaternion_x"/>
+               <widget class="QLineEdit" name="editObjectQuaternionX"/>
               </item>
               <item row="12" column="2">
                <widget class="QLabel" name="label_141">
@@ -18275,7 +18275,7 @@
                </widget>
               </item>
               <item row="15" column="1">
-               <widget class="QLineEdit" name="edit_object_leave_x"/>
+               <widget class="QLineEdit" name="editObjectLeaveX"/>
               </item>
               <item row="2" column="1">
                <widget class="QLabel" name="label_47">
@@ -18291,10 +18291,10 @@
                </widget>
               </item>
               <item row="4" column="2">
-               <widget class="QLineEdit" name="edit_object_position_y"/>
+               <widget class="QLineEdit" name="editObjectPositionY"/>
               </item>
               <item row="9" column="1">
-               <widget class="QLineEdit" name="edit_object_approach_x"/>
+               <widget class="QLineEdit" name="editObjectApproachX"/>
               </item>
               <item row="5" column="2">
                <widget class="QLabel" name="label_49">
@@ -18304,10 +18304,10 @@
                </widget>
               </item>
               <item row="6" column="4">
-               <widget class="QLineEdit" name="edit_object_quaternion_w"/>
+               <widget class="QLineEdit" name="editObjectQuaternionW"/>
               </item>
               <item row="4" column="3">
-               <widget class="QLineEdit" name="edit_object_position_z"/>
+               <widget class="QLineEdit" name="editObjectPositionZ"/>
               </item>
               <item row="8" column="1">
                <widget class="QLabel" name="label_58">
@@ -18356,7 +18356,7 @@
                </widget>
               </item>
               <item row="4" column="1">
-               <widget class="QLineEdit" name="edit_object_position_x"/>
+               <widget class="QLineEdit" name="editObjectPositionX"/>
               </item>
               <item row="8" column="2">
                <widget class="QLabel" name="label_59">
@@ -18366,16 +18366,16 @@
                </widget>
               </item>
               <item row="9" column="3">
-               <widget class="QLineEdit" name="edit_object_approach_z"/>
+               <widget class="QLineEdit" name="editObjectApproachZ"/>
               </item>
               <item row="9" column="2">
-               <widget class="QLineEdit" name="edit_object_approach_y"/>
+               <widget class="QLineEdit" name="editObjectApproachY"/>
               </item>
               <item row="15" column="2">
-               <widget class="QLineEdit" name="edit_object_leave_y"/>
+               <widget class="QLineEdit" name="editObjectLeaveY"/>
               </item>
               <item row="6" column="3">
-               <widget class="QLineEdit" name="edit_object_quaternion_z"/>
+               <widget class="QLineEdit" name="editObjectQuaternionZ"/>
               </item>
               <item row="12" column="1">
                <widget class="QLabel" name="label_140">
@@ -18446,7 +18446,7 @@
                </widget>
               </item>
               <item row="17" column="1">
-               <widget class="QLineEdit" name="edit_pre_gripper_state"/>
+               <widget class="QLineEdit" name="editPreGripperState"/>
               </item>
               <item row="16" column="2">
                <widget class="QLabel" name="label_148">
@@ -18456,10 +18456,10 @@
                </widget>
               </item>
               <item row="17" column="2">
-               <widget class="QLineEdit" name="edit_post_gripper_state"/>
+               <widget class="QLineEdit" name="editPostGripperState"/>
               </item>
               <item row="17" column="3">
-               <widget class="QLineEdit" name="edit_gripper_state"/>
+               <widget class="QLineEdit" name="editGripperState"/>
               </item>
               <item row="16" column="3">
                <widget class="QLabel" name="label_147">
@@ -18480,10 +18480,10 @@
             <item row="1" column="1">
              <layout class="QGridLayout" name="gridLayout_11">
               <item row="1" column="2">
-               <widget class="QLineEdit" name="edit_new_slot"/>
+               <widget class="QLineEdit" name="editNewSlot"/>
               </item>
               <item row="0" column="0">
-               <widget class="QPushButton" name="button_add_slot_changes">
+               <widget class="QPushButton" name="buttonAddSlotChanges">
                 <property name="palette">
                  <palette>
                   <active>
@@ -18918,7 +18918,7 @@
                </spacer>
               </item>
               <item row="1" column="0">
-               <widget class="QPushButton" name="button_copy_slot">
+               <widget class="QPushButton" name="buttonCopySlot">
                 <property name="palette">
                  <palette>
                   <active>
@@ -19360,7 +19360,7 @@
                </widget>
               </item>
               <item row="0" column="4">
-               <widget class="QPushButton" name="button_reset_slot_info">
+               <widget class="QPushButton" name="buttonResetSlotInfo">
                 <property name="palette">
                  <palette>
                   <active>
@@ -19782,7 +19782,7 @@
                </widget>
               </item>
               <item row="3" column="0">
-               <widget class="QPushButton" name="button_save_all_changes2">
+               <widget class="QPushButton" name="buttonSaveAllChanges2">
                 <property name="palette">
                  <palette>
                   <active>
@@ -20206,7 +20206,7 @@
              </layout>
             </item>
             <item row="0" column="0" rowspan="2">
-             <widget class="QListView" name="list_slot_modify">
+             <widget class="QListView" name="listSlotModify">
               <property name="maximumSize">
                <size>
                 <width>300</width>
@@ -20245,7 +20245,7 @@
                </widget>
               </item>
               <item row="6" column="3">
-               <widget class="QLineEdit" name="edit_slot_quaternion_z"/>
+               <widget class="QLineEdit" name="editSlotQuaternionZ"/>
               </item>
               <item row="11" column="2">
                <widget class="QLabel" name="label_134">
@@ -20268,7 +20268,7 @@
                </widget>
               </item>
               <item row="13" column="3">
-               <widget class="QLineEdit" name="edit_slot_leave_z"/>
+               <widget class="QLineEdit" name="editSlotLeaveZ"/>
               </item>
               <item row="5" column="2">
                <widget class="QLabel" name="label_70">
@@ -20305,7 +20305,7 @@
                </widget>
               </item>
               <item row="14" column="1">
-               <widget class="QLineEdit" name="edit_slot_max_objects"/>
+               <widget class="QLineEdit" name="editSlotMaxObjects"/>
               </item>
               <item row="11" column="1">
                <widget class="QLabel" name="label_133">
@@ -20315,7 +20315,7 @@
                </widget>
               </item>
               <item row="13" column="1">
-               <widget class="QLineEdit" name="edit_slot_leave_x"/>
+               <widget class="QLineEdit" name="editSlotLeaveX"/>
               </item>
               <item row="14" column="0">
                <widget class="QLabel" name="label_78">
@@ -20337,7 +20337,7 @@
                </widget>
               </item>
               <item row="0" column="3">
-               <widget class="QLineEdit" name="edit_slot_group"/>
+               <widget class="QLineEdit" name="editSlotGroup"/>
               </item>
               <item row="11" column="0">
                <widget class="QLabel" name="label_132">
@@ -20359,7 +20359,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="edit_slot_frame"/>
+               <widget class="QLineEdit" name="editSlotFrame"/>
               </item>
               <item row="5" column="0">
                <widget class="QLabel" name="label_75">
@@ -20414,7 +20414,7 @@
                </widget>
               </item>
               <item row="4" column="1">
-               <widget class="QLineEdit" name="edit_slot_position_x"/>
+               <widget class="QLineEdit" name="editSlotPositionX"/>
               </item>
               <item row="2" column="1">
                <widget class="QLabel" name="label_72">
@@ -20430,16 +20430,16 @@
                </widget>
               </item>
               <item row="13" column="2">
-               <widget class="QLineEdit" name="edit_slot_leave_y"/>
+               <widget class="QLineEdit" name="editSlotLeaveY"/>
               </item>
               <item row="10" column="1">
-               <widget class="QLineEdit" name="edit_slot_approach_x"/>
+               <widget class="QLineEdit" name="editSlotApproachX"/>
               </item>
               <item row="6" column="2">
-               <widget class="QLineEdit" name="edit_slot_quaternion_y"/>
+               <widget class="QLineEdit" name="editSlotQuaternionY"/>
               </item>
               <item row="6" column="4">
-               <widget class="QLineEdit" name="edit_slot_quaternion_w"/>
+               <widget class="QLineEdit" name="editSlotQuaternionW"/>
               </item>
               <item row="5" column="3">
                <widget class="QLabel" name="label_67">
@@ -20449,10 +20449,10 @@
                </widget>
               </item>
               <item row="10" column="2">
-               <widget class="QLineEdit" name="edit_slot_approach_y"/>
+               <widget class="QLineEdit" name="editSlotApproachY"/>
               </item>
               <item row="4" column="2">
-               <widget class="QLineEdit" name="edit_slot_position_y"/>
+               <widget class="QLineEdit" name="editSlotPositionY"/>
               </item>
               <item row="8" column="2">
                <widget class="QLabel" name="label_68">
@@ -20462,13 +20462,13 @@
                </widget>
               </item>
               <item row="4" column="3">
-               <widget class="QLineEdit" name="edit_slot_position_z"/>
+               <widget class="QLineEdit" name="editSlotPositionZ"/>
               </item>
               <item row="10" column="3">
-               <widget class="QLineEdit" name="edit_slot_approach_z"/>
+               <widget class="QLineEdit" name="editSlotApproachZ"/>
               </item>
               <item row="6" column="1">
-               <widget class="QLineEdit" name="edit_slot_quaternion_x"/>
+               <widget class="QLineEdit" name="editSlotQuaternionX"/>
               </item>
               <item row="5" column="1">
                <widget class="QLabel" name="label_64">
@@ -20547,7 +20547,7 @@
             <item row="0" column="1">
              <layout class="QGridLayout" name="gridLayout_13">
               <item row="13" column="2">
-               <widget class="QLineEdit" name="edit_box_leave_y"/>
+               <widget class="QLineEdit" name="editBoxLeaveY"/>
               </item>
               <item row="8" column="1">
                <widget class="QLabel" name="label_80">
@@ -20563,7 +20563,7 @@
                </widget>
               </item>
               <item row="13" column="1">
-               <widget class="QLineEdit" name="edit_box_leave_x"/>
+               <widget class="QLineEdit" name="editBoxLeaveX"/>
               </item>
               <item row="2" column="3">
                <widget class="QLabel" name="label_94">
@@ -20573,7 +20573,7 @@
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLineEdit" name="edit_box_frame"/>
+               <widget class="QLineEdit" name="editBoxFrame"/>
               </item>
               <item row="5" column="0">
                <widget class="QLabel" name="label_93">
@@ -20673,10 +20673,10 @@
                </widget>
               </item>
               <item row="10" column="2">
-               <widget class="QLineEdit" name="edit_box_approach_y"/>
+               <widget class="QLineEdit" name="editBoxApproachY"/>
               </item>
               <item row="10" column="1">
-               <widget class="QLineEdit" name="edit_box_approach_x"/>
+               <widget class="QLineEdit" name="editBoxApproachX"/>
               </item>
               <item row="5" column="3">
                <widget class="QLabel" name="label_85">
@@ -20693,7 +20693,7 @@
                </widget>
               </item>
               <item row="7" column="4">
-               <widget class="QLineEdit" name="edit_box_quaternion_w"/>
+               <widget class="QLineEdit" name="editBoxQuaternionW"/>
               </item>
               <item row="11" column="3">
                <widget class="QLabel" name="label_139">
@@ -20703,16 +20703,16 @@
                </widget>
               </item>
               <item row="10" column="3">
-               <widget class="QLineEdit" name="edit_box_approach_z"/>
+               <widget class="QLineEdit" name="editBoxApproachZ"/>
               </item>
               <item row="7" column="1">
-               <widget class="QLineEdit" name="edit_box_quaternion_x"/>
+               <widget class="QLineEdit" name="editBoxQuaternionX"/>
               </item>
               <item row="4" column="1">
-               <widget class="QLineEdit" name="edit_box_position_x"/>
+               <widget class="QLineEdit" name="editBoxPositionX"/>
               </item>
               <item row="13" column="3">
-               <widget class="QLineEdit" name="edit_box_leave_z"/>
+               <widget class="QLineEdit" name="editBoxLeaveZ"/>
               </item>
               <item row="5" column="4">
                <widget class="QLabel" name="label_83">
@@ -20741,13 +20741,13 @@
                </widget>
               </item>
               <item row="7" column="3">
-               <widget class="QLineEdit" name="edit_box_quaternion_z"/>
+               <widget class="QLineEdit" name="editBoxQuaternionZ"/>
               </item>
               <item row="4" column="2">
-               <widget class="QLineEdit" name="edit_box_position_y"/>
+               <widget class="QLineEdit" name="editBoxPositionY"/>
               </item>
               <item row="4" column="3">
-               <widget class="QLineEdit" name="edit_box_position_z"/>
+               <widget class="QLineEdit" name="editBoxPositionZ"/>
               </item>
               <item row="11" column="2">
                <widget class="QLabel" name="label_138">
@@ -20757,7 +20757,7 @@
                </widget>
               </item>
               <item row="7" column="2">
-               <widget class="QLineEdit" name="edit_box_quaternion_y"/>
+               <widget class="QLineEdit" name="editBoxQuaternionY"/>
               </item>
               <item row="8" column="2">
                <widget class="QLabel" name="label_86">
@@ -20838,7 +20838,7 @@
                </spacer>
               </item>
               <item row="0" column="4">
-               <widget class="QPushButton" name="button_reset_box_info">
+               <widget class="QPushButton" name="buttonResetBoxInfo">
                 <property name="palette">
                  <palette>
                   <active>
@@ -21260,7 +21260,7 @@
                </widget>
               </item>
               <item row="0" column="0">
-               <widget class="QPushButton" name="button_add_box_changes">
+               <widget class="QPushButton" name="buttonAddBoxChanges">
                 <property name="palette">
                  <palette>
                   <active>
@@ -21695,7 +21695,7 @@
                </spacer>
               </item>
               <item row="3" column="0">
-               <widget class="QPushButton" name="button_save_all_changes3">
+               <widget class="QPushButton" name="buttonSaveAllChanges3">
                 <property name="palette">
                  <palette>
                   <active>
@@ -22117,7 +22117,7 @@
                </widget>
               </item>
               <item row="1" column="0">
-               <widget class="QPushButton" name="button_copy_box">
+               <widget class="QPushButton" name="buttonCopyBox">
                 <property name="palette">
                  <palette>
                   <active>
@@ -22539,12 +22539,12 @@
                </widget>
               </item>
               <item row="1" column="2">
-               <widget class="QLineEdit" name="edit_new_box"/>
+               <widget class="QLineEdit" name="editNewBox"/>
               </item>
              </layout>
             </item>
             <item row="0" column="0" rowspan="2">
-             <widget class="QListView" name="list_box_modify">
+             <widget class="QListView" name="listBoxModify">
               <property name="maximumSize">
                <size>
                 <width>300</width>
@@ -22582,7 +22582,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QLineEdit" name="edit_action_name"/>
+                <widget class="QLineEdit" name="editActionName"/>
                </item>
               </layout>
              </item>
@@ -22598,7 +22598,7 @@
               </layout>
              </item>
              <item>
-              <widget class="QTextEdit" name="edit_description"/>
+              <widget class="QTextEdit" name="editDescription"/>
              </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_20">
@@ -22610,7 +22610,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="combo_action_type">
+                <widget class="QComboBox" name="comboActionType">
                  <property name="palette">
                   <palette>
                    <active>
@@ -23046,7 +23046,7 @@
               </layout>
              </item>
              <item>
-              <widget class="QListView" name="component_list"/>
+              <widget class="QListView" name="componentList"/>
              </item>
              <item>
               <widget class="QLabel" name="label_118">
@@ -23065,7 +23065,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QCheckBox" name="check_robot">
+                <widget class="QCheckBox" name="checkRobot">
                  <property name="text">
                   <string/>
                  </property>
@@ -23079,7 +23079,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QCheckBox" name="check_human">
+                <widget class="QCheckBox" name="checkHuman">
                  <property name="text">
                   <string/>
                  </property>
@@ -23088,7 +23088,7 @@
               </layout>
              </item>
              <item>
-              <widget class="QPushButton" name="button_add_action">
+              <widget class="QPushButton" name="buttonAddAction">
                <property name="palette">
                 <palette>
                  <active>
@@ -23525,7 +23525,7 @@
             </layout>
            </item>
            <item row="2" column="0">
-            <widget class="QPushButton" name="button_save_actions">
+            <widget class="QPushButton" name="buttonSaveActions">
              <property name="palette">
               <palette>
                <active>
@@ -23673,13 +23673,13 @@
             </widget>
            </item>
            <item row="2" column="2">
-            <widget class="QListView" name="pick_list"/>
+            <widget class="QListView" name="pickList"/>
            </item>
            <item row="2" column="0">
-            <widget class="QListView" name="go_to_list"/>
+            <widget class="QListView" name="goToList"/>
            </item>
            <item row="3" column="0">
-            <widget class="QPushButton" name="button_remove_go_to">
+            <widget class="QPushButton" name="buttonRemoveGoTo">
              <property name="palette">
               <palette>
                <active>
@@ -24101,7 +24101,7 @@
             </widget>
            </item>
            <item row="3" column="3">
-            <widget class="QPushButton" name="button_remove_place">
+            <widget class="QPushButton" name="buttonRemovePlace">
              <property name="palette">
               <palette>
                <active>
@@ -24530,7 +24530,7 @@
             </widget>
            </item>
            <item row="3" column="2">
-            <widget class="QPushButton" name="button_remove_pick">
+            <widget class="QPushButton" name="buttonRemovePick">
              <property name="palette">
               <palette>
                <active>
@@ -24952,7 +24952,7 @@
             </widget>
            </item>
            <item row="0" column="0">
-            <widget class="QPushButton" name="button_load_actions">
+            <widget class="QPushButton" name="buttonLoadActions">
              <property name="palette">
               <palette>
                <active>
@@ -25374,7 +25374,7 @@
             </widget>
            </item>
            <item row="2" column="3">
-            <widget class="QListView" name="place_list"/>
+            <widget class="QListView" name="placeList"/>
            </item>
           </layout>
          </widget>
@@ -25393,7 +25393,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QListView" name="list_info_action"/>
+            <widget class="QListView" name="listInfoAction"/>
            </item>
            <item>
             <widget class="QLabel" name="label_108">
@@ -25403,7 +25403,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QTextEdit" name="edit_action_description"/>
+            <widget class="QTextEdit" name="editActionDescription"/>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_11">
@@ -25415,7 +25415,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="check_robot_info">
+              <widget class="QCheckBox" name="checkRobotInfo">
                <property name="palette">
                 <palette>
                  <active>
@@ -25547,7 +25547,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="check_human_info">
+              <widget class="QCheckBox" name="checkHumanInfo">
                <property name="palette">
                 <palette>
                  <active>
@@ -25663,7 +25663,7 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
-            <widget class="QPushButton" name="button_load_recipe">
+            <widget class="QPushButton" name="buttonLoadRecipe">
              <property name="palette">
               <palette>
                <active>
@@ -26085,7 +26085,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="recipe_box">
+            <widget class="QComboBox" name="recipeBox">
              <property name="palette">
               <palette>
                <active>
@@ -26506,7 +26506,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_22">
              <item>
-              <widget class="QPushButton" name="button_write_recipe">
+              <widget class="QPushButton" name="buttonWriteRecipe">
                <property name="palette">
                 <palette>
                  <active>
@@ -26928,7 +26928,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="button_remove_recipe">
+              <widget class="QPushButton" name="buttonRemoveRecipe">
                <property name="palette">
                 <palette>
                  <active>
@@ -27352,10 +27352,10 @@
             </layout>
            </item>
            <item>
-            <widget class="QListView" name="list_recipe"/>
+            <widget class="QListView" name="listRecipe"/>
            </item>
            <item>
-            <widget class="QPushButton" name="button_remove_element">
+            <widget class="QPushButton" name="buttonRemoveElement">
              <property name="palette">
               <palette>
                <active>
@@ -27777,7 +27777,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="button_load_objects">
+            <widget class="QPushButton" name="buttonLoadObjects">
              <property name="palette">
               <palette>
                <active>
@@ -28199,7 +28199,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="button_run_selected_action">
+            <widget class="QPushButton" name="buttonRunSelectedAction">
              <property name="palette">
               <palette>
                <active>
@@ -28621,7 +28621,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="button_run_recipe">
+            <widget class="QPushButton" name="buttonRunRecipe">
              <property name="palette">
               <palette>
                <active>
@@ -28755,12 +28755,12 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="edit_recipe_name"/>
+              <widget class="QLineEdit" name="editRecipeName"/>
              </item>
             </layout>
            </item>
            <item>
-            <widget class="QPushButton" name="button_add_recipe">
+            <widget class="QPushButton" name="buttonAddRecipe">
              <property name="palette">
               <palette>
                <active>
@@ -29182,7 +29182,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="button_save_recipe">
+            <widget class="QPushButton" name="buttonSaveRecipe">
              <property name="palette">
               <palette>
                <active>
@@ -29620,7 +29620,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QListView" name="list_action_components">
+            <widget class="QListView" name="listActionComponents">
              <property name="minimumSize">
               <size>
                <width>130</width>
@@ -29637,7 +29637,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QTextEdit" name="edit_action_description_2"/>
+            <widget class="QTextEdit" name="editActionDescription2"/>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_21">
@@ -29649,7 +29649,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="check_robot_info_2">
+              <widget class="QCheckBox" name="checkRobotInfo2">
                <property name="palette">
                 <palette>
                  <active>
@@ -29754,7 +29754,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="check_human_info_2">
+              <widget class="QCheckBox" name="checkHumanInfo2">
                <property name="palette">
                 <palette>
                  <active>
@@ -29883,7 +29883,7 @@
             </widget>
            </item>
            <item row="4" column="2">
-            <widget class="QListView" name="list_pick"/>
+            <widget class="QListView" name="listPick"/>
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_26">
@@ -29893,10 +29893,10 @@
             </widget>
            </item>
            <item row="4" column="0">
-            <widget class="QListView" name="list_go_to"/>
+            <widget class="QListView" name="listGoTo"/>
            </item>
            <item row="4" column="3">
-            <widget class="QListView" name="list_place"/>
+            <widget class="QListView" name="listPlace"/>
            </item>
           </layout>
          </widget>
@@ -30033,7 +30033,7 @@
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_16">
              <item row="1" column="1">
-              <widget class="QComboBox" name="combo_ref_frame">
+              <widget class="QComboBox" name="comboRefFrame">
                <property name="minimumSize">
                 <size>
                  <width>150</width>
@@ -30458,7 +30458,7 @@
               </widget>
              </item>
              <item row="1" column="7">
-              <widget class="QPushButton" name="button_clock_x">
+              <widget class="QPushButton" name="buttonClockX">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -30902,7 +30902,7 @@
               </widget>
              </item>
              <item row="4" column="9">
-              <widget class="QPushButton" name="button_anti_z">
+              <widget class="QPushButton" name="buttonAntiZ">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -31360,7 +31360,7 @@
               </widget>
              </item>
              <item row="4" column="7">
-              <widget class="QPushButton" name="button_anti_x">
+              <widget class="QPushButton" name="buttonAntiX">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -31804,7 +31804,7 @@
               </widget>
              </item>
              <item row="3" column="4">
-              <widget class="QPushButton" name="button_right">
+              <widget class="QPushButton" name="buttonRight">
                <property name="minimumSize">
                 <size>
                  <width>90</width>
@@ -32249,7 +32249,7 @@
               </widget>
              </item>
              <item row="3" column="2">
-              <widget class="QPushButton" name="button_left">
+              <widget class="QPushButton" name="buttonLeft">
                <property name="minimumSize">
                 <size>
                  <width>90</width>
@@ -32697,7 +32697,7 @@
               </widget>
              </item>
              <item row="1" column="8">
-              <widget class="QPushButton" name="button_clock_y">
+              <widget class="QPushButton" name="buttonClockY">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -33154,7 +33154,7 @@
               </widget>
              </item>
              <item row="1" column="9">
-              <widget class="QPushButton" name="button_clock_z">
+              <widget class="QPushButton" name="buttonClockZ">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -33598,7 +33598,7 @@
               </widget>
              </item>
              <item row="4" column="8">
-              <widget class="QPushButton" name="button_anti_y">
+              <widget class="QPushButton" name="buttonAntiY">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -34056,7 +34056,7 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QComboBox" name="combo_configuration_">
+              <widget class="QComboBox" name="comboConfiguration2">
                <property name="palette">
                 <palette>
                  <active>
@@ -34507,7 +34507,7 @@
               </widget>
              </item>
              <item row="4" column="5">
-              <widget class="QPushButton" name="button_down">
+              <widget class="QPushButton" name="buttonDown">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -34945,7 +34945,7 @@
               </widget>
              </item>
              <item row="1" column="5">
-              <widget class="QPushButton" name="button_up">
+              <widget class="QPushButton" name="buttonUp">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -35383,7 +35383,7 @@
               </widget>
              </item>
              <item row="1" column="3">
-              <widget class="QPushButton" name="button_front">
+              <widget class="QPushButton" name="buttonFront">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -35821,7 +35821,7 @@
               </widget>
              </item>
              <item row="4" column="3">
-              <widget class="QPushButton" name="button_back">
+              <widget class="QPushButton" name="buttonBack">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -36261,7 +36261,7 @@
              <item row="3" column="1">
               <layout class="QVBoxLayout" name="verticalLayout_10">
                <item>
-                <widget class="QPushButton" name="button_gripper_2">
+                <widget class="QPushButton" name="buttonGripper2">
                  <property name="palette">
                   <palette>
                    <active>
@@ -36685,7 +36685,7 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_24">
                  <item>
-                  <widget class="QSlider" name="gripper_percentage_2">
+                  <widget class="QSlider" name="gripperPercentage2">
                    <property name="palette">
                     <palette>
                      <active>
@@ -37113,7 +37113,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="open_gripper_label_2">
+                  <widget class="QLabel" name="openGripperLabel2">
                    <property name="minimumSize">
                     <size>
                      <width>36</width>
@@ -37143,7 +37143,7 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_23">
                  <item>
-                  <widget class="QSlider" name="gripper_force_percentage_2">
+                  <widget class="QSlider" name="gripperForcePercentage2">
                    <property name="palette">
                     <palette>
                      <active>
@@ -37571,7 +37571,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="gripper_force_label_2">
+                  <widget class="QLabel" name="gripperForceLabel2">
                    <property name="minimumSize">
                     <size>
                      <width>36</width>
@@ -37612,7 +37612,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QSlider" name="velocity_slider">
+              <widget class="QSlider" name="velocitySlider">
                <property name="palette">
                 <palette>
                  <active>
@@ -37662,7 +37662,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="velocity_label">
+              <widget class="QLabel" name="velocityLabel">
                <property name="minimumSize">
                 <size>
                  <width>35</width>
