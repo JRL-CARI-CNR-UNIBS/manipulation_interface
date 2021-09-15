@@ -69,6 +69,9 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
     go_to_ac.waitForServer();
     ROS_WARN("Connection ok");
 
+    manipulation_msgs::PickObjectsResult pick_result;
+
+
     ros::ServiceClient remove_object_from_slot_clnt = nh_.serviceClient<manipulation_msgs::RemoveObjectFromSlot>("/outbound_place_server/remove_obj_from_slot");
     remove_object_from_slot_clnt.waitForExistence();
 
@@ -354,7 +357,8 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
 
             pick_ac.sendGoalAndWait(pick_goal);
 
-            if (pick_ac.getResult()->result < 0)
+            pick_result = *pick_ac.getResult();
+            if (pick_result.result < 0)
             {
                 ROS_ERROR("Unable to pick -> object type = %s",pick_ac.getResult()->object_name.c_str());
                 return 0;
@@ -365,8 +369,8 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
         {
           manipulation_msgs::PlaceObjectsGoal place_goal;
 
-          if (!pick_ac.getResult()->object_name.empty())
-            place_goal.object_name = pick_ac.getResult()->object_name;
+          if (!pick_result.object_name.empty())
+            place_goal.object_name =pick_result.object_name;
           else
           {
             ROS_ERROR("No object name = %s",pick_ac.getResult()->object_name.c_str());

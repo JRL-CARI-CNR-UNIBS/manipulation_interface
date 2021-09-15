@@ -254,7 +254,7 @@ std::vector<std::string> QNode::loadObjectsInManipulation()
             {
                 ROS_INFO("There isn't a grasp description of %s", type_.c_str() );
             }
-
+            ROS_FATAL_STREAM("object\n"<< obj);
             add_objects_srv.request.add_objects.push_back( obj );
         }
 
@@ -272,7 +272,7 @@ std::vector<std::string> QNode::loadObjectsInManipulation()
         }
         if ( add_objects_srv.response.results == manipulation_msgs::AddObjects::Response::BoxNotFound )
         {
-            ROS_ERROR("Box not fount");
+            ROS_ERROR("Box not found");
         }
     }
 
