@@ -47,10 +47,11 @@ public Q_SLOTS:
 	/******************************************
 	** Auto-connections (connectSlotsByName())
 	*******************************************/
-    void addGoTo                        (int state);
-    void addPick                        (int state);
-    void addPlace                       (int state);
+    void addGoTo                      (int state);
+    void addPick                      (int state);
+    void addPlace                     (int state);
     void on_checkRobotTF_stateChanged (int state);
+    void plotMsg (std::string msg);
 
     void on_actionAbout_triggered();
     void on_buttonAddAction_clicked               (bool check);
@@ -209,6 +210,10 @@ private:
     double min_gripper_position = 0;
     double max_force_gripper    = 100;
     std::string tf_name_space = "manipulation";
+    position default_approach;
+    double default_x_approach_ = 0;
+    double default_y_approach_ = 0;
+    double default_z_approach_ = -0.1;
 
 };
 

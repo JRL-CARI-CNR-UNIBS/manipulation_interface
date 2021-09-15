@@ -160,11 +160,11 @@ public:
     int runSelectedAction( int index );
     std::vector<std::string> loadRecipesParam();
 
-    void initialAddComponentsInManipulation();
+//    void initialAddComponentsInManipulation();
 
     XmlRpc::XmlRpcValue getRecipeParam(std::vector<std::string> recipe_);
-    XmlRpc::XmlRpcValue getRecipeParam       (int index);
-    XmlRpc::XmlRpcValue getActionGoToParam (int index);
+    XmlRpc::XmlRpcValue getRecipeParam      (int index);
+    XmlRpc::XmlRpcValue getActionGoToParam  (int index);
     XmlRpc::XmlRpcValue getActionPlaceParam (int index);
     XmlRpc::XmlRpcValue getActionPickParam  (int index);
 
@@ -176,27 +176,26 @@ public:
     bool add_object  (object_type object_);
     bool addSlot     (manipulation_slot slot_);
     bool addBox      (box box_);
-    void addObjectType          (int ind);
-    void addSlotGroups          (int ind);
-    void addLocationInfo        (int ind);
-    bool addObjectsPick         (int ind);
-    bool addGroupsPlace         (int ind);
-    bool addLocationsGoTo       (int ind);
-    bool addSecondLocationInfo  (int ind);
-    bool addSecondSlotGroups    (int ind);
-    bool addSecondObjectType    (int ind);
-    bool addLocationChanges     (int ind, go_to_location new_location);
-    bool addSlotChanges         (int ind, manipulation_slot new_slot);
-    bool addBoxChanges          (int ind, box new_box);
-    bool addObjectChanges       (int ind, object_type new_object);
-    bool addObjectCopyGrasp     (int index, int index2);
+    void addObjectType         (int ind);
+    void addSlotGroups         (int ind);
+    void addLocationInfo       (int ind);
+    bool addObjectsPick        (int ind);
+    bool addGroupsPlace        (int ind);
+    bool addLocationsGoTo      (int ind);
+    bool addSecondLocationInfo (int ind);
+    bool addSecondSlotGroups   (int ind);
+    bool addSecondObjectType   (int ind);
+    bool addLocationChanges    (int ind, go_to_location new_location);
+    bool addSlotChanges        (int ind, manipulation_slot new_slot);
+    bool addBoxChanges         (int ind, box new_box);
+    bool addObjectChanges      (int ind, object_type new_object);
+    bool addObjectCopyGrasp    (int index, int index2);
     bool addLocationCopy (go_to_location new_loc);
     bool addObjectCopy   (object_type new_obj);
     bool addSlotCopy     (manipulation_slot new_slot);
     bool addBoxCopy      (box new_box);
 
-    void loadInitialParamInManipulator();
-    void loadObjectsInManipulation();
+    std::vector<std::string> loadObjectsInManipulation();
     bool loadNewLocation (const go_to_location &location_name_);
     bool loadNewBox      (const box &box_to_add);
     bool loadNewGroup    (const std::string &group_to_add);
@@ -363,6 +362,7 @@ private:
     ros::ServiceClient remove_slots_group_client_;
     ros::ServiceClient remove_slots_client_;
     ros::ServiceClient list_objects_client_;
+    ros::ServiceClient list_manipulation_objects_client_;
 
     ros::Publisher     twist_pub;
     ros::ServiceClient set_ctrl_srv;

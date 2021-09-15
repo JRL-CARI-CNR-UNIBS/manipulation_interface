@@ -24,6 +24,7 @@
 #include <manipulation_interface_gui/recipe_test_msg.h>
 #include <object_loader_msgs/AddObjects.h>
 #include <object_loader_msgs/ListObjects.h>
+#include <manipulation_msgs/ListOfObjects.h>
 #include <manipulation_msgs/AddLocations.h>
 #include <manipulation_msgs/AddBoxes.h>
 #include <manipulation_msgs/AddObjects.h>
@@ -109,18 +110,18 @@ bool QNode::init()
 
     js_sub = std::make_shared<ros_helper::SubscriptionNotifier<sensor_msgs::JointState>>(n,"/gripper/joint_states",10);
 
-    add_locations_client_      = n.serviceClient<manipulation_msgs::AddLocations>     ("/go_to_location_server/add_locations");
-    add_boxes_client_          = n.serviceClient<manipulation_msgs::AddBoxes>         ("/inbound_pick_server/add_boxes");
-    add_objs_client_           = n.serviceClient<manipulation_msgs::AddObjects>       ("/inbound_pick_server/add_objects");
-    add_slots_group_client_    = n.serviceClient<manipulation_msgs::AddSlotsGroup>    ("/outbound_place_server/add_slots_group");
-    add_slots_client_          = n.serviceClient<manipulation_msgs::AddSlots>         ("/outbound_place_server/add_slots");
-    remove_locations_client_   = n.serviceClient<manipulation_msgs::RemoveLocations>  ("/go_to_location_server/remove_locations");
-    remove_boxes_client_       = n.serviceClient<manipulation_msgs::RemoveBoxes>      ("/inbound_pick_server/remove_boxes");
-    remove_objs_client_        = n.serviceClient<manipulation_msgs::RemoveObjects>    ("/inbound_pick_server/remove_objects");
-    remove_slots_group_client_ = n.serviceClient<manipulation_msgs::RemoveSlotsGroup> ("/outbound_place_server/remove_slots_group");
-    remove_slots_client_       = n.serviceClient<manipulation_msgs::RemoveSlots>      ("/outbound_place_server/remove_slots");
-    list_objects_client_       = n.serviceClient<object_loader_msgs::ListObjects>     ("/list_objects");
-
+    add_locations_client_             = n.serviceClient<manipulation_msgs::AddLocations>     ("/go_to_location_server/add_locations");
+    add_boxes_client_                 = n.serviceClient<manipulation_msgs::AddBoxes>         ("/inbound_pick_server/add_boxes");
+    add_objs_client_                  = n.serviceClient<manipulation_msgs::AddObjects>       ("/inbound_pick_server/add_objects");
+    add_slots_group_client_           = n.serviceClient<manipulation_msgs::AddSlotsGroup>    ("/outbound_place_server/add_slots_group");
+    add_slots_client_                 = n.serviceClient<manipulation_msgs::AddSlots>         ("/outbound_place_server/add_slots");
+    remove_locations_client_          = n.serviceClient<manipulation_msgs::RemoveLocations>  ("/go_to_location_server/remove_locations");
+    remove_boxes_client_              = n.serviceClient<manipulation_msgs::RemoveBoxes>      ("/inbound_pick_server/remove_boxes");
+    remove_objs_client_               = n.serviceClient<manipulation_msgs::RemoveObjects>    ("/inbound_pick_server/remove_objects");
+    remove_slots_group_client_        = n.serviceClient<manipulation_msgs::RemoveSlotsGroup> ("/outbound_place_server/remove_slots_group");
+    remove_slots_client_              = n.serviceClient<manipulation_msgs::RemoveSlots>      ("/outbound_place_server/remove_slots");
+    list_objects_client_              = n.serviceClient<object_loader_msgs::ListObjects>     ("/list_objects");
+    list_manipulation_objects_client_ = n.serviceClient<manipulation_msgs::ListOfObjects>    ("/inbound_pick_server/list_objects");
 
     ROS_INFO("Waiting for: %s server", add_locations_client_.getService().c_str());
     add_locations_client_.waitForExistence();
@@ -165,30 +166,32 @@ bool QNode::init()
     return true;
 }
 
-void QNode::initialAddComponentsInManipulation()
-{
-    for ( std::size_t i = 0; i < boxes.size(); i++ )
-    {
-        loadNewBox(boxes[i]);
-    }
-    for ( std::size_t i = 0; i < manipulation_slots.size(); i++ )
-    {
-        loadNewGroup(manipulation_slots[i].group);
-        loadNewSlot(manipulation_slots[i]);
-    }
-    for ( std::size_t i = 0; i < go_to_locations.size(); i++ )
-    {
-        loadNewLocation(go_to_locations[i]);
-    }
-}
+//void QNode::initialAddComponentsInManipulation()
+//{
+//    for ( std::size_t i = 0; i < boxes.size(); i++ )
+//    {
+//        loadNewBox(boxes[i]);
+//    }
+//    for ( std::size_t i = 0; i < manipulation_slots.size(); i++ )
+//    {
+//        loadNewGroup(manipulation_slots[i].group);
+//        loadNewSlot(manipulation_slots[i]);
+//    }
+//    for ( std::size_t i = 0; i < go_to_locations.size(); i++ )
+//    {
+//        loadNewLocation(go_to_locations[i]);
+//    }
+//}
 
-void QNode::loadObjectsInManipulation()
+std::vector<std::string> QNode::loadObjectsInManipulation()
 {
     object_loader_msgs::ListObjects objects_list;
+    manipulation_msgs::ListOfObjects manipulation_object_list;
+
     if ( !list_objects_client_.call( objects_list ) )
     {
         ROS_ERROR("Unable to obtain the object list");
-        return;
+        return manipulation_object_list.response.object_names;
     }
 
     manipulation_msgs::RemoveObjects remove_objects_srv;
@@ -201,7 +204,7 @@ void QNode::loadObjectsInManipulation()
         if ( !remove_objs_client_.call(remove_objects_srv) )
         {
             ROS_ERROR("Unable to remove the objects by the manipulation");
-            return;
+            return manipulation_object_list.response.object_names;
         }
 
         for ( int i = 0; i < objects_list.response.ids.size(); i++ )
@@ -272,6 +275,13 @@ void QNode::loadObjectsInManipulation()
             ROS_ERROR("Box not fount");
         }
     }
+
+    if ( !list_manipulation_objects_client_.call( manipulation_object_list ) )
+    {
+        ROS_ERROR("Unable to obtain the manipulation object list");
+        return manipulation_object_list.response.object_names;
+    }
+    return manipulation_object_list.response.object_names;
 }
 
 void QNode::cartMove (std::vector<float> twist_move)
@@ -1175,7 +1185,7 @@ void QNode::removeLocation(int ind)
     {
         ROS_WARN("Locations to remove: %s", go_to_locations[ind].name.c_str());
         remove_location_srv.request.location_names.push_back(go_to_locations[ind].name);
-        if (remove_locations_client_.call(remove_location_srv))
+        if ( !remove_locations_client_.call(remove_location_srv) )
         {
             ROS_ERROR("Error while calling remove locations service");
         }
@@ -1216,7 +1226,7 @@ void QNode::removeSlot(int ind)
     {
         ROS_WARN("Slot to remove: %s", manipulation_slots[ind].name.c_str());
         remove_slots_srv.request.slots_names.push_back(manipulation_slots[ind].name);
-        if ( remove_slots_client_.call(remove_slots_srv) )
+        if ( !remove_slots_client_.call(remove_slots_srv) )
         {
             ROS_ERROR("Error while calling remove slots service");
         }
@@ -1494,14 +1504,14 @@ std::string QNode::getXmlObjectGraspString( int index, int index2 )
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(getXmlStringParam("tool", objects[index].tool[index2]));
-    xml_body.append(getXmlPositionString("position", objects[index].grasp[index2].pos));
-    xml_body.append(getXmlQuaternionString(objects[index].grasp[index2].quat));
-    xml_body.append(getXmlPositionString("approach_distance", objects[index].approach[index2]));
-    xml_body.append(getXmlPositionString("leave_distance", objects[index].leave[index2]));
-    xml_body.append(getXmlDoubleStringWithName("pre_gripper_position", objects[index].pre_gripper_position[index2]));
-    xml_body.append(getXmlDoubleStringWithName("post_gripper_position", objects[index].post_gripper_position[index2]));
-    xml_body.append(getXmlDoubleStringWithName("gripper_force", objects[index].gripper_force[index2]));
+    xml_body.append(getXmlStringParam("tool", objects_compare[index].tool[index2]));
+    xml_body.append(getXmlPositionString("position", objects_compare[index].grasp[index2].pos));
+    xml_body.append(getXmlQuaternionString(objects_compare[index].grasp[index2].quat));
+    xml_body.append(getXmlPositionString("approach_distance", objects_compare[index].approach[index2]));
+    xml_body.append(getXmlPositionString("leave_distance", objects_compare[index].leave[index2]));
+    xml_body.append(getXmlDoubleStringWithName("pre_gripper_position", objects_compare[index].pre_gripper_position[index2]));
+    xml_body.append(getXmlDoubleStringWithName("post_gripper_position", objects_compare[index].post_gripper_position[index2]));
+    xml_body.append(getXmlDoubleStringWithName("gripper_force", objects_compare[index].gripper_force[index2]));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1523,7 +1533,7 @@ std::string QNode::getXmlObjectGraspPosesString( int index )
     xml_body.append(init_array);
     xml_body.append(init_data);
 
-    for ( int i = 0; i < objects[index].grasp.size(); i++ )
+    for ( int i = 0; i < objects_compare[index].grasp.size(); i++ )
     {
         xml_body.append( getXmlObjectGraspString(index, i) );
     }
@@ -1545,10 +1555,10 @@ XmlRpc::XmlRpcValue QNode::getGoToLocationParam(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(getXmlStringParam("name", go_to_locations[index].name));
-    xml_body.append(getXmlStringParam("frame", go_to_locations[index].frame));
-    xml_body.append(getXmlPositionString("position", go_to_locations[index].location_.pos));
-    xml_body.append(getXmlQuaternionString(go_to_locations[index].location_.quat));
+    xml_body.append(getXmlStringParam("name", go_to_locations_compare[index].name));
+    xml_body.append(getXmlStringParam("frame", go_to_locations_compare[index].frame));
+    xml_body.append(getXmlPositionString("position", go_to_locations_compare[index].location_.pos));
+    xml_body.append(getXmlQuaternionString(go_to_locations_compare[index].location_.quat));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1569,12 +1579,12 @@ XmlRpc::XmlRpcValue QNode::getBoxParam(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(getXmlStringParam("name", boxes[index].name));
-    xml_body.append(getXmlStringParam("frame", boxes[index].frame));
-    xml_body.append(getXmlPositionString("position", boxes[index].location_.pos));
-    xml_body.append(getXmlPositionString("approach_distance", boxes[index].approach));
-    xml_body.append(getXmlPositionString("leave_distance", boxes[index].leave));
-    xml_body.append(getXmlQuaternionString(boxes[index].location_.quat));
+    xml_body.append(getXmlStringParam("name", boxes_compare[index].name));
+    xml_body.append(getXmlStringParam("frame", boxes_compare[index].frame));
+    xml_body.append(getXmlPositionString("position", boxes_compare[index].location_.pos));
+    xml_body.append(getXmlPositionString("approach_distance", boxes_compare[index].approach));
+    xml_body.append(getXmlPositionString("leave_distance", boxes_compare[index].leave));
+    xml_body.append(getXmlQuaternionString(boxes_compare[index].location_.quat));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1605,7 +1615,7 @@ XmlRpc::XmlRpcValue QNode::getObjectParam(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append( getXmlStringParam("type", objects[index].type) );
+    xml_body.append( getXmlStringParam("type", objects_compare[index].type) );
     xml_body.append( getXmlObjectGraspPosesString(index) );
 
     xml_body.append(end_struct);
@@ -1626,7 +1636,7 @@ XmlRpc::XmlRpcValue QNode::getGroupParam(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(getXmlStringParam("name", groups[index]));
+    xml_body.append(getXmlStringParam("name", groups_compare[index]));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1646,14 +1656,14 @@ XmlRpc::XmlRpcValue QNode::getSlotParam(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(getXmlStringParam("name", manipulation_slots[index].name));
-    xml_body.append(getXmlStringParam("frame", manipulation_slots[index].frame));
-    xml_body.append(getXmlStringParam("slots_group", manipulation_slots[index].group));
-    xml_body.append(getXmlMaxNumberString(manipulation_slots[index].max_objects));
-    xml_body.append(getXmlPositionString("position", manipulation_slots[index].location_.pos));
-    xml_body.append(getXmlQuaternionString( manipulation_slots[index].location_.quat));
-    xml_body.append(getXmlPositionString("approach_distance", manipulation_slots[index].approach));
-    xml_body.append(getXmlPositionString("leave_distance", manipulation_slots[index].leave));
+    xml_body.append(getXmlStringParam("name", slots_compare[index].name));
+    xml_body.append(getXmlStringParam("frame", slots_compare[index].frame));
+    xml_body.append(getXmlStringParam("slots_group", slots_compare[index].group));
+    xml_body.append(getXmlMaxNumberString(slots_compare[index].max_objects));
+    xml_body.append(getXmlPositionString("position", slots_compare[index].location_.pos));
+    xml_body.append(getXmlQuaternionString( slots_compare[index].location_.quat));
+    xml_body.append(getXmlPositionString("approach_distance", slots_compare[index].approach));
+    xml_body.append(getXmlPositionString("leave_distance", slots_compare[index].leave));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1673,11 +1683,11 @@ XmlRpc::XmlRpcValue QNode::getGoToParam(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(getXmlStringParam("name", go_to_actions[index].name));
-    xml_body.append(getXmlStringParam("description", go_to_actions[index].description));
+    xml_body.append(getXmlStringParam("name", go_to_actions_compare[index].name));
+    xml_body.append(getXmlStringParam("description", go_to_actions_compare[index].description));
     xml_body.append(getXmlStringParam("type", "goto"));
-    xml_body.append(getXmlGroupString("agent", go_to_actions[index].agents));
-    xml_body.append(getXmlGroupString("goal", go_to_actions[index].locations));
+    xml_body.append(getXmlGroupString("agent", go_to_actions_compare[index].agents));
+    xml_body.append(getXmlGroupString("goal", go_to_actions_compare[index].locations));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1697,11 +1707,11 @@ XmlRpc::XmlRpcValue QNode::getPickParam(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(getXmlStringParam("name", pick_actions[index].name));
-    xml_body.append(getXmlStringParam("description", pick_actions[index].description));
+    xml_body.append(getXmlStringParam("name", pick_actions_compare[index].name));
+    xml_body.append(getXmlStringParam("description", pick_actions_compare[index].description));
     xml_body.append(getXmlStringParam("type", "pick"));
-    xml_body.append(getXmlGroupString("agent", pick_actions[index].agents));
-    xml_body.append(getXmlGroupString("goal", pick_actions[index].objects));
+    xml_body.append(getXmlGroupString("agent", pick_actions_compare[index].agents));
+    xml_body.append(getXmlGroupString("goal", pick_actions_compare[index].objects));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1721,11 +1731,11 @@ XmlRpc::XmlRpcValue QNode::getPlaceParam(int index)
     xml_body.append(init_value);
     xml_body.append(init_struct);
 
-    xml_body.append(getXmlStringParam("name", place_actions[index].name));
-    xml_body.append(getXmlStringParam("description", place_actions[index].description));
+    xml_body.append(getXmlStringParam("name", place_actions_compare[index].name));
+    xml_body.append(getXmlStringParam("description", place_actions_compare[index].description));
     xml_body.append(getXmlStringParam("type", "place"));
-    xml_body.append(getXmlGroupString("agent", place_actions[index].agents));
-    xml_body.append(getXmlGroupString("goal", place_actions[index].groups));
+    xml_body.append(getXmlGroupString("agent", place_actions_compare[index].agents));
+    xml_body.append(getXmlGroupString("goal", place_actions_compare[index].groups));
 
     xml_body.append(end_struct);
     xml_body.append(end_value);
@@ -1749,45 +1759,36 @@ void QNode::setTargetFrame( int ind )
 void QNode::checkObjectsParam()
 {
 
-    bool presence = false;
+    bool presence;
 
-    for ( int i = 0; i < objects_compare.size(); i++ )
+    for ( std::size_t i = 0; i < objects.size(); i ++ )
     {
-        for ( int j = 0; j < objects.size(); j++)
+        presence = false;
+        std::size_t index;
+        for ( std::size_t j = 0; j < objects_compare.size(); j++ )
         {
-            if ( objects[j].type == objects_compare[i].type )
+            if ( objects[i].type == objects_compare[j].type )
             {
                 presence = true;
+                index = j;
             }
         }
-        if ( presence == false )
+        if ( presence )
         {
-            objects.push_back( objects_compare[i] );
+            objects_compare[index] = objects[i];
+        }
+        else
+        {
+            objects_compare.push_back( objects[i] );
         }
     }
-
-    objects_compare = objects;
 
     return;
 }
 
 void QNode::checkOtherParam()
 {
-    for ( int i = 0; i < go_to_locations_compare.size(); i++ )
-    {
-        bool presence = false;
-        for ( int j = 0; j < go_to_locations.size(); j++)
-        {
-            if ( go_to_locations[j].name == go_to_locations_compare[i].name )
-            {
-                presence = true;
-            }
-        }
-        if ( presence == false )
-        {
-            go_to_locations.push_back( go_to_locations_compare[i] );
-        }
-    }
+    bool presence;
 
     for ( int i = 0; i < changed_locations.size(); i++ )
     {
@@ -1800,80 +1801,31 @@ void QNode::checkOtherParam()
         }
     }
 
-    go_to_locations_compare = go_to_locations;
-
-    for ( int i = 0; i < go_to_actions_compare.size(); i++ )
+    for ( std::size_t i = 0; i < go_to_locations.size(); i ++ )
     {
-        bool presence = false;
-        for ( int j = 0; j < go_to_actions.size(); j++)
+        presence = false;
+        std::size_t index;
+        for ( std::size_t j = 0; j < go_to_locations_compare.size(); j++ )
         {
-            if ( go_to_actions[j].name == go_to_actions_compare[i].name )
+            if ( go_to_locations[i].name == go_to_locations_compare[j].name )
             {
                 presence = true;
+                index = j;
             }
         }
-        if ( presence == false )
+        if ( presence )
         {
-            go_to_actions.push_back( go_to_actions_compare[i] );
+            go_to_locations_compare[index] = go_to_locations[i];
+        }
+        else
+        {
+            go_to_locations_compare.push_back( go_to_locations[i] );
         }
     }
 
-    go_to_actions_compare = go_to_actions;
-
-    for ( int i = 0; i < place_actions_compare.size(); i++ )
+    for ( std::size_t i = 0; i < changed_slots.size(); i++ )
     {
-        bool presence = false;
-        for ( int j = 0; j < place_actions.size(); j++)
-        {
-            if ( place_actions[j].name == place_actions_compare[i].name )
-            {
-                presence = true;
-            }
-        }
-        if ( presence == false )
-        {
-            place_actions.push_back( place_actions_compare[i] );
-        }
-    }
-
-    place_actions_compare = place_actions;
-
-    for ( int i = 0; i < pick_actions_compare.size(); i++ )
-    {
-        bool presence = false;
-        for ( int j = 0; j < pick_actions.size(); j++)
-        {
-            if ( pick_actions[j].name == pick_actions_compare[i].name )
-            {
-                presence = true;
-            }
-        }
-        if ( presence == false )
-        {
-            pick_actions.push_back( pick_actions_compare[i] );
-        }
-    }
-    pick_actions_compare = pick_actions;
-
-    for ( int i = 0; i < slots_compare.size(); i++ )
-    {
-        bool presence = false;
-        for ( int j = 0; j < manipulation_slots.size(); j++)
-        {
-            if ( manipulation_slots[j].name == slots_compare[i].name )
-            {
-                presence = true;
-            }
-        }
-        if ( presence == false )
-        {
-            manipulation_slots.push_back( slots_compare[i] );
-        }
-    }
-
-    for ( int i = 0; i < changed_slots.size(); i++ )
-    {
-        for ( int j = 0; j < slots_compare.size(); j++ )
+        for ( std::size_t j = 0; j < slots_compare.size(); j++ )
         {
             if ( !changed_slots[i].name.compare( slots_compare[j].name ) )
             {
@@ -1882,27 +1834,31 @@ void QNode::checkOtherParam()
         }
     }
 
-    slots_compare = manipulation_slots;
-
-    for ( int i = 0; i < groups_compare.size(); i++ )
+    for ( std::size_t i = 0; i < manipulation_slots.size(); i ++ )
     {
-        bool presence = false;
-        for ( int j = 0; j < groups.size(); j++)
+        presence = false;
+        std::size_t index;
+        for ( std::size_t j = 0; j < slots_compare.size(); j++ )
         {
-            if ( groups[j] == groups_compare[i] )
+            if ( manipulation_slots[i].name == slots_compare[j].name )
             {
                 presence = true;
+                index = j;
             }
         }
-        if ( presence == false )
+        if ( presence )
         {
-            groups.push_back( groups_compare[i] );
+            slots_compare[index] = manipulation_slots[i];
+        }
+        else
+        {
+            slots_compare.push_back( manipulation_slots[i] );
         }
     }
 
-    for ( int i = 0; i < changed_groups.size(); i++ )
+    for ( std::size_t i = 0; i < changed_groups.size(); i++ )
     {
-        for ( int j = 0; j < groups_compare.size(); j++ )
+        for ( std::size_t j = 0; j < groups_compare.size(); j++ )
         {
             if ( !changed_groups.at(i).compare( groups_compare.at(j) ) )
             {
@@ -1911,27 +1867,31 @@ void QNode::checkOtherParam()
         }
     }
 
-    groups_compare = groups;
-
-    for ( int i = 0; i < boxes_compare.size(); i++ )
+    for ( std::size_t i = 0; i < groups.size(); i ++ )
     {
-        bool presence = false;
-        for ( int j = 0; j < boxes.size(); j++)
+        presence = false;
+        std::size_t index;
+        for ( std::size_t j = 0; j < groups_compare.size(); j++ )
         {
-            if ( boxes[j].name == boxes_compare[i].name )
+            if ( groups[i] == groups_compare[j] )
             {
                 presence = true;
+                index = j;
             }
         }
-        if ( presence == false )
+        if ( presence )
         {
-            boxes.push_back( boxes_compare[i] );
+            groups_compare[index] = groups[i];
+        }
+        else
+        {
+            groups_compare.push_back( groups[i] );
         }
     }
 
-    for ( int i = 0; i < changed_boxes.size(); i++ )
+    for ( std::size_t i = 0; i < changed_boxes.size(); i++ )
     {
-        for ( int j = 0; j < boxes_compare.size(); j++ )
+        for ( std::size_t j = 0; j < boxes_compare.size(); j++ )
         {
             if ( !changed_boxes[i].name.compare( boxes_compare[j].name ) )
             {
@@ -1940,7 +1900,93 @@ void QNode::checkOtherParam()
         }
     }
 
-    boxes_compare = boxes;
+    for ( std::size_t i = 0; i < boxes.size(); i ++ )
+    {
+        presence = false;
+        std::size_t index;
+        for ( std::size_t j = 0; j < boxes_compare.size(); j++ )
+        {
+            if ( boxes[i].name == boxes_compare[j].name )
+            {
+                presence = true;
+                index = j;
+            }
+        }
+        if ( presence )
+        {
+            boxes_compare[index] = boxes[i];
+        }
+        else
+        {
+            boxes_compare.push_back( boxes[i] );
+        }
+    }
+
+    for ( std::size_t i = 0; i < go_to_actions.size(); i ++ )
+    {
+        presence = false;
+        std::size_t index;
+        for ( std::size_t j = 0; j < go_to_actions_compare.size(); j++ )
+        {
+            if ( go_to_actions[i].name == go_to_actions_compare[j].name )
+            {
+                presence = true;
+                index = j;
+            }
+        }
+        if ( presence )
+        {
+            go_to_actions_compare[index] = go_to_actions[i];
+        }
+        else
+        {
+            go_to_actions_compare.push_back( go_to_actions[i] );
+        }
+    }
+
+    for ( std::size_t i = 0; i < place_actions.size(); i ++ )
+    {
+        presence = false;
+        std::size_t index;
+        for ( std::size_t j = 0; j < place_actions_compare.size(); j++ )
+        {
+            if ( place_actions[i].name == place_actions_compare[j].name )
+            {
+                presence = true;
+                index = j;
+            }
+        }
+        if ( presence )
+        {
+            place_actions_compare[index] = place_actions[i];
+        }
+        else
+        {
+            place_actions_compare.push_back( place_actions[i] );
+        }
+    }
+
+    for ( std::size_t i = 0; i < pick_actions.size(); i ++ )
+    {
+        presence = false;
+        std::size_t index;
+        for ( std::size_t j = 0; j < pick_actions_compare.size(); j++ )
+        {
+            if ( pick_actions[i].name == pick_actions_compare[j].name )
+            {
+                presence = true;
+                index = j;
+            }
+        }
+        if ( presence )
+        {
+            pick_actions_compare[index] = pick_actions[i];
+        }
+        else
+        {
+            pick_actions_compare.push_back( pick_actions[i] );
+        }
+    }
 }
 
 void QNode::checkRecipesParam()
@@ -1971,35 +2017,35 @@ bool QNode::saveComponents()
     checkObjectsParam();
     checkOtherParam();
 
-    for ( int i = 0; i < go_to_locations.size(); i++)
+    for ( int i = 0; i < go_to_locations_compare.size(); i++)
     {
         param[i] = getGoToLocationParam(i);
     }
     n.setParam("/go_to_location", param);
     param.clear();
 
-    for ( int i = 0; i < boxes.size(); i++)
+    for ( int i = 0; i < boxes_compare.size(); i++)
     {
         param[i] = getBoxParam(i);
     }
     n.setParam("/inbound/boxes", param);
     param.clear();
 
-    for ( int i = 0; i < groups.size(); i++)
+    for ( int i = 0; i < groups_compare.size(); i++)
     {
         param[i] = getGroupParam(i);
     }
     n.setParam("/outbound/slots_group", param);
     param.clear();
 
-    for ( int i = 0; i < manipulation_slots.size(); i++)
+    for ( int i = 0; i < slots_compare.size(); i++)
     {
         param[i] = getSlotParam( i );
     }
     n.setParam("/outbound/slots", param);
     param.clear();
 
-    for ( int i = 0; i < objects.size(); i++ )
+    for ( int i = 0; i < objects_compare.size(); i++ )
     {
         param [i] = getObjectParam(i);
     }
@@ -2010,7 +2056,7 @@ bool QNode::saveComponents()
     manipulation_interface_mongo::SaveParam srv;
     client.call(srv);
 
-    writeParam(1);
+//    writeParam(1);
 
     return true;
 }
@@ -2020,7 +2066,7 @@ bool QNode::loadNewLocation(const go_to_location& location_name_)
     if ( !location_name_.name.empty() )
     {
         manipulation_msgs::AddLocations add_locations_srv;
-        ROS_WARN("Location to add: %s", location_name_.name.c_str());
+        ROS_INFO("Location to add: %s", location_name_.name.c_str());
         manipulation_msgs::Location location_;
         location_.name               = location_name_.name;
         location_.frame              = location_name_.frame;
@@ -2037,6 +2083,7 @@ bool QNode::loadNewLocation(const go_to_location& location_name_)
         if (!add_locations_client_.call(add_locations_srv))
         {
             ROS_ERROR("Error while calling add locations service.");
+            return false;
         }
 
         if ( add_locations_srv.response.results == manipulation_msgs::AddLocations::Response::Error )
@@ -2057,7 +2104,7 @@ bool QNode::loadNewBox( const box &box_to_add)
     if ( !box_to_add.name.empty() )
     {
         manipulation_msgs::AddBoxes add_boxes_srv;
-        ROS_WARN("Box to add: %s", box_to_add.name.c_str());
+        ROS_INFO("Box to add: %s", box_to_add.name.c_str());
         manipulation_msgs::Box box_;
         box_.name = box_to_add.name;
         box_.location.name = box_.name;
@@ -2083,6 +2130,7 @@ bool QNode::loadNewBox( const box &box_to_add)
         if (!add_boxes_client_.call(add_boxes_srv))
         {
             ROS_ERROR("Error while calling add boxes service.");
+            return false;
         }
 
         if (add_boxes_srv.response.results == manipulation_msgs::AddBoxes::Response::Error)
@@ -2103,14 +2151,15 @@ bool QNode::loadNewGroup( const std::string &group_to_add)
 {
     if ( !group_to_add.empty() )
     {
-        ROS_WARN("Group to add: %s", group_to_add.c_str());
+        ROS_INFO("Group to add: %s", group_to_add.c_str());
         manipulation_msgs::AddSlotsGroup add_groups_srv;
         manipulation_msgs::SlotsGroup group_srv;
         group_srv.name = group_to_add;
         add_groups_srv.request.add_slots_groups.push_back(group_srv);
-        if ( add_slots_group_client_.call(add_groups_srv) )
+        if ( !add_slots_group_client_.call(add_groups_srv) )
         {
             ROS_ERROR("Error while calling add groups service");
+            return false;
         }
         if ( add_groups_srv.response.results == manipulation_msgs::AddSlotsGroup::Response::Error )
         {
@@ -2122,13 +2171,14 @@ bool QNode::loadNewGroup( const std::string &group_to_add)
             ROS_INFO("Added group: %s", group_to_add.c_str());
         }
     }
+    return true;
 }
 
 bool QNode::loadNewSlot( const manipulation_slot &slot_to_add)
 {
     if ( !slot_to_add.name.empty() )
     {
-        ROS_WARN("Slot to add: %s", slot_to_add.name.c_str() );
+        ROS_INFO("Slot to add: %s", slot_to_add.name.c_str() );
         manipulation_msgs::AddSlots add_slots_srv;
         std::vector<manipulation_msgs::Slot> slot_vct;
         manipulation_msgs::Slot slot_;
@@ -2182,17 +2232,17 @@ bool QNode::saveActions()
     checkObjectsParam();
     checkOtherParam();
 
-    for ( int i = 0; i < go_to_actions.size(); i++)
+    for ( int i = 0; i < go_to_actions_compare.size(); i++)
     {
         param[i] = getGoToParam(i);
     }
-    for ( int i = 0; i < pick_actions.size(); i++)
+    for ( int i = 0; i < pick_actions_compare.size(); i++)
     {
-        param[ i + go_to_actions.size() ] = getPickParam(i);
+        param[ i + go_to_actions_compare.size() ] = getPickParam(i);
     }
-    for ( int i = 0; i < place_actions.size(); i++)
+    for ( int i = 0; i < place_actions_compare.size(); i++)
     {
-        param[ i + go_to_actions.size() + pick_actions.size() ] = getPlaceParam(i);
+        param[ i + go_to_actions_compare.size() + pick_actions_compare.size() ] = getPlaceParam(i);
     }
     n.setParam("/multi_skills/tasks", param);
     param.clear();
@@ -2774,7 +2824,10 @@ bool QNode::readBoxesFromParam()
 
         if ( !presence )
         {
-            boxes.push_back(box_);
+            if ( loadNewBox(box_) )
+            {
+                boxes.push_back(box_);
+            }
             boxes_compare.push_back(box_);
         }
     }
@@ -2941,8 +2994,8 @@ bool QNode::readObjectFromParam()
         if ( !presence )
         {
             objects.push_back( object_ );
-            objects_compare.push_back( object_ );
         }
+        objects_compare.push_back( object_ );
     }
 
     return true;
@@ -2966,23 +3019,23 @@ bool QNode::readSlotsGroupFromParam()
 
     for (int i=0; i < config.size(); i++)
     {
-        XmlRpc::XmlRpcValue slot = config[i];
-        if( slot.getType() != XmlRpc::XmlRpcValue::TypeStruct)
+        XmlRpc::XmlRpcValue slot_group_ = config[i];
+        if( slot_group_.getType() != XmlRpc::XmlRpcValue::TypeStruct)
         {
             ROS_WARN("The element #%d is not a struct", i);
             continue;
         }
 
-        if( !slot.hasMember("name") )
+        if( !slot_group_.hasMember("name") )
         {
             ROS_WARN("The element #%d has not the field 'name'", i);
             return false;
         }
-
+        std::string group_name_ = rosparam_utilities::toString(slot_group_["name"]);
         bool presence = false;
         for ( int j = 0; j < groups.size(); j++)
         {
-            if ( !rosparam_utilities::toString(slot["name"]).compare( groups[j] ) )
+            if ( !group_name_.compare( groups[j] ) )
             {
                 presence = true;
             }
@@ -2990,8 +3043,11 @@ bool QNode::readSlotsGroupFromParam()
 
         if ( !presence )
         {
-            groups.push_back( rosparam_utilities::toString(slot["name"]) );
-            groups_compare.push_back( rosparam_utilities::toString(slot["name"]) );
+            if ( loadNewGroup( group_name_ ) )
+            {
+                groups.push_back( group_name_ );
+            }
+            groups_compare.push_back( group_name_ );
         }
     }
 
@@ -3116,7 +3172,10 @@ bool QNode::readSlotsFromParam()
 
         if ( !presence )
         {
-            manipulation_slots.push_back(slot_);
+            if ( loadNewSlot(slot_) )
+            {
+                manipulation_slots.push_back(slot_);
+            }
             slots_compare.push_back(slot_);
         }
     }
@@ -3201,7 +3260,10 @@ bool QNode::readLocationsFromParam()
 
         if ( !presence )
         {
-            go_to_locations.push_back(go_to_);
+            if ( loadNewLocation(go_to_) )
+            {
+                go_to_locations.push_back(go_to_);
+            }
             go_to_locations_compare.push_back(go_to_);
         }
     }

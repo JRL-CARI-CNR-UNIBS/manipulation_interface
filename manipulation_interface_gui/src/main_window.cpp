@@ -93,22 +93,22 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle
     ui.checkRobotInfo2               ->setEnabled(false);
 
     ui.goToList             ->setEditTriggers(QListView::NoEditTriggers);
-    ui.placeList             ->setEditTriggers(QListView::NoEditTriggers);
-    ui.pickList              ->setEditTriggers(QListView::NoEditTriggers);
-    ui.objectList            ->setEditTriggers(QListView::NoEditTriggers);
-    ui.slotList              ->setEditTriggers(QListView::NoEditTriggers);
-    ui.groupList             ->setEditTriggers(QListView::NoEditTriggers);
-    ui.boxList               ->setEditTriggers(QListView::NoEditTriggers);
-    ui.locationsList         ->setEditTriggers(QListView::NoEditTriggers);
+    ui.placeList            ->setEditTriggers(QListView::NoEditTriggers);
+    ui.pickList             ->setEditTriggers(QListView::NoEditTriggers);
+    ui.objectList           ->setEditTriggers(QListView::NoEditTriggers);
+    ui.slotList             ->setEditTriggers(QListView::NoEditTriggers);
+    ui.groupList            ->setEditTriggers(QListView::NoEditTriggers);
+    ui.boxList              ->setEditTriggers(QListView::NoEditTriggers);
+    ui.locationsList        ->setEditTriggers(QListView::NoEditTriggers);
     ui.listLocationModify   ->setEditTriggers(QListView::NoEditTriggers);
     ui.listBoxModify        ->setEditTriggers(QListView::NoEditTriggers);
     ui.listSlotModify       ->setEditTriggers(QListView::NoEditTriggers);
     ui.listObjectModify     ->setEditTriggers(QListView::NoEditTriggers);
-    ui.componentList         ->setEditTriggers(QListView::NoEditTriggers);
+    ui.componentList        ->setEditTriggers(QListView::NoEditTriggers);
     ui.listGoTo             ->setEditTriggers(QListView::NoEditTriggers);
-    ui.listPlace             ->setEditTriggers(QListView::NoEditTriggers);
-    ui.listPick              ->setEditTriggers(QListView::NoEditTriggers);
-    ui.listRecipe            ->setEditTriggers(QListView::NoEditTriggers);
+    ui.listPlace            ->setEditTriggers(QListView::NoEditTriggers);
+    ui.listPick             ->setEditTriggers(QListView::NoEditTriggers);
+    ui.listRecipe           ->setEditTriggers(QListView::NoEditTriggers);
     ui.listInfoAction       ->setEditTriggers(QListView::NoEditTriggers);
     ui.listActionComponents ->setEditTriggers(QListView::NoEditTriggers);
 
@@ -120,6 +120,10 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle
     ui.editActionDescription ->setReadOnly(true);
     ui.editGripperState      ->setReadOnly(true);
     ui.editObjectName        ->setReadOnly(true);
+
+    default_approach.origin_x = default_x_approach_;
+    default_approach.origin_y = default_y_approach_;
+    default_approach.origin_z = default_z_approach_;
 
     /*********************
     ** Window connect to ROS
@@ -147,7 +151,7 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle
     qnode.frame_id.append( ui.comboRefFrame->currentText().toStdString() );
 
     qnode.writeParam(1);
-    qnode.initialAddComponentsInManipulation();
+//    qnode.initialAddComponentsInManipulation();
     qnode.writeParam(2);
     qnode.writeLocations();
     std::vector<std::string> recipes_names =qnode.loadRecipesParam();
@@ -206,9 +210,7 @@ void MainWindow::addGoTo( int state )
                 }
                 if ( !qnode.addGoTo(go_to_name,locations,description,agents_) )
                 {
-                    QMessageBox msgBox;
-                    msgBox.setText("There is another action with the same name or locations.");
-                    msgBox.exec();
+                    plotMsg("There is another action with the same name or locations.");
                     ui.editActionName->clear();
                 }
                 else
@@ -220,23 +222,17 @@ void MainWindow::addGoTo( int state )
             }
             else
             {
-                QMessageBox msgBox;
-                msgBox.setText("Empty name");
-                msgBox.exec();
+                plotMsg("Empty name");
             }
         }
         else
         {
-            QMessageBox msgBox;
-            msgBox.setText("There isn't any location selected.");
-            msgBox.exec();
+            plotMsg("There isn't any location selected.");
         }
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("Empty agent");
-        msgBox.exec();
+        plotMsg("Empty agent");
     }
 }
 
@@ -273,9 +269,7 @@ void MainWindow::addPlace( int state )
                 }
                 if ( !qnode.addPlace(place_name,groups,description,agents_) )
                 {
-                    QMessageBox msgBox;
-                    msgBox.setText("There is another action with the same name or groups.");
-                    msgBox.exec();
+                    plotMsg("There is another action with the same name or groups.");
                     ui.editActionName->clear();
                 }
                 else
@@ -287,23 +281,17 @@ void MainWindow::addPlace( int state )
             }
             else
             {
-                QMessageBox msgBox;
-                msgBox.setText("Empty name");
-                msgBox.exec();
+                plotMsg("Empty name");
             }
         }
         else
         {
-            QMessageBox msgBox;
-            msgBox.setText("There isn't any slot group selected.");
-            msgBox.exec();
+            plotMsg("There isn't any slot group selected.");
         }
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("Empty agent");
-        msgBox.exec();
+        plotMsg("Empty agent");
     }
 }
 
@@ -340,10 +328,8 @@ void MainWindow::addPick( int state )
                 }
                 if ( !qnode.addPick(pick_name,objects,description,agents_) )
                 {
-                    QMessageBox msgBox;
-                    msgBox.setText("There is another action with the same name or objects.");
-                    msgBox.exec();
                     ui.editActionName->clear();
+                    plotMsg("There is another action with the same name or objects.");
                 }
                 else
                 {
@@ -354,23 +340,17 @@ void MainWindow::addPick( int state )
             }
             else
             {
-                QMessageBox msgBox;
-                msgBox.setText("There isn't any selected object type");
-                msgBox.exec();
+                plotMsg("There isn't any selected object type");
             }
         }
         else
         {
-            QMessageBox msgBox;
-            msgBox.setText("Empty name");
-            msgBox.exec();
+            plotMsg("Empty name");
         }
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("Empty agent");
-        msgBox.exec();
+        plotMsg("Empty agent");
     }
 }
 
@@ -421,12 +401,8 @@ void MainWindow::on_buttonAddGrasp_clicked(bool check)
     grasp.append(str.c_str());
     ui.graspList->addItem(grasp);
     ui.graspList->setCurrentIndex(ui.graspList->count()-1);
-    position pos;
-    pos.origin_x = 0.0;
-    pos.origin_y = 0.0;
-    pos.origin_z = -0.10;
-    actual_object_approach.push_back(pos);
-    actual_object_leave.push_back(pos);
+    actual_object_approach.push_back(default_approach);
+    actual_object_leave.push_back(default_approach);
     actual_pre_gripper_position.push_back(max_gripper_position);
     actual_approach_gripper_position.push_back(std::nan("1"));
 //    actual_post_gripper_position.push_back(qnode.return_gripper_position());
@@ -526,15 +502,14 @@ void MainWindow::on_buttonAddApproachSlot_clicked(bool check)
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("Final position is not set.");
-        msgBox.exec();
+        plotMsg("Final position is not set.");
     }
 }
 
 void MainWindow::on_buttonAddFinalPositionSlot_clicked(bool check)
 {
     actual_slot_final_position = qnode.returnPosition(qnode.base_frame, qnode.target_frame);
+    actual_slot_approach = default_approach;
     init_slot_final = true;
     ui.buttonAddFinalPositionSlot->setEnabled(false);
     ui.buttonRemoveFinalPositionSlot->setEnabled(true);
@@ -549,9 +524,7 @@ void MainWindow::on_buttonAddLocation_clicked(bool check)
         {
             if ( !location_name.compare( ui.locationsList->model()->data( ui.locationsList->model()->index( i, 0), 0).toString().toStdString() ) )
             {
-                QMessageBox msgBox;
-                msgBox.setText("There is another location with the same name.");
-                msgBox.exec();
+                plotMsg("There is another location with the same name.");
                 ui.editLocationName->clear();
                 return;
             }
@@ -563,16 +536,12 @@ void MainWindow::on_buttonAddLocation_clicked(bool check)
         gt.frame     = qnode.base_frame;
         if ( !qnode.loadNewLocation( gt ) )
         {
-            QMessageBox msgBox;
-            msgBox.setText("Can't add the locatin to location manager");
-            msgBox.exec();
+            plotMsg("Can't add the locatin to location manager.");
             return;
         }
         else
         {
-            QMessageBox msgBox;
-            msgBox.setText("Location added to location manager");
-            msgBox.exec();
+            plotMsg("Location added to location manager.");
             qnode.addLocation( gt );
             ui.editLocationName->clear();
             if ( ui.comboActionType->currentIndex() == 0)
@@ -583,9 +552,7 @@ void MainWindow::on_buttonAddLocation_clicked(bool check)
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("Empty name");
-        msgBox.exec();
+        plotMsg("Empty name.");
     }
 }
 
@@ -598,9 +565,7 @@ void MainWindow::on_buttonAddRecipe_clicked(bool check)
         {
             if ( !qnode.addRecipe( recipe_name ) )
             {
-                QMessageBox msgBox;
-                msgBox.setText("There is another recipe with the same name or the same actions order.");
-                msgBox.exec();
+                plotMsg("There is another recipe with the same name or the same actions order.");
                 return;
             }
             else
@@ -612,17 +577,13 @@ void MainWindow::on_buttonAddRecipe_clicked(bool check)
         }
         else
         {
-            QMessageBox msgBox;
-            msgBox.setText("The recipe is empty.");
-            msgBox.exec();
+            plotMsg("The recipe is empty.");
             return;
         }
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("The recipe_name is empty.");
-        msgBox.exec();
+        plotMsg("The recipe_name is empty.");
         return;
     }
 }
@@ -653,15 +614,14 @@ void MainWindow::on_buttonAddApproachBox_clicked(bool check)
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("Final position is not set.");
-        msgBox.exec();
+        plotMsg("Final position is not set.");
     }
 }
 
 void MainWindow::on_buttonAddFinalBox_clicked(bool check)
 {
     actual_box_final = qnode.returnPosition(qnode.base_frame, qnode.target_frame);
+    actual_box_approach = default_approach;
     init_box_final = true;
     ui.buttonAddFinalBox->setEnabled(false);
     ui.buttonRemoveFinalBox->setEnabled(true);
@@ -690,9 +650,7 @@ void MainWindow::on_buttonRemoveGoTo_clicked(bool check)
         return;
     }
 
-    QMessageBox msgBox;
-    msgBox.setText("There isn't a selected position");
-    msgBox.exec();
+    plotMsg("There isn't a selected position");
 }
 
 void MainWindow::on_buttonRemoveLocation_clicked(bool check)
@@ -714,10 +672,7 @@ void MainWindow::on_buttonRemoveLocation_clicked(bool check)
         }
         return;
     }
-
-    QMessageBox msgBox;
-    msgBox.setText("There isn't a selected position");
-    msgBox.exec();
+    plotMsg("There isn't a selected position");
 }
 
 void MainWindow::on_buttonRemovePlace_clicked(bool check)
@@ -742,10 +697,7 @@ void MainWindow::on_buttonRemovePlace_clicked(bool check)
 
         return;
     }
-
-    QMessageBox msgBox;
-    msgBox.setText("There isn't a selected position");
-    msgBox.exec();
+    plotMsg("There isn't a selected position");
 }
 
 void MainWindow::on_buttonRemovePick_clicked(bool check)
@@ -770,10 +722,7 @@ void MainWindow::on_buttonRemovePick_clicked(bool check)
 
         return;
     }
-
-    QMessageBox msgBox;
-    msgBox.setText("There isn't a selected Pick");
-    msgBox.exec();
+    plotMsg("There isn't a selected Pick");
 }
 
 void MainWindow::on_buttonRemoveObject_clicked(bool check)
@@ -794,10 +743,7 @@ void MainWindow::on_buttonRemoveObject_clicked(bool check)
         }
         return;
     }
-
-    QMessageBox msgBox;
-    msgBox.setText("There isn't a selected object");
-    msgBox.exec();
+    plotMsg("There isn't a selected object");
 }
 
 void MainWindow::on_buttonRemoveBox_clicked(bool check)
@@ -818,10 +764,7 @@ void MainWindow::on_buttonRemoveBox_clicked(bool check)
         }
         return;
     }
-
-    QMessageBox msgBox;
-    msgBox.setText("There isn't a selected box");
-    msgBox.exec();
+    plotMsg("There isn't a selected box");
 }
 
 void MainWindow::on_buttonRemoveGroup_clicked(bool check)
@@ -845,10 +788,7 @@ void MainWindow::on_buttonRemoveGroup_clicked(bool check)
         }
         return;
     }
-
-    QMessageBox msgBox;
-    msgBox.setText("There isn't a selected group");
-    msgBox.exec();
+    plotMsg("There isn't a selected group");
 }
 
 void MainWindow::on_buttonRemoveSlot_clicked(bool check)
@@ -869,10 +809,7 @@ void MainWindow::on_buttonRemoveSlot_clicked(bool check)
         }
         return;
     }
-
-    QMessageBox msgBox;
-    msgBox.setText("There isn't a selected slot");
-    msgBox.exec();
+    plotMsg("There isn't a selected slot");
 }
 
 void MainWindow::on_buttonRemoveGrasp_clicked(bool check)
@@ -890,10 +827,7 @@ void MainWindow::on_buttonRemoveGrasp_clicked(bool check)
         actual_tool_leave.erase(actual_tool_leave.begin()+index);
         return;
     }
-
-    QMessageBox msgBox;
-    msgBox.setText("There isn't a selected grasp");
-    msgBox.exec();
+    plotMsg("There isn't a selected grasp");
 }
 
 void MainWindow::on_buttonRemoveApproachSlot_clicked(bool check)
@@ -934,21 +868,17 @@ void MainWindow::on_buttonRemoveRecipe_clicked(bool check)
 void MainWindow::on_buttonRunRecipe_clicked(bool check)
 {
     int risp = qnode.runRecipe();
-    QMessageBox msgBox;
 
     switch (risp)
     {
     case 0 :
-      msgBox.setText("The recipe was done without error");
-      msgBox.exec();
+      plotMsg("The recipe was done without error");
       break;
     case 1 :
-      msgBox.setText("The saving of components has not finished ");
-      msgBox.exec();
+      plotMsg("The saving of components has not finished ");
       break;
     case 2 :
-      msgBox.setText("Failed to call service run_recipe");
-      msgBox.exec();
+      plotMsg("Failed to call service run_recipe");
       break;
     }
 }
@@ -1036,15 +966,11 @@ void MainWindow::on_buttonSaveComponents_clicked(bool check)
 {
     if ( qnode.saveComponents() )
     {
-        QMessageBox msgBox;
-        msgBox.setText("The save are done.");
-        msgBox.exec();
+        plotMsg("The save are done.");
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("The previous saving did not finish");
-        msgBox.exec();
+        plotMsg("The previous saving did not finish");
     }
 }
 
@@ -1077,9 +1003,7 @@ void MainWindow::on_buttonAddObject_clicked(bool check)
                             if( !qnode.add_object( obj ) )
                             {
                                 ROS_ERROR("Object just set");
-                                QMessageBox msgBox;
-                                msgBox.setText("There is another object with this name");
-                                msgBox.exec();
+                                plotMsg("There is another object with this name");
                                 ui.editObjectName->clear();
                             }
                             else
@@ -1101,13 +1025,12 @@ void MainWindow::on_buttonAddObject_clicked(bool check)
                                 {
                                     qnode.writeObjects();
                                 }
+                                plotMsg("Added object description");
                             }
                         }
                         else
                         {
-                            QMessageBox msgBox;
-                            msgBox.setText("Leave and grasp have different tool");
-                            msgBox.exec();
+                            plotMsg("Leave and grasp have different tool");
                             for ( int i = 0; i < actual_tool_grasp.size(); i++)
                             {
                               ROS_ERROR("Grasp_tool: %s",actual_tool_grasp[i].c_str());
@@ -1118,9 +1041,7 @@ void MainWindow::on_buttonAddObject_clicked(bool check)
                     }
                     else
                     {
-                        QMessageBox msgBox;
-                        msgBox.setText("Apporach and grasp have different tool");
-                        msgBox.exec();
+                        plotMsg("Apporach and grasp have different tool");
                         for ( int i = 0; i < actual_tool_grasp.size(); i++)
                         {
                           ROS_ERROR("Grasp_tool: %s",actual_tool_grasp[i].c_str());
@@ -1130,31 +1051,22 @@ void MainWindow::on_buttonAddObject_clicked(bool check)
                 }
                 else {
                     ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach.size(), actual_pre_gripper_position.size() );
-                    QMessageBox msgBox;
-                    msgBox.setText("Apporach and gripper have different sizes");
-                    msgBox.exec();
+                    plotMsg("Apporach and gripper have different sizes");
                 }
             }
             else {
                 ROS_ERROR("Apporach and grasp have different sizes: %zu, %zu", actual_object_grasp.size(), actual_object_approach.size() );
-                QMessageBox msgBox;
-                msgBox.setText("Apporach and grasp have different sizes");
-                msgBox.exec();
+                plotMsg("Apporach and grasp have different sizes");
             }
         }
         else {
             ROS_ERROR("Empty grasp");
-            QMessageBox msgBox;
-            msgBox.setText("Empty grasp");
-            msgBox.exec();
+            plotMsg("Empty grasp");
         }
-
     }
     else {
         ROS_ERROR("Empty name");
-        QMessageBox msgBox;
-        msgBox.setText("Empty name");
-        msgBox.exec();
+        plotMsg("Empty name");
     }
 }
 
@@ -1169,221 +1081,179 @@ void MainWindow::on_buttonAddSlot_clicked(bool check)
 
     if ( !slot_name.empty() )
     {
-        if (init_slot_approach)
+        if ( !group_name.empty())
         {
-            if ( !group_name.empty())
+            if ( !max_obj.empty() )
             {
-                if ( !max_obj.empty() )
+                if (init_slot_final)
                 {
-                    if (init_slot_final)
+                    if ( ok )
                     {
-                        if ( ok )
+                        if ( !init_slot_leave )
                         {
-                            if ( !init_slot_leave )
+                            actual_slot_leave = actual_slot_approach;
+                        }
+                        for ( int i = 0; i < ui.slotList->model()->rowCount(); i++ )
+                        {
+                            if ( !slot_name.compare( ui.slotList->model()->data( ui.slotList->model()->index( i, 0 ), 0).toString().toStdString() ) )
                             {
-                                actual_slot_leave = actual_slot_approach;
-                            }
-                            for ( int i; i < ui.slotList->model()->rowCount(); i++ )
-                            {
-                                if ( !slot_name.compare( ui.slotList->model()->data( ui.slotList->model()->index( i, 0 ), 0).toString().toStdString() ) )
-                                {
-                                    QMessageBox msgBox;
-                                    msgBox.setText("There is another slot with this name");
-                                    msgBox.exec();
-                                    ui.editSlotName->clear();
-                                    return;
-                                }
-                            }
-                            if ( !qnode.loadNewGroup( group_name ) )
-                            {
-                                QMessageBox msgBox;
-                                msgBox.setText("Can't add the group to location manager");
-                                msgBox.exec();
-                                init_slot_approach = false;
-                                init_slot_final = false;
-                                ui.buttonAddApproachSlot->setEnabled(true);
-                                ui.buttonRemoveApproachSlot->setEnabled(false);
-                                ui.buttonAddFinalPositionSlot->setEnabled(true);
-                                ui.buttonRemoveFinalPositionSlot->setEnabled(false);
-                                ui.buttonAddLeavePositionSlot->setEnabled(true);
-                                ui.buttonRemoveLeavePositionSlot->setEnabled(false);
+                                ROS_ERROR("Slot just set");
+                                plotMsg("There is another slot with this name");
+                                ui.editSlotName->clear();
                                 return;
                             }
-                            manipulation_slot slt;
-                            slt.name           = slot_name;
-                            slt.group          = group_name;
-                            slt.approach       = actual_slot_approach;
-                            slt.leave          = actual_slot_leave;
-                            slt.location_      = actual_slot_final_position;
-                            slt.max_objects    = num_max_obj;
-                            slt.frame          = qnode.base_frame;
-                            if ( !qnode.loadNewSlot( slt) )
-                            {
-                              QMessageBox msgBox;
-                              msgBox.setText("Can't add the slot to location manager");
-                              msgBox.exec();
-                              init_slot_approach = false;
-                              init_slot_final = false;
-                              ui.buttonAddApproachSlot->setEnabled(true);
-                              ui.buttonRemoveApproachSlot->setEnabled(false);
-                              ui.buttonAddFinalPositionSlot->setEnabled(true);
-                              ui.buttonRemoveFinalPositionSlot->setEnabled(false);
-                              ui.buttonAddLeavePositionSlot->setEnabled(true);
-                              ui.buttonRemoveLeavePositionSlot->setEnabled(false);
-                              return;
-                            }
-                            else
-                            {
-                                qnode.addSlot(slt);
-                                ui.editSlotName->clear();
-                                ui.editMaxObject->clear();
-                                ui.editGroupName->clear();
-                                init_slot_approach = false;
-                                init_slot_final = false;
-                                ui.buttonAddApproachSlot->setEnabled(true);
-                                ui.buttonRemoveApproachSlot->setEnabled(false);
-                                ui.buttonAddFinalPositionSlot->setEnabled(true);
-                                ui.buttonRemoveFinalPositionSlot->setEnabled(false);
-                                ui.buttonAddLeavePositionSlot->setEnabled(true);
-                                ui.buttonRemoveLeavePositionSlot->setEnabled(false);
-                                if ( ui.comboActionType->currentIndex() == 2 )
-                                {
-                                    qnode.writeGroups();
-                                }
-                                QMessageBox msgBox;
-                                msgBox.setText("Added slot and group");
-                                msgBox.exec();
-                            }
+                        }
+                        if ( !qnode.loadNewGroup( group_name ) )
+                        {
+                            plotMsg("Can't add the group to location manager");
+                            init_slot_approach = false;
+                            init_slot_final = false;
+                            ui.buttonAddApproachSlot->setEnabled(true);
+                            ui.buttonRemoveApproachSlot->setEnabled(false);
+                            ui.buttonAddFinalPositionSlot->setEnabled(true);
+                            ui.buttonRemoveFinalPositionSlot->setEnabled(false);
+                            ui.buttonAddLeavePositionSlot->setEnabled(true);
+                            ui.buttonRemoveLeavePositionSlot->setEnabled(false);
+                            return;
+                        }
+                        manipulation_slot slt;
+                        slt.name           = slot_name;
+                        slt.group          = group_name;
+                        slt.approach       = actual_slot_approach;
+                        slt.leave          = actual_slot_leave;
+                        slt.location_      = actual_slot_final_position;
+                        slt.max_objects    = num_max_obj;
+                        slt.frame          = qnode.base_frame;
+                        if ( !qnode.loadNewSlot( slt ) )
+                        {
+                            plotMsg("Can't add the slot to location manager");
+                            init_slot_approach = false;
+                            init_slot_final = false;
+                            ui.buttonAddApproachSlot->setEnabled(true);
+                            ui.buttonRemoveApproachSlot->setEnabled(false);
+                            ui.buttonAddFinalPositionSlot->setEnabled(true);
+                            ui.buttonRemoveFinalPositionSlot->setEnabled(false);
+                            ui.buttonAddLeavePositionSlot->setEnabled(true);
+                            ui.buttonRemoveLeavePositionSlot->setEnabled(false);
+                            return;
                         }
                         else
                         {
-                            ROS_ERROR("Max number isn't a number");
-                            QMessageBox msgBox;
-                            msgBox.setText("Max number isn't a number");
-                            msgBox.exec();
+                            qnode.addSlot(slt);
+                            ui.editSlotName->clear();
                             ui.editMaxObject->clear();
+                            ui.editGroupName->clear();
+                            init_slot_approach = false;
+                            init_slot_final = false;
+                            ui.buttonAddApproachSlot->setEnabled(true);
+                            ui.buttonRemoveApproachSlot->setEnabled(false);
+                            ui.buttonAddFinalPositionSlot->setEnabled(true);
+                            ui.buttonRemoveFinalPositionSlot->setEnabled(false);
+                            ui.buttonAddLeavePositionSlot->setEnabled(true);
+                            ui.buttonRemoveLeavePositionSlot->setEnabled(false);
+                            if ( ui.comboActionType->currentIndex() == 2 )
+                            {
+                                qnode.writeGroups();
+                            }
+                            plotMsg("Added slot and group to location manager");
                         }
                     }
                     else
                     {
-                        ROS_ERROR("Empty final position");
-                        QMessageBox msgBox;
-                        msgBox.setText("Empty final position");
-                        msgBox.exec();
+                        ROS_ERROR("Max number isn't a number");
+                        plotMsg("Max number isn't a number");
+                        ui.editMaxObject->clear();
                     }
                 }
                 else
                 {
-                    ROS_ERROR("Empty max number");
-                    QMessageBox msgBox;
-                    msgBox.setText("Empty max number");
-                    msgBox.exec();
+                    ROS_ERROR("Empty final position");
+                    plotMsg("Empty final position");
                 }
             }
-            else {
-                ROS_ERROR("Empty group");
-                QMessageBox msgBox;
-                msgBox.setText("Empty group");
-                msgBox.exec();
+            else
+            {
+                ROS_ERROR("Empty max number");
+                plotMsg("Empty max number");
             }
         }
         else {
-            ROS_ERROR("Empty approach");
-            QMessageBox msgBox;
-            msgBox.setText("Empty approach");
-            msgBox.exec();
+            ROS_ERROR("Empty group");
+            plotMsg("Empty group");
         }
     }
     else {
         ROS_ERROR("Empty name");
-        QMessageBox msgBox;
-        msgBox.setText("Empty name");
-        msgBox.exec();
+        plotMsg("Empty name");
     }
 }
 
 void MainWindow::on_buttonAddBox_clicked(bool check)
 {
     std::string box_name = ui.editBoxName->text().toStdString();
-    if ( init_box_approach )
+    if ( init_box_final )
     {
-        if ( init_box_final )
+        if ( !box_name.empty() )
         {
-            if ( !box_name.empty() )
+            if ( !init_box_leave )
             {
-                if ( !init_box_leave )
+                actual_box_leave = actual_box_approach;
+            }
+            for ( int i = 0; i < ui.boxList->model()->rowCount(); i++ )
+            {
+                if ( !box_name.compare( ui.boxList->model()->data( ui.boxList->model()->index( i, 0 ),0).toString().toStdString() ) )
                 {
-                    actual_box_leave = actual_box_approach;
-                }
-                for ( int i = 0; i < ui.boxList->model()->rowCount(); i++ )
-                {
-                    if ( !box_name.compare( ui.boxList->model()->data( ui.boxList->model()->index( i, 0 ),0).toString().toStdString() ) )
-                    {
-                        ROS_ERROR("Box just set");
-                        QMessageBox msgBox;
-                        msgBox.setText("There is another box with this name");
-                        msgBox.exec();
-                        ui.editBoxName->clear();
-                        return;
-                    }
-                }
-                box bx;
-                bx.name      = box_name;
-                bx.location_ = actual_box_final;
-                bx.approach  = actual_box_approach;
-                bx.leave     = actual_box_leave;
-                bx.frame     = qnode.base_frame;
-                if ( !qnode.loadNewBox( bx ) )
-                {
-                  QMessageBox msgBox;
-                  msgBox.setText("Can't add the box to location manager");
-                  msgBox.exec();
-                  init_box_approach = false;
-                  init_box_final = false;
-                  ui.buttonAddApproachBox->setEnabled(true);
-                  ui.buttonRemoveApproachBox->setEnabled(false);
-                  ui.buttonAddFinalBox->setEnabled(true);
-                  ui.buttonRemoveFinalBox->setEnabled(false);
-                  ui.buttonAddLeavePositionBox->setEnabled(true);
-                  ui.buttonRemoveLeavePositionBox->setEnabled(false);
-                  return;
-                }
-                else
-                {
-                    qnode.addBox( bx );
+                    ROS_ERROR("Box just set");
+                    plotMsg("There is another box with this name");
                     ui.editBoxName->clear();
-                    init_box_approach = false;
-                    init_box_final = false;
-                    ui.buttonAddApproachBox->setEnabled(true);
-                    ui.buttonRemoveApproachBox->setEnabled(false);
-                    ui.buttonAddFinalBox->setEnabled(true);
-                    ui.buttonRemoveFinalBox->setEnabled(false);
-                    ui.buttonAddLeavePositionBox->setEnabled(true);
-                    ui.buttonRemoveLeavePositionBox->setEnabled(false);
+                    return;
                 }
+            }
+            box bx;
+            bx.name      = box_name;
+            bx.location_ = actual_box_final;
+            bx.approach  = actual_box_approach;
+            bx.leave     = actual_box_leave;
+            bx.frame     = qnode.base_frame;
+            if ( !qnode.loadNewBox( bx ) )
+            {
+                plotMsg("Can't add the box to location manager");
+                init_box_approach = false;
+                init_box_final = false;
+                ui.buttonAddApproachBox->setEnabled(true);
+                ui.buttonRemoveApproachBox->setEnabled(false);
+                ui.buttonAddFinalBox->setEnabled(true);
+                ui.buttonRemoveFinalBox->setEnabled(false);
+                ui.buttonAddLeavePositionBox->setEnabled(true);
+                ui.buttonRemoveLeavePositionBox->setEnabled(false);
+                return;
             }
             else
             {
-                ROS_ERROR("Empty name");
-                QMessageBox msgBox;
-                msgBox.setText("Empty name");
-                msgBox.exec();
+                qnode.addBox( bx );
+                ui.editBoxName->clear();
+                init_box_approach = false;
+                init_box_final = false;
+                ui.buttonAddApproachBox->setEnabled(true);
+                ui.buttonRemoveApproachBox->setEnabled(false);
+                ui.buttonAddFinalBox->setEnabled(true);
+                ui.buttonRemoveFinalBox->setEnabled(false);
+                ui.buttonAddLeavePositionBox->setEnabled(true);
+                ui.buttonRemoveLeavePositionBox->setEnabled(false);
+
+                plotMsg("Added box to the location manager");
             }
         }
         else
         {
-            ROS_ERROR("Empty final position");
-            QMessageBox msgBox;
-            msgBox.setText("Empty final position");
-            msgBox.exec();
+            ROS_ERROR("Empty name");
+            plotMsg("Empty name");
         }
     }
     else
     {
-        ROS_ERROR("Empty approach position");
-        QMessageBox msgBox;
-        msgBox.setText("Empty approach position");
-        msgBox.exec();
+        ROS_ERROR("Empty final position");
+        plotMsg("Empty final position");
     }
 }
 
@@ -1406,9 +1276,7 @@ void MainWindow::on_buttonAddLocationChanges_clicked(bool check)
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6)
     {
-        QMessageBox msgBox;
-        msgBox.setText("One or more number aren't double");
-        msgBox.exec();
+        plotMsg("One or more number aren't double");
     }
     else
     {
@@ -1440,9 +1308,7 @@ void MainWindow::on_buttonAddSlotChanges_clicked(bool check)
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 )
     {
-        QMessageBox msgBox;
-        msgBox.setText("One or more number aren't numers");
-        msgBox.exec();
+        plotMsg("One or more number aren't numers");
     }
     else
     {
@@ -1472,9 +1338,7 @@ void MainWindow::on_buttonAddBoxChanges_clicked(bool check)
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 )
     {
-        QMessageBox msgBox;
-        msgBox.setText("One or more number aren't numers");
-        msgBox.exec();
+        plotMsg("One or more number aren't numers");
     }
     else
     {
@@ -1506,9 +1370,7 @@ void MainWindow::on_buttonAddObjectChanges_clicked(bool check)
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 )
     {
-        QMessageBox msgBox;
-        msgBox.setText("One or more number aren't double");
-        msgBox.exec();
+        plotMsg("One or more number aren't double");
     }
     else
     {
@@ -1520,15 +1382,11 @@ void MainWindow::on_buttonSaveActions_clicked(bool check)
 {
     if ( qnode.saveActions() )
     {
-        QMessageBox msgBox;
-        msgBox.setText("The save are done.");
-        msgBox.exec();
+        plotMsg("The save are done.");
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("There is some problem with the save");
-        msgBox.exec();
+        plotMsg("There is some problem with the save");
     }
 }
 
@@ -1569,10 +1427,6 @@ void MainWindow::on_buttonLoadTF_clicked(bool chack)
             tf_name.erase( 0, found+1 );
             tf = QString::fromStdString(tf_name);
             ui.TfList->addItem(tf);
-        }
-        else
-        {
-          ROS_ERROR("Namespace not found");
         }
     }
 }
@@ -1900,7 +1754,29 @@ void MainWindow::on_buttonAntiZ_released  ()
 
 void MainWindow::on_buttonLoadObjects_clicked(bool check)
 {
-    qnode.loadObjectsInManipulation();
+    std::vector<std::string> object_list = qnode.loadObjectsInManipulation();
+    if ( object_list.empty() )
+    {
+        plotMsg("No objects have been added ");
+    }
+    else
+    {
+        std::string str = "Added the objects:\n";
+        for ( std::size_t i = 0; i < object_list.size(); i++)
+        {
+            std::string object_name = object_list[i].erase( 0, object_list[i].find("/")+1 );
+            str.append( object_name.c_str() );
+            if ( i != object_list.size()-1 )
+            {
+                str.append(",\n");
+            }
+            else
+            {
+                str.append(".");
+            }
+        }
+        plotMsg(str);
+    }
 }
 
 void MainWindow::on_buttonRunSelectedAction_clicked(bool check)
@@ -1910,29 +1786,23 @@ void MainWindow::on_buttonRunSelectedAction_clicked(bool check)
     {
         int index = indexes.at(0).row();
         int risp = qnode.runSelectedAction(index);
-        QMessageBox msgBox;
 
         switch (risp)
         {
         case 0 :
-          msgBox.setText("The recipe was done without error");
-          msgBox.exec();
+          plotMsg("The recipe was done without error");
           break;
         case 1 :
-          msgBox.setText("The saving of components has not finished ");
-          msgBox.exec();
+          plotMsg("The saving of components has not finished ");
           break;
         case 2 :
-          msgBox.setText("Failed to call service run_recipe");
-          msgBox.exec();
+          plotMsg("Failed to call service run_recipe");
           break;
         }
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("No selected action");
-        msgBox.exec();
+        plotMsg("No selected action");
         ui.editActionName->clear();
     }
 }
@@ -1949,9 +1819,7 @@ void MainWindow::on_buttonCopyLocation_clicked(bool chack)
         {
             if ( !qnode.addLocationCopy( loc ) )
             {
-                QMessageBox msgBox;
-                msgBox.setText("There is another location whit the same name.");
-                msgBox.exec();
+                plotMsg("There is another location whit the same name.");
                 ui.editNewLocation->clear();
             }
             else
@@ -1965,16 +1833,12 @@ void MainWindow::on_buttonCopyLocation_clicked(bool chack)
         }
         else
         {
-            QMessageBox msgBox;
-            msgBox.setText("Empty name.");
-            msgBox.exec();
+            plotMsg("Empty name.");
         }
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("No selected location.");
-        msgBox.exec();
+        plotMsg("No selected location.");
     }
 }
 
@@ -1990,9 +1854,7 @@ void MainWindow::on_buttonCopyObject_clicked(bool chack)
         {
             if ( !qnode.addObjectCopy( obj ) )
             {
-                QMessageBox msgBox;
-                msgBox.setText("There is another object whit the same name.");
-                msgBox.exec();
+                plotMsg("There is another object whit the same name.");
                 ui.editNewObject->clear();
             }
             else
@@ -2006,16 +1868,12 @@ void MainWindow::on_buttonCopyObject_clicked(bool chack)
         }
         else
         {
-            QMessageBox msgBox;
-            msgBox.setText("Empty name.");
-            msgBox.exec();
+            plotMsg("Empty name.");
         }
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("No selected object.");
-        msgBox.exec();
+        plotMsg("No selected object.");
     }
 }
 
@@ -2031,9 +1889,7 @@ void MainWindow::on_buttonCopySlot_clicked(bool chack)
         {
             if ( !qnode.addSlotCopy( slt ) )
             {
-                QMessageBox msgBox;
-                msgBox.setText("There is another slot whit the same name.");
-                msgBox.exec();
+                plotMsg("There is another slot whit the same name.");
                 ui.editNewSlot->clear();
             }
             else
@@ -2047,16 +1903,12 @@ void MainWindow::on_buttonCopySlot_clicked(bool chack)
         }
         else
         {
-            QMessageBox msgBox;
-            msgBox.setText("Empty name.");
-            msgBox.exec();
+            plotMsg("Empty name.");
         }
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("No selected slot.");
-        msgBox.exec();
+        plotMsg("No selected slot.");
     }
 }
 
@@ -2072,9 +1924,7 @@ void MainWindow::on_buttonCopyBox_clicked(bool chack)
         {
             if ( !qnode.addBoxCopy( bx ) )
             {
-                QMessageBox msgBox;
-                msgBox.setText("There is another box whit the same name.");
-                msgBox.exec();
+                plotMsg("There is another box whit the same name.");
                 ui.editNewBox->clear();
             }
             else
@@ -2084,16 +1934,12 @@ void MainWindow::on_buttonCopyBox_clicked(bool chack)
         }
         else
         {
-            QMessageBox msgBox;
-            msgBox.setText("Empty name.");
-            msgBox.exec();
+            plotMsg("Empty name.");
         }
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("No selected box.");
-        msgBox.exec();
+        plotMsg("No selected box.");
     }
 }
 
@@ -2345,9 +2191,7 @@ void MainWindow::on_comboConfiguration_currentIndexChanged(int index)
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("There is a problem with configuration");
-        msgBox.exec();
+        plotMsg("There is a problem with configuration");
     }
     ui.comboConfiguration2->setCurrentIndex( index );
 }
@@ -2540,9 +2384,7 @@ void MainWindow::on_buttonRemoveElement_clicked(bool check )
         return;
     }
 
-    QMessageBox msgBox;
-    msgBox.setText("There isn't a selected position");
-    msgBox.exec();
+    plotMsg("There isn't a selected position");
 }
 
 void MainWindow::on_buttonLoadRecipe_clicked(bool check)
@@ -2584,16 +2426,12 @@ void MainWindow::on_buttonSaveRecipe_clicked ( bool check )
 
     if ( qnode.saveRecipe() )
     {
-        QMessageBox msgBox;
-        msgBox.setText("The recipe is saved.");
-        msgBox.exec();
+        plotMsg("The recipe is saved.");
         ui.editRecipeName->clear();
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("There is some problem with the save");
-        msgBox.exec();
+        plotMsg("There is some problem with the save");
         return;
     }
 }
@@ -2834,9 +2672,7 @@ void MainWindow::on_buttonAddLeavePositionSlot_clicked(bool check)
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("Final position is not set.");
-        msgBox.exec();
+        plotMsg("Final position is not set.");
     }
 }
 
@@ -2866,9 +2702,7 @@ void MainWindow::on_buttonAddLeavePositionBox_clicked(bool check)
     }
     else
     {
-        QMessageBox msgBox;
-        msgBox.setText("Final position is not set.");
-        msgBox.exec();
+        plotMsg("Final position is not set.");
     }
 }
 
@@ -2884,6 +2718,13 @@ void MainWindow::on_buttonRemoveLeavePositionBox_clicked(bool check)
     init_box_leave = false;
     ui.buttonAddLeavePositionBox->setEnabled(true);
     ui.buttonRemoveLeavePositionBox->setEnabled(false);
+}
+
+void MainWindow::plotMsg(std::string msg)
+{
+    QMessageBox msgBox;
+    msgBox.setText(msg.c_str());
+    msgBox.exec();
 }
 
 /*****************************************************************************
