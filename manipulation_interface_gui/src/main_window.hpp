@@ -95,12 +95,6 @@ public Q_SLOTS:
     void on_buttonRunRecipe_clicked               (bool check);
     void on_buttonGripper_clicked                 (bool check);
     void on_buttonGripper2_clicked                (bool check);
-    void on_buttonSaveComponents_clicked          (bool check);
-    void on_buttonSaveActions_clicked             (bool check);
-    void on_buttonSaveAllChanges0_clicked         (bool check);
-    void on_buttonSaveAllChanges1_clicked         (bool check);
-    void on_buttonSaveAllChanges2_clicked         (bool check);
-    void on_buttonSaveAllChanges3_clicked         (bool check);
     void on_buttonLoadTF_clicked                  (bool check);
     void on_buttonLoad_clicked                    (bool check);
     void on_buttonWriteRecipe_clicked             (bool check);
@@ -113,7 +107,6 @@ public Q_SLOTS:
     void on_buttonRemoveElement_clicked           (bool check);
     void on_buttonLoadRecipe_clicked              (bool check);
     void on_buttonLoadActions_clicked             (bool check);
-    void on_buttonSaveRecipe_clicked              (bool check);
     void on_buttonLoadObjects_clicked             (bool check);
     void on_buttonRunSelectedAction_clicked       (bool check);
     void on_buttonAntiX_pressed    ();
@@ -168,6 +161,9 @@ public Q_SLOTS:
     void on_placeList_pressed           (const QModelIndex &index);
     void on_pickList_pressed            (const QModelIndex &index);
 
+    void saveActions();
+    void saveRecipe();
+
     /******************************************
     ** Manual connections
     *******************************************/
@@ -214,6 +210,9 @@ private:
     double default_x_approach_ = 0;
     double default_y_approach_ = 0;
     double default_z_approach_ = -0.1;
+
+    int n_run_recipe_clicked_ = 0;
+    int n_run_action_clicked_ = 0;
 
 };
 

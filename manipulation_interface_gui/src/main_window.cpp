@@ -85,7 +85,6 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, ros::NodeHandle
     ui.buttonRemoveFinalBox          ->setEnabled(false);
     ui.buttonRemoveLeavePositionSlot ->setEnabled(false);
     ui.buttonRemoveLeavePositionBox  ->setEnabled(false);
-    ui.buttonSaveComponents          ->setEnabled(false);
     ui.lateralTab                    ->setEnabled(false);
     ui.checkHumanInfo                ->setEnabled(false);
     ui.checkRobotInfo                ->setEnabled(false);
@@ -386,6 +385,7 @@ void MainWindow::on_buttonAddAction_clicked(bool check)
     {
         addPlace( state );
     }
+    saveActions();
 }
 
 void MainWindow::on_buttonAddGrasp_clicked(bool check)
@@ -405,8 +405,7 @@ void MainWindow::on_buttonAddGrasp_clicked(bool check)
     actual_object_leave.push_back(default_approach);
     actual_pre_gripper_position.push_back(max_gripper_position);
     actual_approach_gripper_position.push_back(std::nan("1"));
-//    actual_post_gripper_position.push_back(qnode.return_gripper_position());
-    actual_post_gripper_position.push_back(0.0);
+    actual_post_gripper_position.push_back(qnode.returnGripperPosition());
     actual_gripper_grasp_force.push_back(actual_gripper_force);
     actual_tool_approach.push_back(qnode.target_frame);
     actual_tool_leave.push_back(qnode.target_frame);
@@ -437,8 +436,7 @@ void MainWindow::on_buttonSetApproach_clicked(bool check)
     actual_object_approach[index].origin_x = dist_tool[0];
     actual_object_approach[index].origin_y = dist_tool[1];
     actual_object_approach[index].origin_z = dist_tool[2];
-//    actual_approach_gripper_position[index] = qnode.return_gripper_position();
-    actual_approach_gripper_position[index] = 85;
+    actual_approach_gripper_position[index] = qnode.returnGripperPosition();
     actual_pre_gripper_position[index] = actual_approach_gripper_position[index];
     actual_tool_approach[index] = qnode.target_frame;
 }
@@ -470,8 +468,7 @@ void MainWindow::on_buttonSetLeave_clicked(bool check)
     actual_object_leave[index].origin_z = dist_tool[2];
     if ( std::isnan(actual_approach_gripper_position[index]) )
     {
-//      actual_pre_gripper_position[index] = qnode.return_gripper_position();
-      actual_pre_gripper_position[index] = 85;
+      actual_pre_gripper_position[index] = qnode.returnGripperPosition();
     }
     actual_tool_leave[index] = qnode.target_frame;
 }
@@ -554,6 +551,7 @@ void MainWindow::on_buttonAddLocation_clicked(bool check)
     {
         plotMsg("Empty name.");
     }
+    qnode.saveComponents();
 }
 
 void MainWindow::on_buttonAddRecipe_clicked(bool check)
@@ -586,6 +584,7 @@ void MainWindow::on_buttonAddRecipe_clicked(bool check)
         plotMsg("The recipe_name is empty.");
         return;
     }
+    saveRecipe();
 }
 
 void MainWindow::on_buttonAddApproachBox_clicked(bool check)
@@ -867,99 +866,39 @@ void MainWindow::on_buttonRemoveRecipe_clicked(bool check)
 
 void MainWindow::on_buttonRunRecipe_clicked(bool check)
 {
-    std::string risp = qnode.runRecipe();
-    plotMsg(risp);
+    if ( ui.listRecipe->model()->rowCount() == 0 )
+    {
+        plotMsg("Empty recipe");
+        return;
+    }
+    n_run_recipe_clicked_++;
+    if ( n_run_recipe_clicked_ % 2 )
+    {
+        plotMsg("Did you load the objects?");
+    }
+    else
+    {
+        std::string risp = qnode.runRecipe();
+        plotMsg(risp);
+    }
 }
 
 void MainWindow::on_buttonGripper_clicked(bool check)
 {
-//    double actual_gripper_position_target = (max_gripper_position/100) * ui.gripper_percentage->value();
-//    actual_gripper_force    = ui.gripper_force_percentage->value();
+    double actual_gripper_position_target = (max_gripper_position/100) * ui.gripperPercentage->value();
+    actual_gripper_force    = ui.gripperForcePercentage->value();
 
-//    std::string name_action = "pos_";
-//    name_action.append( std::to_string(actual_gripper_position_target) );
-//    name_action.append("_force_");
-//    name_action.append( std::to_string(actual_gripper_force) );
-
-  int perc = ui.gripperPercentage->value();
-
-  if (perc < 50)
-  {
-    perc = 0;
-  }
-  else
-  {
-    perc = 100;
-  }
-
-    switch(perc) {
-
-        case 0  :
-           qnode.moveGripper("close");
-//           actual_gripper_state = "close";
-           break;
-        case 10  :
-           qnode.moveGripper("open_225");
-//           actual_gripper_state = "open_225";
-           break;
-        case 20  :
-           qnode.moveGripper("open_200");
-//           actual_gripper_state = "open_200";
-           break;
-        case 30  :
-           qnode.moveGripper("open_175");
-//           actual_gripper_state = "open_175";
-           break;
-        case 40  :
-           qnode.moveGripper("open_150");
-//           actual_gripper_state = "open_150";
-           break;
-        case 50  :
-           qnode.moveGripper("open_125");
-//           actual_gripper_state = "open_125";
-           break;
-        case 60  :
-           qnode.moveGripper("open_100");
-//           actual_gripper_state = "open_100";
-           break;
-        case 70  :
-           qnode.moveGripper("open_75");
-//           actual_gripper_state = "open_75";
-           break;
-        case 80  :
-           qnode.moveGripper("open_50");
-//           actual_gripper_state = "open_50";
-           break;
-        case 90  :
-           qnode.moveGripper("open_25");
-//           actual_gripper_state = "open_25";
-           break;
-        case 100  :
-           qnode.moveGripper("open");
-//           actual_gripper_state = "open";
-           break;
-        default :
-            qnode.moveGripper("open");
-//            actual_gripper_state = "open";
-    }
-    return;
+    std::string name_action = "pos_";
+    name_action.append( std::to_string(actual_gripper_position_target) );
+    name_action.append("_force_");
+    name_action.append( std::to_string(actual_gripper_force) );
+    ROS_INFO("Gripper command: %s", name_action.c_str());
+    qnode.moveGripper("close");
 }
 
 void MainWindow::on_buttonGripper2_clicked(bool check)
 {
     on_buttonGripper_clicked(false);
-}
-
-void MainWindow::on_buttonSaveComponents_clicked(bool check)
-{
-    if ( qnode.saveComponents() )
-    {
-        plotMsg("The save are done.");
-    }
-    else
-    {
-        plotMsg("The previous saving did not finish");
-    }
 }
 
 void MainWindow::on_buttonAddObject_clicked(bool check)
@@ -1056,6 +995,7 @@ void MainWindow::on_buttonAddObject_clicked(bool check)
         ROS_ERROR("Empty name");
         plotMsg("Empty name");
     }
+    qnode.saveComponents();
 }
 
 void MainWindow::on_buttonAddSlot_clicked(bool check)
@@ -1174,6 +1114,7 @@ void MainWindow::on_buttonAddSlot_clicked(bool check)
         ROS_ERROR("Empty name");
         plotMsg("Empty name");
     }
+    qnode.saveComponents();
 }
 
 void MainWindow::on_buttonAddBox_clicked(bool check)
@@ -1228,7 +1169,6 @@ void MainWindow::on_buttonAddBox_clicked(bool check)
                 ui.buttonRemoveFinalBox->setEnabled(false);
                 ui.buttonAddLeavePositionBox->setEnabled(true);
                 ui.buttonRemoveLeavePositionBox->setEnabled(false);
-
                 plotMsg("Added box to the location manager");
             }
         }
@@ -1243,6 +1183,7 @@ void MainWindow::on_buttonAddBox_clicked(bool check)
         ROS_ERROR("Empty final position");
         plotMsg("Empty final position");
     }
+    qnode.saveComponents();
 }
 
 void MainWindow::on_buttonAddLocationChanges_clicked(bool check)
@@ -1270,6 +1211,7 @@ void MainWindow::on_buttonAddLocationChanges_clicked(bool check)
     {
         qnode.addLocationChanges( index.row(), loc);
     }
+    qnode.saveComponents();
 }
 
 void MainWindow::on_buttonAddSlotChanges_clicked(bool check)
@@ -1302,6 +1244,7 @@ void MainWindow::on_buttonAddSlotChanges_clicked(bool check)
     {
         qnode.addSlotChanges( index.row(), slt);
     }
+    qnode.saveComponents();
 }
 
 void MainWindow::on_buttonAddBoxChanges_clicked(bool check)
@@ -1332,6 +1275,7 @@ void MainWindow::on_buttonAddBoxChanges_clicked(bool check)
     {
         qnode.addBoxChanges( index.row(), bx);
     }
+    qnode.saveComponents();
 }
 
 void MainWindow::on_buttonAddObjectChanges_clicked(bool check)
@@ -1364,9 +1308,10 @@ void MainWindow::on_buttonAddObjectChanges_clicked(bool check)
     {
         qnode.addObjectChanges( index.row(), obj);
     }
+    qnode.saveComponents();
 }
 
-void MainWindow::on_buttonSaveActions_clicked(bool check)
+void MainWindow::saveActions()
 {
     if ( qnode.saveActions() )
     {
@@ -1376,26 +1321,6 @@ void MainWindow::on_buttonSaveActions_clicked(bool check)
     {
         plotMsg("There is some problem with the save");
     }
-}
-
-void MainWindow::on_buttonSaveAllChanges0_clicked(bool check)
-{
-    qnode.saveComponents();
-}
-
-void MainWindow::on_buttonSaveAllChanges1_clicked(bool check)
-{
-    qnode.saveComponents();
-}
-
-void MainWindow::on_buttonSaveAllChanges2_clicked(bool check)
-{
-    qnode.saveComponents();
-}
-
-void MainWindow::on_buttonSaveAllChanges3_clicked(bool check)
-{
-    qnode.saveComponents();
 }
 
 void MainWindow::on_buttonLoadTF_clicked(bool chack)
@@ -1772,9 +1697,17 @@ void MainWindow::on_buttonRunSelectedAction_clicked(bool check)
     QModelIndexList indexes =  ui.listRecipe->selectionModel()->selectedIndexes();
     if ( !indexes.empty() )
     {
-        int index = indexes.at(0).row();
-        std::string risp = qnode.runSelectedAction(index);
-        plotMsg(risp);
+        n_run_action_clicked_++;
+        if ( n_run_action_clicked_ % 2 )
+        {
+            plotMsg("Did you load the objects?");
+        }
+        else
+        {
+            int index = indexes.at(0).row();
+            std::string risp = qnode.runSelectedAction(index);
+            plotMsg(risp);
+        }
     }
     else
     {
@@ -2052,7 +1985,6 @@ void MainWindow::on_checkRobotTF_stateChanged(int state)
 {
     if ( state != 0 )
     {
-        ui.buttonSaveComponents         ->setEnabled(true);
         ui.lateralTab                    ->setEnabled(true);
 
         ui.checkRobotTF ->setEnabled(false);
@@ -2217,49 +2149,6 @@ void MainWindow::on_listObjectModify_pressed(const QModelIndex &index)
 
 void MainWindow::on_gripperPercentage_valueChanged (int value)
 {
-//  if ( value < 5)
-//  {
-//    value = 0;
-//  }
-//  else if ( value < 15 )
-//  {
-//    value = 10;
-//  }else if ( value < 25 )
-//  {
-//    value = 20;
-//  }else if ( value < 35 )
-//  {
-//    value = 30;
-//  }
-//  else if ( value < 45 )
-//  {
-//    value = 40;
-//  }
-//  else if ( value < 55 )
-//  {
-//    value = 50;
-//  }
-//  else if ( value < 65 )
-//  {
-//    value = 60;
-//  }
-//  else if ( value < 75 )
-//  {
-//    value = 70;
-//  }
-//  else if ( value < 85 )
-//  {
-//    value = 80;
-//  }
-//  else if ( value < 95 )
-//  {
-//    value = 90;
-//  }
-//  else
-//  {
-//    value = 100;
-//  }
-
   ui.gripperPercentage->setValue(value);
   ui.gripperPercentage2->setValue(value);
   std::string str = std::to_string(value);
@@ -2270,49 +2159,6 @@ void MainWindow::on_gripperPercentage_valueChanged (int value)
 
 void MainWindow::on_gripperForcePercentage_valueChanged (int value)
 {
-//    if ( value < 5)
-//    {
-//      value = 0;
-//    }
-//    else if ( value < 15 )
-//    {
-//      value = 10;
-//    }else if ( value < 25 )
-//    {
-//      value = 20;
-//    }else if ( value < 35 )
-//    {
-//      value = 30;
-//    }
-//    else if ( value < 45 )
-//    {
-//      value = 40;
-//    }
-//    else if ( value < 55 )
-//    {
-//      value = 50;
-//    }
-//    else if ( value < 65 )
-//    {
-//      value = 60;
-//    }
-//    else if ( value < 75 )
-//    {
-//      value = 70;
-//    }
-//    else if ( value < 85 )
-//    {
-//      value = 80;
-//    }
-//    else if ( value < 95 )
-//    {
-//      value = 90;
-//    }
-//    else
-//    {
-//      value = 100;
-//    }
-
     ui.gripperForcePercentage->setValue(value);
     ui.gripperForcePercentage2->setValue(value);
     std::string str = std::to_string(value);
@@ -2323,7 +2169,7 @@ void MainWindow::on_gripperForcePercentage_valueChanged (int value)
 
 void MainWindow::on_gripperPercentage2_valueChanged (int value)
 {
-    ui.gripperForcePercentage->setValue(value);
+    ui.gripperPercentage->setValue(value);
 }
 
 void MainWindow::on_gripperForcePercentage2_valueChanged (int value)
@@ -2397,7 +2243,7 @@ void MainWindow::on_buttonLoadActions_clicked  ( bool check )
     qnode.writeParam(2);
 }
 
-void MainWindow::on_buttonSaveRecipe_clicked ( bool check )
+void MainWindow::saveRecipe()
 {
 
     if ( qnode.saveRecipe() )

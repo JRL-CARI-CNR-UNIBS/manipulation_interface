@@ -2226,7 +2226,7 @@ bool QNode::saveActions()
     manipulation_interface_mongo::SaveParam srv;
     client.call(srv);
 
-    writeParam(2);
+//    writeParam(2);
 
     return true;
 }
@@ -2396,6 +2396,7 @@ void QNode::loadParam( int ind )
     else if ( ind == 2 )
     {
         readGotoPickAndPlaceFromParam();
+        ROS_INFO("Read actions");
     }
 }
 
