@@ -156,8 +156,9 @@ public:
     void cartMove (std::vector<float> twist_move);
 
     bool saveRecipe();
-    int runRecipe();
-    int runSelectedAction( int index );
+    std::string runRecipe();
+    std::string runSelectedAction( int index );
+    std::string callRunRecipe(std::vector<std::string> recipe);
     std::vector<std::string> loadRecipesParam();
 
 //    void initialAddComponentsInManipulation();
@@ -363,6 +364,7 @@ private:
     ros::ServiceClient remove_slots_client_;
     ros::ServiceClient list_objects_client_;
     ros::ServiceClient list_manipulation_objects_client_;
+    ros::ServiceClient run_recipe_client_;
 
     ros::Publisher     twist_pub;
     ros::ServiceClient set_ctrl_srv;
@@ -445,8 +447,8 @@ private:
     const std::string init_string = "<string>";
     const std::string end_string  = "</string>";
 
-
     bool tc_finito = false;
+    std::string grasped_object;
 };
 
 }  // namespace manipulation_interface_gui

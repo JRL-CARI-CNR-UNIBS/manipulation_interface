@@ -122,6 +122,7 @@ bool QNode::init()
     remove_slots_client_              = n.serviceClient<manipulation_msgs::RemoveSlots>      ("/outbound_place_server/remove_slots");
     list_objects_client_              = n.serviceClient<object_loader_msgs::ListObjects>     ("/list_objects");
     list_manipulation_objects_client_ = n.serviceClient<manipulation_msgs::ListOfObjects>    ("/inbound_pick_server/list_objects");
+    run_recipe_client_                = n.serviceClient<manipulation_interface_gui::recipe_test_msg>("run_recipe");
 
     ROS_INFO("Waiting for: %s server", add_locations_client_.getService().c_str());
     add_locations_client_.waitForExistence();
@@ -163,25 +164,20 @@ bool QNode::init()
     remove_slots_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", remove_slots_client_.getService().c_str());
 
+    ROS_INFO("Waiting for: %s server", list_objects_client_.getService().c_str());
+    list_objects_client_.waitForExistence();
+    ROS_INFO("Client %s connected to server", list_objects_client_.getService().c_str());
+
+    ROS_INFO("Waiting for: %s server", list_manipulation_objects_client_.getService().c_str());
+    list_manipulation_objects_client_.waitForExistence();
+    ROS_INFO("Client %s connected to server", list_manipulation_objects_client_.getService().c_str());
+
+    ROS_INFO("Waiting for: %s server", run_recipe_client_.getService().c_str());
+    run_recipe_client_.waitForExistence();
+    ROS_INFO("Client %s connected to server", run_recipe_client_.getService().c_str());
+
     return true;
 }
-
-//void QNode::initialAddComponentsInManipulation()
-//{
-//    for ( std::size_t i = 0; i < boxes.size(); i++ )
-//    {
-//        loadNewBox(boxes[i]);
-//    }
-//    for ( std::size_t i = 0; i < manipulation_slots.size(); i++ )
-//    {
-//        loadNewGroup(manipulation_slots[i].group);
-//        loadNewSlot(manipulation_slots[i]);
-//    }
-//    for ( std::size_t i = 0; i < go_to_locations.size(); i++ )
-//    {
-//        loadNewLocation(go_to_locations[i]);
-//    }
-//}
 
 std::vector<std::string> QNode::loadObjectsInManipulation()
 {
@@ -500,85 +496,64 @@ bool QNode::saveRecipe()
     return true;
 }
 
-int QNode::runRecipe()
+std::string QNode::runRecipe()
 {
-    if ( tc_finito )
-    {
-        t_component.join();
-        tc_finito = false;
-    }
-
-    if ( t_component.joinable() )
-    {
-        ROS_ERROR("The previous thread has not finished");
-        return 1;
-    }
-
-    std::vector<std::string> recipe_;
+    std::vector<std::string> recipe;
 
     for ( int i = 0; i < logging_model_recipe.rowCount(); i++ )
     {
-        recipe_.push_back( logging_model_recipe.data( logging_model_recipe.index(i) ).toString().toStdString() );
+        recipe.push_back( logging_model_recipe.data( logging_model_recipe.index(i) ).toString().toStdString() );
     }
 
-    XmlRpc::XmlRpcValue param;
-    param = getRecipeParam( recipe_ );
-
-    n.setParam("recipe_to_run", param);
-
-    ros::ServiceClient run_recipe_client = n.serviceClient<manipulation_interface_gui::recipe_test_msg>("run_recipe");
-    manipulation_interface_gui::recipe_test_msg recipe_msg;
-    recipe_msg.request.input = "manipulator";
-
-    if (run_recipe_client.call(recipe_msg))
-    {
-        ROS_INFO("Done");
-    }
-    else
-    {
-        ROS_ERROR("Failed to call service run_recipe");
-        return 2;
-    }
-    return 0;
+    return callRunRecipe(recipe);
 }
 
-int QNode::runSelectedAction( int index )
+std::string QNode::runSelectedAction( int index )
 {
-    if ( tc_finito )
-    {
-        t_component.join();
-        tc_finito = false;
-    }
+    std::vector<std::string> recipe;
 
-    if ( t_component.joinable() )
-    {
-        ROS_ERROR("The previous thread has not finished");
-        return 1;
-    }
+    recipe.push_back( logging_model_recipe.data( logging_model_recipe.index(index) ).toString().toStdString() );
 
-    std::vector<std::string> recipe_;
+    return callRunRecipe(recipe);
+}
 
-    recipe_.push_back( logging_model_recipe.data( logging_model_recipe.index(index) ).toString().toStdString() );
-
+std::string QNode::callRunRecipe(std::vector<std::string> recipe)
+{
     XmlRpc::XmlRpcValue param;
-    param = getRecipeParam( recipe_ );
+    param = getRecipeParam( recipe );
 
     n.setParam("recipe_to_run", param);
 
-    ros::ServiceClient run_recipe_client = n.serviceClient<manipulation_interface_gui::recipe_test_msg>("run_recipe");
     manipulation_interface_gui::recipe_test_msg recipe_msg;
-    recipe_msg.request.input = "manipulator";
+    recipe_msg.request.robot_name = "manipulator";
+    recipe_msg.request.grasped_object_in = grasped_object;
 
-    if (run_recipe_client.call(recipe_msg))
+    if (run_recipe_client_.call(recipe_msg))
     {
-        ROS_INFO("Done");
+        if ( recipe_msg.response.result < 0 )
+        {
+            ROS_ERROR(recipe_msg.response.result_string.c_str());
+            return recipe_msg.response.result_string;
+        }
+        else
+        {
+            ROS_INFO("Done");
+            grasped_object = recipe_msg.response.grasped_object_out;
+
+            if ( grasped_object.empty() )
+                ROS_INFO("No grasped object");
+            else
+                ROS_INFO("Grasped object: %s", grasped_object.c_str() );
+
+            return recipe_msg.response.result_string;
+        }
     }
     else
     {
         ROS_ERROR("Failed to call service run_recipe");
-        return 2;
+        return "Failed to call service run_recipe";
     }
-    return 0;
+
 }
 
 XmlRpc::XmlRpcValue QNode::getRecipeParam(int index)

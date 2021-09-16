@@ -867,20 +867,8 @@ void MainWindow::on_buttonRemoveRecipe_clicked(bool check)
 
 void MainWindow::on_buttonRunRecipe_clicked(bool check)
 {
-    int risp = qnode.runRecipe();
-
-    switch (risp)
-    {
-    case 0 :
-      plotMsg("The recipe was done without error");
-      break;
-    case 1 :
-      plotMsg("The saving of components has not finished ");
-      break;
-    case 2 :
-      plotMsg("Failed to call service run_recipe");
-      break;
-    }
+    std::string risp = qnode.runRecipe();
+    plotMsg(risp);
 }
 
 void MainWindow::on_buttonGripper_clicked(bool check)
@@ -1785,20 +1773,8 @@ void MainWindow::on_buttonRunSelectedAction_clicked(bool check)
     if ( !indexes.empty() )
     {
         int index = indexes.at(0).row();
-        int risp = qnode.runSelectedAction(index);
-
-        switch (risp)
-        {
-        case 0 :
-          plotMsg("The recipe was done without error");
-          break;
-        case 1 :
-          plotMsg("The saving of components has not finished ");
-          break;
-        case 2 :
-          plotMsg("Failed to call service run_recipe");
-          break;
-        }
+        std::string risp = qnode.runSelectedAction(index);
+        plotMsg(risp);
     }
     else
     {

@@ -55,9 +55,11 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
 
     manipulation_msgs::RemoveObjectFromSlot remove_object_from_slot;
 
-    actionlib::SimpleActionClient<manipulation_msgs::PickObjectsAction>  pick_ac ("/inbound_pick_server/"+req.input+"/pick");
-    actionlib::SimpleActionClient<manipulation_msgs::PlaceObjectsAction> place_ac("/outbound_place_server/"+req.input+"/place");
-    actionlib::SimpleActionClient<manipulation_msgs::GoToAction>         go_to_ac("/go_to_location_server/"+req.input+"/go_to");
+    actionlib::SimpleActionClient<manipulation_msgs::PickObjectsAction>  pick_ac ("/inbound_pick_server/"+req.robot_name+"/pick");
+    actionlib::SimpleActionClient<manipulation_msgs::PlaceObjectsAction> place_ac("/outbound_place_server/"+req.robot_name+"/place");
+    actionlib::SimpleActionClient<manipulation_msgs::GoToAction>         go_to_ac("/go_to_location_server/"+req.robot_name+"/go_to");
+
+    std::string grasped_object = req.grasped_object_in;
 
     ROS_WARN("Waiting for pick server");
     pick_ac.waitForServer();
@@ -70,7 +72,8 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
     ROS_WARN("Connection ok");
 
     manipulation_msgs::PickObjectsResult pick_result;
-
+    manipulation_msgs::PlaceObjectsResult place_result;
+    manipulation_msgs::GoToResult goto_result;
 
     ros::ServiceClient remove_object_from_slot_clnt = nh_.serviceClient<manipulation_msgs::RemoveObjectFromSlot>("/outbound_place_server/remove_obj_from_slot");
     remove_object_from_slot_clnt.waitForExistence();
@@ -80,13 +83,13 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
     if (!nh_.getParam("/recipe_to_run",param_))
     {
       ROS_ERROR("There isn't the recipe to run");
-      return -1;
+      return false;
     }
 
     if (param_.getType() != XmlRpc::XmlRpcValue::TypeArray)
     {
       ROS_ERROR("Recipe is not a list" );
-      return -1;
+      return false;
     }
 
     std::vector<std::string> recipe;
@@ -343,6 +346,13 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
     {
         if ( !action_.type.compare("pick") )
         {
+            if ( !grasped_object.empty() )
+            {
+                res.result = -1;
+                res.result_string = "Pick: object already grasped";
+                return true;
+            }
+
             manipulation_msgs::PickObjectsGoal pick_goal;
 
             pick_goal.object_types          = action_.goal;
@@ -356,81 +366,181 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
             pick_goal.property_post_exec_id = action_.post_exec_id;
 
             pick_ac.sendGoalAndWait(pick_goal);
-
             pick_result = *pick_ac.getResult();
+            res.result = pick_result.result;
+
+            switch (pick_result.result)
+            {
+                case manipulation_msgs::PickObjectsResult::Success :
+                    res.result_string = "Pick: Success";
+                    break;
+                case manipulation_msgs::PickObjectsResult::NoInboundBoxFound :
+                    res.result_string = "Pick: NoInboundBoxFound";
+                    break;
+                case manipulation_msgs::PickObjectsResult::NoAvailableTrajectories :
+                    res.result_string = "Pick: NoAvailableTrajectories";
+                    break;
+                case manipulation_msgs::PickObjectsResult::GraspFailure :
+                    res.result_string = "Pick: GraspFailure";
+                    break;
+                case manipulation_msgs::PickObjectsResult::TrajectoryError :
+                    res.result_string = "Pick: TrajectoryError";
+                    break;
+                case manipulation_msgs::PickObjectsResult::SceneError :
+                    res.result_string = "Pick: SceneError";
+                    break;
+                case manipulation_msgs::PickObjectsResult::ControllerError :
+                    res.result_string = "Pick: ControllerError";
+                    break;
+                case manipulation_msgs::PickObjectsResult::UnexpectedError :
+                    res.result_string = "Pick: UnexpectedError";
+                    break;
+            }
+
             if (pick_result.result < 0)
             {
-                ROS_ERROR("Unable to pick -> object type = %s",pick_ac.getResult()->object_name.c_str());
-                return 0;
+                ROS_ERROR("Unable to pick -> object type = %s",pick_result.object_name.c_str());
+                grasped_object.clear();
+                res.grasped_object_out = grasped_object;
+                return true;
             }
-            ROS_INFO("Well done! I picked it, name = %s",pick_ac.getResult()->object_name.c_str());
+            ROS_INFO("Well done! I picked it, name = %s",pick_result.object_name.c_str());
+            grasped_object = pick_result.object_name;
+            res.grasped_object_out = grasped_object;
         }
         else if ( !action_.type.compare("place") )
         {
-          manipulation_msgs::PlaceObjectsGoal place_goal;
+            manipulation_msgs::PlaceObjectsGoal place_goal;
 
-          if (!pick_result.object_name.empty())
-            place_goal.object_name =pick_result.object_name;
-          else
-          {
-            ROS_ERROR("No object name = %s",pick_ac.getResult()->object_name.c_str());
-            return 0;
-          }
+            if ( !grasped_object.empty() )
+                place_goal.object_name = grasped_object;
+            else
+            {
+                ROS_ERROR("No object name");
+                res.result = -1;
+                res.result_string = "No grasped object";
+                return true;
+            }
 
-          place_goal.slots_group_names     = action_.goal;
-          place_goal.approach_loc_ctrl_id  = action_.approach_loc;
-          place_goal.to_loc_ctrl_id        = action_.to_loc      ;
-          place_goal.leave_loc_ctrl_id     = action_.leave_loc   ;
-          place_goal.job_exec_name         = action_.job_exec    ;
-          place_goal.tool_id               = action_.tool_id     ;
-          place_goal.property_pre_exec_id  = action_.pre_exec_id ;
-          place_goal.property_exec_id      = action_.exec_id     ;
-          place_goal.property_post_exec_id = action_.post_exec_id;
+            place_goal.slots_group_names     = action_.goal;
+            place_goal.approach_loc_ctrl_id  = action_.approach_loc;
+            place_goal.to_loc_ctrl_id        = action_.to_loc      ;
+            place_goal.leave_loc_ctrl_id     = action_.leave_loc   ;
+            place_goal.job_exec_name         = action_.job_exec    ;
+            place_goal.tool_id               = action_.tool_id     ;
+            place_goal.property_pre_exec_id  = action_.pre_exec_id ;
+            place_goal.property_exec_id      = action_.exec_id     ;
+            place_goal.property_post_exec_id = action_.post_exec_id;
 
-          place_ac.sendGoalAndWait(place_goal);
+            place_ac.sendGoalAndWait(place_goal);
+            place_result = *place_ac.getResult();
+            res.result = place_result.result;
 
-          if (place_ac.getResult()->result < 0)
-          {
-            ROS_ERROR("Unable to place -> object name = %s", place_goal.object_name.c_str());
-            return 0;
-          }
+            switch (place_result.result)
+            {
+            case manipulation_msgs::PlaceObjectsResult::Success :
+                res.result_string = "Place: Success";
+                break;
+            case manipulation_msgs::PlaceObjectsResult::NotInitialized :
+                res.result_string = "Place: NotInitialized";
+                break;
+            case manipulation_msgs::PlaceObjectsResult::Full :
+                res.result_string = "Place: Full";
+                break;
+            case manipulation_msgs::PlaceObjectsResult::ReleaseError :
+                res.result_string = "Place: ReleaseError";
+                break;
+            case manipulation_msgs::PlaceObjectsResult::SceneError :
+                res.result_string = "Place: SceneError";
+                break;
+            case manipulation_msgs::PlaceObjectsResult::NoAvailableTrajectories :
+                res.result_string = "Place: NoAvailableTrajectories";
+                break;
+            case manipulation_msgs::PlaceObjectsResult::TrajectoryError :
+                res.result_string = "Place: TrajectoryError";
+                break;
+            case manipulation_msgs::PlaceObjectsResult::ReturnError :
+                res.result_string = "Place: ReturnError";
+                break;
+            case manipulation_msgs::PlaceObjectsResult::ControllerError :
+                res.result_string = "Place: ControllerError";
+                break;
+            case manipulation_msgs::PlaceObjectsResult::UnexpectedError :
+                res.result_string = "Place: UnexpectedError";
+                break;
+            }
 
-          remove_object_from_slot.request.object_to_remove_name = pick_ac.getResult()->object_name;
-          remove_object_from_slot.request.slot_name = place_ac.getResult()->slot_name;
+            if (place_result.result < 0)
+            {
+                ROS_ERROR("Unable to place -> object name = %s", place_goal.object_name.c_str());
+                return true;
+            }
 
-          if (!remove_object_from_slot_clnt.call(remove_object_from_slot))
-          {
-            ROS_ERROR("Unespected error calling %s service",remove_object_from_slot_clnt.getService().c_str());
-            return 0;
-          }
+            remove_object_from_slot.request.object_to_remove_name = place_goal.object_name;
+            remove_object_from_slot.request.slot_name = place_result.slot_name;
 
-          ROS_INFO("Well done! ");
+            if (!remove_object_from_slot_clnt.call(remove_object_from_slot))
+            {
+                ROS_ERROR("Unespected error calling %s service",remove_object_from_slot_clnt.getService().c_str());
+                return 0;
+            }
 
+            ROS_INFO("Well done! ");
+            grasped_object.clear();
+            res.grasped_object_out = grasped_object;
         }
         else if ( !action_.type.compare("goto") )
         {
-          manipulation_msgs::GoToGoal go_to_goal;
+            manipulation_msgs::GoToGoal go_to_goal;
 
 
-          go_to_goal.location_names.push_back( action_.goal[0] );
-          go_to_goal.to_loc_ctrl_id   = action_.to_loc      ;
-          go_to_goal.job_exec_name    = action_.job_exec    ;
-          go_to_goal.tool_id          = action_.tool_id     ;
-          go_to_goal.property_exec_id = action_.exec_id     ;
+            go_to_goal.location_names.push_back( action_.goal[0] );
+            go_to_goal.to_loc_ctrl_id   = action_.to_loc      ;
+            go_to_goal.job_exec_name    = action_.job_exec    ;
+            go_to_goal.tool_id          = action_.tool_id     ;
+            go_to_goal.property_exec_id = action_.exec_id     ;
 
-          go_to_ac.sendGoalAndWait(go_to_goal);
+            go_to_ac.sendGoalAndWait(go_to_goal);
+            goto_result = *go_to_ac.getResult();
+            res.result = goto_result.result;
 
-          if (go_to_ac.getResult()->result < 0)
-          {
-            ROS_ERROR("[Unable to go to -> location name = %s", go_to_goal.location_names.at(0).c_str());
-            return 0;
-          }
-          ROS_INFO("Well done! ");
+            switch (goto_result.result)
+            {
+            case manipulation_msgs::GoToResult::Success :
+                res.result_string = "Goto: Success";
+                break;
+            case manipulation_msgs::GoToResult::SceneError :
+                res.result_string = "Goto: SceneError";
+                break;
+            case manipulation_msgs::GoToResult::NoAvailableTrajectories :
+                res.result_string = "Goto: NoAvailableTrajectories";
+                break;
+            case manipulation_msgs::GoToResult::TrajectoryError :
+                res.result_string = "Goto: TrajectoryError";
+                break;
+            case manipulation_msgs::GoToResult::NotInitialized :
+                res.result_string = "Goto: NotInitialized";
+                break;
+            case manipulation_msgs::GoToResult::ToolError :
+                res.result_string = "Goto: ToolError";
+                break;
+            case manipulation_msgs::GoToResult::ControllerError :
+                res.result_string = "Goto: ControllerError";
+                break;
+            }
+
+            if (goto_result.result < 0)
+            {
+                ROS_ERROR("[Unable to go to -> location name = %s", go_to_goal.location_names.at(0).c_str());
+                return true;
+            }
+            res.grasped_object_out = grasped_object;
+            ROS_INFO("Well done! ");
         }
         else
         {
-          ROS_ERROR("Unable to execute the action because its type is wrong");
-          return 0;
+            ROS_ERROR("Unable to execute the action because its type is wrong");
+            return 0;
         }
 
 

@@ -1,3 +1,7 @@
-string input
+string robot_name
+string grasped_object_in
 ---
-string result
+int8 result
+string grasped_object_out
+string result_string
+
