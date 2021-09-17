@@ -22,6 +22,7 @@
 #include <ros/ros.h>
 #endif
 #include <string>
+#include <std_msgs/String.h>
 #include <QThread>
 #include <thread>
 #include <QStringListModel>
@@ -166,34 +167,32 @@ public:
     XmlRpc::XmlRpcValue getActionPlaceParam (const int index);
     XmlRpc::XmlRpcValue getActionPickParam  (const int index);
 
-    void addLocation (const go_to_location location_to_add);
-    bool addRecipe   (const std::string recipe_name);
-    bool addGoTo     (const std::string go_to_name, const std::vector<std::string> &locations, const std::string description, const std::vector<std::string> agents);
-    bool addPlace    (const std::string place_name, const std::vector<std::string> &groups,    const std::string description, const std::vector<std::string> agents);
-    bool addPick     (const std::string pick_name,  const std::vector<std::string> &objects,   const std::string description, const std::vector<std::string> agents);
-    bool addObject   (const object_type object);
-    bool addSlot     (const manipulation_slot slot);
-    bool addBox      (const box internal_box);
+    bool addGoTo               (const std::string go_to_name, const std::vector<std::string> &locations, const std::string description, const std::vector<std::string> agents);
+    bool addPlace              (const std::string place_name, const std::vector<std::string> &groups,    const std::string description, const std::vector<std::string> agents);
+    bool addPick               (const std::string pick_name,  const std::vector<std::string> &objects,   const std::string description, const std::vector<std::string> agents);
+    bool addRecipe             (const std::string recipe_name);
+    bool addLocationCopy       (const go_to_location    new_loc);
+    bool addObjectCopy         (const object_type       new_obj);
+    bool addSlotCopy           (const manipulation_slot new_slot);
+    bool addBoxCopy            (const box               new_box);
+    void addLocation           (const go_to_location location_to_add);
+    void addObject             (const object_type object);
+    void addSlot               (const manipulation_slot slot);
+    void addBox                (const box internal_box);
     void addObjectType         (const int ind);
     void addSlotGroups         (const int ind);
     void addLocationInfo       (const int ind);
-    bool addObjectsPick        (const int ind);
-    bool addGroupsPlace        (const int ind);
-    bool addLocationsGoTo      (const int ind);
-    bool addSecondLocationInfo (const int ind);
-    bool addSecondSlotGroups   (const int ind);
-    bool addSecondObjectType   (const int ind);
-    bool addLocationChanges    (const int ind,   const go_to_location new_location);
-    bool addSlotChanges        (const int ind,   const manipulation_slot new_slot);
-    bool addBoxChanges         (const int ind,   const box new_box);
-    bool addObjectChanges      (const int ind,   const object_type new_object);
-    bool addObjectCopyGrasp    (const int index, const int index2);
-    bool addLocationCopy (const go_to_location    new_loc);
-    bool addObjectCopy   (const object_type       new_obj);
-    bool addSlotCopy     (const manipulation_slot new_slot);
-    bool addBoxCopy      (const box               new_box);
+    void addSecondLocationInfo (const int ind);
+    void addSecondSlotGroups   (const int ind);
+    void addSecondObjectType   (const int ind);
+    void addLocationChanges    (const int ind,   const go_to_location new_location);
+    void addSlotChanges        (const int ind,   const manipulation_slot new_slot);
+    void addBoxChanges         (const int ind,   const box new_box);
+    void addObjectChanges      (const int ind,   const object_type new_object);
+    void addObjectCopyGrasp    (const int index, const int index2);
 
     std::vector<std::string> loadObjectsInManipulation();
+
     bool loadNewLocation (const go_to_location    &location_to_add);
     bool loadNewBox      (const box               &box_to_add);
     bool loadNewGroup    (const std::string       &group_to_add);
@@ -324,6 +323,8 @@ public:
     void moveGripper        (const std::string str);
     std::vector<int> removeGroup( const int ind);
     bool compare( const std::vector<std::string> &v1, const std::vector<std::string> &v2);
+    void readGripperPosition();
+
 
     std::vector<std::string> TFs_;
     std::vector<std::string> robots_;
@@ -341,8 +342,9 @@ private:
 
     ros::NodeHandle n_;
 
-    std::shared_ptr<ros_helper::SubscriptionNotifier<sensor_msgs::JointState>> js_sub_;
-    sensor_msgs::JointState gripper_state_;
+
+    std::shared_ptr<ros_helper::SubscriptionNotifier<std_msgs::String>> js_sub_;
+    std_msgs::String gripper_pos_;
 
     ros::ServiceClient add_locations_client_;
     ros::ServiceClient add_boxes_client_;

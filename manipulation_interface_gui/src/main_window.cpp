@@ -132,14 +132,14 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
     }
 
     QString tf;
-    for ( int i = 0; i < qnode_.TFs_.size(); i++ )
+    for ( std::size_t i = 0; i < qnode_.TFs_.size(); i++ )
     {
         tf = QString::fromStdString(qnode_.TFs_[i]);
         ui_.worldTfList->addItem(tf);
         ui_.comboRefFrame->addItem(tf);
     }
     on_buttonLoadTF_clicked(false);
-    for ( int i = 0; i < qnode_.robots_.size(); i++)
+    for ( std::size_t i = 0; i < qnode_.robots_.size(); i++)
     {
         tf = QString::fromStdString(qnode_.robots_[i]);
         ui_.robotList->addItem(tf);
@@ -154,7 +154,7 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
     std::vector<std::string> recipes_names =qnode_.loadRecipesParam();
     if ( !recipes_names.empty() )
     {
-        for ( int i = 0; i < recipes_names.size(); i++)
+        for ( std::size_t i = 0; i < recipes_names.size(); i++)
         {
             ui_.recipeBox->addItem( QString::fromStdString(recipes_names[i]) );
         }
@@ -890,8 +890,10 @@ void MainWindow::on_buttonGripper_clicked(bool check)
     name_action.append( std::to_string(actual_gripper_position_target_) );
     name_action.append("_force_");
     name_action.append( std::to_string(actual_gripper_force_) );
+    name_action.append("_vel_");
+    name_action.append( std::to_string(actual_gripper_force_) );
     ROS_INFO("Gripper command: %s", name_action.c_str());
-    qnode_.moveGripper("close");
+    qnode_.moveGripper(name_action);
 }
 
 void MainWindow::on_buttonGripper2_clicked(bool check)
@@ -901,98 +903,99 @@ void MainWindow::on_buttonGripper2_clicked(bool check)
 
 void MainWindow::on_buttonAddObject_clicked(bool check)
 { 
-    QString object_name = ui_.editObjectName->text();
-    std::string obj_name = object_name.toStdString();
+  QString object_name = ui_.editObjectName->text();
+  std::string obj_name = object_name.toStdString();
 
-    if ( !obj_name.empty() )
+  if ( !obj_name.empty() )
+  {
+    if ( !actual_object_grasp_.empty() )
     {
-        if ( !actual_object_grasp_.empty() )
+      if ( actual_object_grasp_.size() == actual_object_approach_.size() )
+      {
+        if ( actual_object_approach_.size() == actual_pre_gripper_position_.size() )
         {
-            if ( actual_object_grasp_.size() == actual_object_approach_.size() )
+          if ( actual_tool_approach_ == actual_tool_grasp_ )
+          {
+            if ( actual_tool_leave_ == actual_tool_grasp_ )
             {
-                if ( actual_object_approach_.size() == actual_pre_gripper_position_.size() )
+              for ( int i = 0; i < ui_.objectList->model()->rowCount(); i++ )
+              {
+                if ( !obj_name.compare( ui_.objectList->model()->data( ui_.objectList->model()->index( i, 0), 0).toString().toStdString() ) )
                 {
-                    if ( actual_tool_approach_ == actual_tool_grasp_ )
-                    {
-                        if ( actual_tool_leave_ == actual_tool_grasp_ )
-                        {
-                            object_type obj;
-                            obj.type     = obj_name;
-                            obj.tool     = actual_tool_grasp_;
-                            obj.approach = actual_object_approach_;
-                            obj.grasp    = actual_object_grasp_;
-                            obj.leave    = actual_object_leave_;
-                            obj.pre_gripper_position  = actual_pre_gripper_position_;
-                            obj.post_gripper_position = actual_post_gripper_position_;
-                            obj.gripper_force         = actual_gripper_grasp_force_;
-                            if( !qnode_.addObject( obj ) )
-                            {
-                                ROS_ERROR("Object just set");
-                                plotMsg("There is another object with this name");
-                                ui_.editObjectName->clear();
-                            }
-                            else
-                            {
-                                num_grasp_ = 0;
-                                ui_.graspList->clear();
-                                actual_object_grasp_.clear();
-                                actual_object_approach_.clear();
-                                actual_object_leave_.clear();
-                                actual_pre_gripper_position_.clear();
-                                actual_post_gripper_position_.clear();
-                                actual_approach_gripper_position_.clear();
-                                actual_gripper_grasp_force_.clear();
-                                actual_tool_approach_.clear();
-                                actual_tool_leave_.clear();
-                                actual_tool_grasp_.clear();
-                                if ( ui_.comboActionType->currentIndex() == 1 )
-                                {
-                                    qnode_.writeObjects();
-                                }
-                                plotMsg("Added object description");
-                            }
-                        }
-                        else
-                        {
-                            plotMsg("Leave and grasp have different tool");
-                            for ( int i = 0; i < actual_tool_grasp_.size(); i++)
-                            {
-                              ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_[i].c_str());
-                              ROS_ERROR("Leave_tool: %s",actual_tool_leave_[i].c_str());
-                            }
+                  ROS_ERROR("Object just set");
+                  plotMsg("There is another object with the same name.");
+                  return;
+                }
+              }
+              object_type obj;
+              obj.type     = obj_name;
+              obj.tool     = actual_tool_grasp_;
+              obj.approach = actual_object_approach_;
+              obj.grasp    = actual_object_grasp_;
+              obj.leave    = actual_object_leave_;
+              obj.pre_gripper_position  = actual_pre_gripper_position_;
+              obj.post_gripper_position = actual_post_gripper_position_;
+              obj.gripper_force         = actual_gripper_grasp_force_;
+              qnode_.addObject( obj );
+              num_grasp_ = 0;
+              ui_.graspList->clear();
+              actual_object_grasp_.clear();
+              actual_object_approach_.clear();
+              actual_object_leave_.clear();
+              actual_pre_gripper_position_.clear();
+              actual_post_gripper_position_.clear();
+              actual_approach_gripper_position_.clear();
+              actual_gripper_grasp_force_.clear();
+              actual_tool_approach_.clear();
+              actual_tool_leave_.clear();
+              actual_tool_grasp_.clear();
+              if ( ui_.comboActionType->currentIndex() == 1 )
+              {
+                qnode_.writeObjects();
+              }
+              plotMsg("Added object description");
+            }
+            else
+            {
+              plotMsg("Leave and grasp have different tool");
+              for ( std::size_t i = 0; i < actual_tool_grasp_.size(); i++)
+              {
+                ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_[i].c_str());
+                ROS_ERROR("Leave_tool: %s",actual_tool_leave_[i].c_str());
+              }
 
-                        }
-                    }
-                    else
-                    {
-                        plotMsg("Apporach and grasp have different tool");
-                        for ( int i = 0; i < actual_tool_grasp_.size(); i++)
-                        {
-                          ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_[i].c_str());
-                          ROS_ERROR("Approach_tool: %s",actual_tool_approach_[i].c_str());
-                        }
-                    }
-                }
-                else {
-                    ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach_.size(), actual_pre_gripper_position_.size() );
-                    plotMsg("Apporach and gripper have different sizes");
-                }
             }
-            else {
-                ROS_ERROR("Apporach and grasp have different sizes: %zu, %zu", actual_object_grasp_.size(), actual_object_approach_.size() );
-                plotMsg("Apporach and grasp have different sizes");
+          }
+          else
+          {
+            plotMsg("Apporach and grasp have different tool");
+            for ( std::size_t i = 0; i < actual_tool_grasp_.size(); i++)
+            {
+              ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_[i].c_str());
+              ROS_ERROR("Approach_tool: %s",actual_tool_approach_[i].c_str());
             }
+          }
         }
         else {
-            ROS_ERROR("Empty grasp");
-            plotMsg("Empty grasp");
+          ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach_.size(), actual_pre_gripper_position_.size() );
+          plotMsg("Apporach and gripper have different sizes");
         }
+      }
+      else {
+        ROS_ERROR("Apporach and grasp have different sizes: %zu, %zu", actual_object_grasp_.size(), actual_object_approach_.size() );
+        plotMsg("Apporach and grasp have different sizes");
+      }
     }
     else {
-        ROS_ERROR("Empty name");
-        plotMsg("Empty name");
+      ROS_ERROR("Empty grasp");
+      plotMsg("Empty grasp");
     }
-    qnode_.saveComponents();
+  }
+  else {
+    ROS_ERROR("Empty name");
+    plotMsg("Empty name");
+  }
+  qnode_.saveComponents();
 }
 
 void MainWindow::on_buttonAddSlot_clicked(bool check)
@@ -1028,17 +1031,19 @@ void MainWindow::on_buttonAddSlot_clicked(bool check)
                                 return;
                             }
                         }
+
+                        init_slot_approach_ = false;
+                        init_slot_final_ = false;
+                        ui_.buttonAddApproachSlot->setEnabled(true);
+                        ui_.buttonRemoveApproachSlot->setEnabled(false);
+                        ui_.buttonAddFinalPositionSlot->setEnabled(true);
+                        ui_.buttonRemoveFinalPositionSlot->setEnabled(false);
+                        ui_.buttonAddLeavePositionSlot->setEnabled(true);
+                        ui_.buttonRemoveLeavePositionSlot->setEnabled(false);
+
                         if ( !qnode_.loadNewGroup( group_name ) )
                         {
                             plotMsg("Can't add the group to location manager");
-                            init_slot_approach_ = false;
-                            init_slot_final_ = false;
-                            ui_.buttonAddApproachSlot->setEnabled(true);
-                            ui_.buttonRemoveApproachSlot->setEnabled(false);
-                            ui_.buttonAddFinalPositionSlot->setEnabled(true);
-                            ui_.buttonRemoveFinalPositionSlot->setEnabled(false);
-                            ui_.buttonAddLeavePositionSlot->setEnabled(true);
-                            ui_.buttonRemoveLeavePositionSlot->setEnabled(false);
                             return;
                         }
                         manipulation_slot slt;
@@ -1052,14 +1057,6 @@ void MainWindow::on_buttonAddSlot_clicked(bool check)
                         if ( !qnode_.loadNewSlot( slt ) )
                         {
                             plotMsg("Can't add the slot to location manager");
-                            init_slot_approach_ = false;
-                            init_slot_final_ = false;
-                            ui_.buttonAddApproachSlot->setEnabled(true);
-                            ui_.buttonRemoveApproachSlot->setEnabled(false);
-                            ui_.buttonAddFinalPositionSlot->setEnabled(true);
-                            ui_.buttonRemoveFinalPositionSlot->setEnabled(false);
-                            ui_.buttonAddLeavePositionSlot->setEnabled(true);
-                            ui_.buttonRemoveLeavePositionSlot->setEnabled(false);
                             return;
                         }
                         else
@@ -1068,14 +1065,6 @@ void MainWindow::on_buttonAddSlot_clicked(bool check)
                             ui_.editSlotName->clear();
                             ui_.editMaxObject->clear();
                             ui_.editGroupName->clear();
-                            init_slot_approach_ = false;
-                            init_slot_final_ = false;
-                            ui_.buttonAddApproachSlot->setEnabled(true);
-                            ui_.buttonRemoveApproachSlot->setEnabled(false);
-                            ui_.buttonAddFinalPositionSlot->setEnabled(true);
-                            ui_.buttonRemoveFinalPositionSlot->setEnabled(false);
-                            ui_.buttonAddLeavePositionSlot->setEnabled(true);
-                            ui_.buttonRemoveLeavePositionSlot->setEnabled(false);
                             if ( ui_.comboActionType->currentIndex() == 2 )
                             {
                                 qnode_.writeGroups();
@@ -1141,31 +1130,25 @@ void MainWindow::on_buttonAddBox_clicked(bool check)
             bx.approach  = actual_box_approach_;
             bx.leave     = actual_box_leave_;
             bx.frame     = qnode_.base_frame_;
+
+            init_box_approach_ = false;
+            init_box_final_ = false;
+            ui_.buttonAddApproachBox->setEnabled(true);
+            ui_.buttonRemoveApproachBox->setEnabled(false);
+            ui_.buttonAddFinalBox->setEnabled(true);
+            ui_.buttonRemoveFinalBox->setEnabled(false);
+            ui_.buttonAddLeavePositionBox->setEnabled(true);
+            ui_.buttonRemoveLeavePositionBox->setEnabled(false);
+
             if ( !qnode_.loadNewBox( bx ) )
             {
                 plotMsg("Can't add the box to location manager");
-                init_box_approach_ = false;
-                init_box_final_ = false;
-                ui_.buttonAddApproachBox->setEnabled(true);
-                ui_.buttonRemoveApproachBox->setEnabled(false);
-                ui_.buttonAddFinalBox->setEnabled(true);
-                ui_.buttonRemoveFinalBox->setEnabled(false);
-                ui_.buttonAddLeavePositionBox->setEnabled(true);
-                ui_.buttonRemoveLeavePositionBox->setEnabled(false);
                 return;
             }
             else
             {
                 qnode_.addBox( bx );
                 ui_.editBoxName->clear();
-                init_box_approach_ = false;
-                init_box_final_ = false;
-                ui_.buttonAddApproachBox->setEnabled(true);
-                ui_.buttonRemoveApproachBox->setEnabled(false);
-                ui_.buttonAddFinalBox->setEnabled(true);
-                ui_.buttonRemoveFinalBox->setEnabled(false);
-                ui_.buttonAddLeavePositionBox->setEnabled(true);
-                ui_.buttonRemoveLeavePositionBox->setEnabled(false);
                 plotMsg("Added box to the location manager");
             }
         }
@@ -1310,11 +1293,7 @@ void MainWindow::on_buttonAddObjectChanges_clicked(bool check)
 
 void MainWindow::saveActions()
 {
-    if ( qnode_.saveActions() )
-    {
-        plotMsg("The save are done.");
-    }
-    else
+    if ( !qnode_.saveActions() )
     {
         plotMsg("There is some problem with the save");
     }
@@ -1327,7 +1306,7 @@ void MainWindow::on_buttonLoadTF_clicked(bool chack)
     QString tf;
     ui_.TfList->clear();
     std::string tf_name;
-    for ( int i = 0; i < qnode_.TFs_.size(); i++ )
+    for ( std::size_t i = 0; i < qnode_.TFs_.size(); i++ )
     {
         std::size_t found = qnode_.TFs_[i].find( tf_name_space_.c_str() );
         if ( found != std::string::npos )
@@ -1933,7 +1912,7 @@ void MainWindow::resetObject(int index)
 
     actual_object_to_modify_ = qnode_.returnObjectInfo(index);
 
-    for ( int i = 0; i < actual_object_to_modify_.grasp.size(); i++ )
+    for ( std::size_t i = 0; i < actual_object_to_modify_.grasp.size(); i++ )
     {
         ui_.comboGraspNumber->addItem( QString::fromStdString( std::to_string(i) ) );
     }
@@ -2209,7 +2188,7 @@ void MainWindow::on_buttonRemoveElement_clicked(bool check )
 void MainWindow::on_buttonLoadRecipe_clicked(bool check)
 {
     std::vector<std::string> recipes_names = qnode_.loadRecipesParam();
-    for ( int i = 0; i < recipes_names.size(); i++)
+    for ( std::size_t i = 0; i < recipes_names.size(); i++)
     {
         bool presence = false;
         for ( int j = 0; j < ui_.recipeBox->count(); j++)
