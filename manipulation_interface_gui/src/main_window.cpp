@@ -60,8 +60,7 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
     ui_.listPlace             ->setModel(qnode_.loggingModelSecondPlace());
     ui_.listPick              ->setModel(qnode_.loggingModelSecondPick());
     ui_.listRecipe            ->setModel(qnode_.loggingModelRecipe());
-
-    ui_.listActionComponents ->setModel(qnode_.loggingModelActionComponents());
+    ui_.listActionComponents  ->setModel(qnode_.loggingModelActionComponents());
 
     QObject::connect(&qnode_, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
 
@@ -110,6 +109,8 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
     ui_.listRecipe           ->setEditTriggers(QListView::NoEditTriggers);
     ui_.listInfoAction       ->setEditTriggers(QListView::NoEditTriggers);
     ui_.listActionComponents ->setEditTriggers(QListView::NoEditTriggers);
+    ui_.componentList        ->setEditTriggers(QListView::NoEditTriggers);
+    ui_.jobPropertyList      ->setEditTriggers(QListView::NoEditTriggers);
 
     ui_.editLocationFrame     ->setReadOnly(true);
     ui_.editSlotFrame         ->setReadOnly(true);
@@ -159,6 +160,19 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
             ui_.recipeBox->addItem( QString::fromStdString(recipes_names[i]) );
         }
     }
+//    std::vector<std::string> exec_list;
+//    if ( qnode_.getExecProp(exec_list) )
+//    {
+//        for ( std::size_t i = 0; i < exec_list.size(); i++ )
+//        {
+//            ui_.comboJobType->addItem( QString::fromStdString(exec_list[i]) );
+//        }
+//    }
+
+//    writeJobType();
+//    writeJobProperty();
+//    writePreExecProp();
+//    writePostExecProp();
 }
 
 MainWindow::~MainWindow() {}
@@ -178,24 +192,28 @@ void MainWindow::addGoTo( int state )
 {
     std::string go_to_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
+    std::string job_exec_name = ui_.comboJobType->currentText().toStdString();
+    std::string exec_property_id = ui_.jobPropertyList->model()->data( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->currentIndex().row(), 0 ), 0 ).toString().toStdString();
+    std::string pre_exec_property_id = ui_.comboPreExecProp->currentText().toStdString();
+    std::string post_exec_property_id = ui_.comboPostExecProp->currentText().toStdString();
     std::vector<std::string> locations;
-    std::vector<std::string> agents_;
+    std::vector<std::string> agents;
 
     QModelIndexList indexes =  ui_.componentList->selectionModel()->selectedIndexes();
     if ( state != 0 )
     {
         if ( state == 1 )
         {
-            agents_.push_back("robot");
+            agents.push_back("robot");
            }
         else if ( state == 2 )
         {
-            agents_.push_back("human");
+            agents.push_back("human");
         }
         else if ( state == 3 )
         {
-            agents_.push_back("robot");
-            agents_.push_back("human");
+            agents.push_back("robot");
+            agents.push_back("human");
         }
         if ( !indexes.empty() )
         {
@@ -205,7 +223,16 @@ void MainWindow::addGoTo( int state )
                 {
                     locations.push_back( qnode_.returnLocationListText( indexes.at(i).row() ) );
                 }
-                if ( !qnode_.addGoTo(go_to_name,locations,description,agents_) )
+                go_to_action gt_action;
+                gt_action.name                  = go_to_name;
+                gt_action.locations             = locations;
+                gt_action.agents                = agents;
+                gt_action.description           = description;
+                gt_action.job_exec_name         = job_exec_name;
+                gt_action.exec_property_id      = exec_property_id;
+                gt_action.pre_exec_property_id  = pre_exec_property_id;
+                gt_action.post_exec_property_id = post_exec_property_id;
+                if ( !qnode_.addGoTo(gt_action) )
                 {
                     plotMsg("There is another action with the same name or locations.");
                     ui_.editActionName->clear();
@@ -237,24 +264,28 @@ void MainWindow::addPlace( int state )
 {
     std::string place_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
+    std::string job_exec_name = ui_.comboJobType->currentText().toStdString();
+    std::string exec_property_id = ui_.jobPropertyList->model()->data( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->currentIndex().row(), 0 ), 0 ).toString().toStdString();
+    std::string pre_exec_property_id = ui_.comboPreExecProp->currentText().toStdString();
+    std::string post_exec_property_id = ui_.comboPostExecProp->currentText().toStdString();
     std::vector<std::string> groups;
-    std::vector<std::string> agents_;
+    std::vector<std::string> agents;
 
     QModelIndexList indexes =  ui_.componentList->selectionModel()->selectedIndexes();
     if ( state != 0 )
     {
         if ( state == 1 )
         {
-            agents_.push_back("robot");
+            agents.push_back("robot");
         }
         else if ( state == 2 )
         {
-            agents_.push_back("human");
+            agents.push_back("human");
         }
         else if ( state == 3 )
         {
-            agents_.push_back("robot");
-            agents_.push_back("human");
+            agents.push_back("robot");
+            agents.push_back("human");
         }
         if ( !indexes.empty() )
         {
@@ -264,7 +295,17 @@ void MainWindow::addPlace( int state )
                 {
                     groups.push_back( qnode_.returnGroupListText( indexes.at(i).row() ) );
                 }
-                if ( !qnode_.addPlace(place_name,groups,description,agents_) )
+                place pl_action;
+                pl_action.name                  = place_name;
+                pl_action.groups                = groups;
+                pl_action.agents                = agents;
+                pl_action.description           = description;
+                pl_action.job_exec_name         = job_exec_name;
+                pl_action.exec_property_id      = exec_property_id;
+                pl_action.pre_exec_property_id  = pre_exec_property_id;
+                pl_action.post_exec_property_id = post_exec_property_id;
+
+                if ( !qnode_.addPlace(pl_action) )
                 {
                     plotMsg("There is another action with the same name or groups.");
                     ui_.editActionName->clear();
@@ -296,24 +337,28 @@ void MainWindow::addPick( int state )
 {
     std::string pick_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
+    std::string job_exec_name = ui_.comboJobType->currentText().toStdString();
+    std::string exec_property_id = ui_.jobPropertyList->model()->data( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->currentIndex().row(), 0 ), 0 ).toString().toStdString();
+    std::string pre_exec_property_id = ui_.comboPreExecProp->currentText().toStdString();
+    std::string post_exec_property_id = ui_.comboPostExecProp->currentText().toStdString();
     std::vector<std::string> objects;
-    std::vector<std::string> agents_;
+    std::vector<std::string> agents;
 
     QModelIndexList indexes =  ui_.componentList->selectionModel()->selectedIndexes();
     if ( state != 0 )
     {
         if ( state == 1 )
         {
-            agents_.push_back("robot");
+            agents.push_back("robot");
         }
         else if ( state == 2 )
         {
-            agents_.push_back("human");
+            agents.push_back("human");
         }
         else if ( state == 3 )
         {
-            agents_.push_back("robot");
-            agents_.push_back("human");
+            agents.push_back("robot");
+            agents.push_back("human");
         }
         if ( !pick_name.empty())
         {
@@ -323,7 +368,17 @@ void MainWindow::addPick( int state )
                 {
                     objects.push_back(qnode_.returnObjectListText( indexes.at(i).row() ) );
                 }
-                if ( !qnode_.addPick(pick_name,objects,description,agents_) )
+                pick pk_action;
+                pk_action.name                  = pick_name;
+                pk_action.objects               = objects;
+                pk_action.agents                = agents;
+                pk_action.description           = description;
+                pk_action.job_exec_name         = job_exec_name;
+                pk_action.exec_property_id      = exec_property_id;
+                pk_action.pre_exec_property_id  = pre_exec_property_id;
+                pk_action.post_exec_property_id = post_exec_property_id;
+
+                if ( !qnode_.addPick(pk_action) )
                 {
                     ui_.editActionName->clear();
                     plotMsg("There is another action with the same name or objects.");
@@ -2524,6 +2579,62 @@ void MainWindow::plotMsg(std::string msg)
     msgBox.setText(msg.c_str());
     msgBox.exec();
 }
+
+void MainWindow::on_comboJobType_currentIndexChanged(int index)
+{
+    std::string job_type = ui_.comboJobType->currentText().toStdString();
+}
+
+//void MainWindow::writeJobType()
+//{
+//    ui_.comboJobType->clear();
+//    std::string action_type = ui_.comboActionType->currentText().toStdString();
+//    std::vector<std::string> exec_prop_list;
+//    if ( qnode_.getExecProp( exec_prop_list ) )
+//    {
+//        for ( std::size_t i = 0; i < exec_prop_list.size(); i++ )
+//        {
+//            if ( exec_prop_list[i].find( action_type ) )
+//                ui_.comboJobType->addItem( QString::fromStdString( exec_prop_list[i] ) );
+//        }
+//    }
+//}
+
+//void MainWindow::writePreExecProp()
+//{
+//    ui_.comboPreExecProp->clear();
+//    std::string action_type = ui_.comboActionType->currentText().toStdString();
+//    std::vector<std::string> pre_exec_prop_list;
+//    if ( qnode_.getPreExecProp( pre_exec_prop_list ))
+//    {
+//        for ( std::size_t i = 0; i < pre_exec_prop_list.size(); i++ )
+//        {
+//            if ( pre_exec_prop_list[i].find( action_type ) )
+//                ui_.comboPreExecProp->addItem( QString::fromStdString( pre_exec_prop_list[i] ) );
+//        }
+//    }
+//}
+
+//void MainWindow::writePostExecProp()
+//{
+//    ui_.comboPostExecProp->clear();
+//    std::string action_type = ui_.comboActionType->currentText().toStdString();
+//    std::vector<std::string> post_exec_prop_list;
+//    if ( qnode_.getPreExecProp( post_exec_prop_list ))
+//    {
+//        for ( std::size_t i = 0; i < post_exec_prop_list.size(); i++ )
+//        {
+//            if ( post_exec_prop_list[i].find( action_type ) )
+//                ui_.comboPostExecProp->addItem( QString::fromStdString( post_exec_prop_list[i] ) );
+//        }
+//    }
+//}
+
+//void MainWindow::writeJobProperty()
+//{
+
+//}
+
 
 /*****************************************************************************
 ** Implemenation [Slots][manually connected]

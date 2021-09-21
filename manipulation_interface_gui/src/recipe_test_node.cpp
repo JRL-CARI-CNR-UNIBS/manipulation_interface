@@ -10,31 +10,43 @@
 #include <rosparam_utilities/rosparam_utilities.h>
 #include <manipulation_interface_gui/recipe_test_msg.h>
 
-struct go_to
+struct go_to_action
 {
     std::string name;
     std::vector<std::string> locations;
     std::string description;
     std::vector<std::string> agents;
+    std::string job_exec_name;
+    std::string pre_exec_property_id;
+    std::string exec_property_id;
+    std::string post_exec_property_id;
 };
 
-struct place
+struct place_action
 {
     std::string name;
     std::vector<std::string> groups;
     std::string description;
     std::vector<std::string> agents;
+    std::string job_exec_name;
+    std::string pre_exec_property_id;
+    std::string exec_property_id;
+    std::string post_exec_property_id;
 };
 
-struct pick
+struct pick_action
 {
     std::string name;
     std::vector<std::string> objects;
     std::string description;
     std::vector<std::string> agents;
+    std::string job_exec_name;
+    std::string pre_exec_property_id;
+    std::string exec_property_id;
+    std::string post_exec_property_id;
 };
 
-struct action
+struct action_to_run
 {
     std::string type; // action
     std::vector<std::string> goal; // description
@@ -48,8 +60,8 @@ struct action
     std::string post_exec_id; // property_post_exec_id
 };
 
-bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
-                 manipulation_interface_gui::recipe_test_msg::Response& res)
+bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
+                manipulation_interface_gui::recipe_test_msg::Response& res)
 {
     ros::NodeHandle nh_;
 
@@ -78,15 +90,15 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
     ros::ServiceClient remove_object_from_slot_clnt = nh_.serviceClient<manipulation_msgs::RemoveObjectFromSlot>("/outbound_place_server/remove_obj_from_slot");
     remove_object_from_slot_clnt.waitForExistence();
 
-    XmlRpc::XmlRpcValue param_;
+    XmlRpc::XmlRpcValue params;
 
-    if (!nh_.getParam("/recipe_to_run",param_))
+    if (!nh_.getParam("/recipe_to_run",params))
     {
       ROS_ERROR("There isn't the recipe to run");
       return false;
     }
 
-    if (param_.getType() != XmlRpc::XmlRpcValue::TypeArray)
+    if (params.getType() != XmlRpc::XmlRpcValue::TypeArray)
     {
       ROS_ERROR("Recipe is not a list" );
       return false;
@@ -94,81 +106,121 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
 
     std::vector<std::string> recipe;
 
-    for ( int i = 0; i < param_.size(); i++ )
+    for ( int i = 0; i < params.size(); i++ )
     {
-        recipe.push_back(static_cast<std::string>(param_[i]));
+        recipe.push_back(static_cast<std::string>(params[i]));
     }
 
 
 
-    if ( !nh_.getParam("/multi_skills/tasks",param_) )
+    if ( !nh_.getParam("/multi_skills/tasks",params) )
     {
         ROS_ERROR("Unable to find /multi_skills/tasks");
         return false;
     }
-    if (param_.getType() != XmlRpc::XmlRpcValue::TypeArray)
+    if (params.getType() != XmlRpc::XmlRpcValue::TypeArray)
     {
         ROS_ERROR("The tasks param is not a list of action" );
         return false;
     }
-    ROS_INFO("There are %d action",param_.size());
+    ROS_INFO("There are %d action",params.size());
 
-    std::vector<go_to> go_to_actions;
-    std::vector<pick>  pick_actions;
-    std::vector<place> place_actions;
+    std::vector<go_to_action> go_to_actions;
+    std::vector<pick_action>  pick_actions;
+    std::vector<place_action> place_actions;
 
-    for ( int i = 0; i < param_.size(); i++)
+    for ( int i = 0; i < params.size(); i++)
     {
-        XmlRpc::XmlRpcValue param__ = param_[i];
-        if ( !param__.hasMember("type") )
+        XmlRpc::XmlRpcValue param = params[i];
+        if ( !param.hasMember("type") )
         {
             ROS_WARN("The action #%d has not the field 'type'", i);
             return false;
         }
-        std::string type_ = rosparam_utilities::toString(param__["type"]);
+        std::string type_ = rosparam_utilities::toString(param["type"]);
 
         if ( !type_.compare("goto") )
         {
-            go_to go_to_;
+            go_to_action go_to;
 
-            if( !param__.hasMember("name") )
+            if( !param.hasMember("name") )
             {
                 ROS_WARN("The action #%d has not the field 'name'", i);
                 return false;
             }
-            go_to_.name = rosparam_utilities::toString(param__["name"]);
+            go_to.name = rosparam_utilities::toString(param["name"]);
 
             std::string what;
             std::vector<std::string> locations_;
-            if( !rosparam_utilities::getParam(param__,"goal",locations_,what) )
+            if( !rosparam_utilities::getParam(param,"goal",locations_,what) )
             {
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            go_to_.locations = locations_;
+            go_to.locations = locations_;
 
             std::vector<std::string> agents_;
-            if( !rosparam_utilities::getParam(param__,"agent",agents_,what) )
+            if( !rosparam_utilities::getParam(param,"agent",agents_,what) )
             {
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            go_to_.agents = agents_;
+            go_to.agents = agents_;
 
-            if( !param__.hasMember("description") )
+            if( !param.hasMember("description") )
             {
                 ROS_WARN("The action #%d has not the field 'description'", i);
-                go_to_.description = " ";
+                go_to.description = " ";
             }
             else
             {
-                go_to_.description = rosparam_utilities::toString(param__["description"]);
+                go_to.description = rosparam_utilities::toString(param["description"]);
+            }
+
+            if( !param.hasMember("job_exec_name") )
+            {
+                ROS_WARN("The action #%d has not the field 'job_exec_name'", i);
+                go_to.job_exec_name = " ";
+            }
+            else
+            {
+                go_to.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
+            }
+
+            if( !param.hasMember("property_pre_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_pre_exec_id'", i);
+                go_to.pre_exec_property_id = " ";
+            }
+            else
+            {
+                go_to.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
+            }
+
+            if( !param.hasMember("property_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_exec_id'", i);
+                go_to.exec_property_id = " ";
+            }
+            else
+            {
+                go_to.job_exec_name = rosparam_utilities::toString(param["property_exec_id"]);
+            }
+
+            if( !param.hasMember("property_post_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_post_exec_id'", i);
+                go_to.post_exec_property_id = " ";
+            }
+            else
+            {
+                go_to.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
             }
 
             bool presence = false;
             for ( int j = 0; j < go_to_actions.size(); j++)
             {
-                if ( !go_to_.name.compare(go_to_actions[j].name) )
+                if ( !go_to.name.compare(go_to_actions[j].name) )
                 {
                     presence = true;
                 }
@@ -176,52 +228,92 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
 
             if ( !presence )
             {
-                go_to_actions.push_back(go_to_);
+                go_to_actions.push_back(go_to);
             }
         }
 
         if ( !type_.compare("place") )
         {
-            place place_;
+            place_action place;
 
-            if( !param__.hasMember("name") )
+            if( !param.hasMember("name") )
             {
                 ROS_WARN("The element place #%d has not the field 'name'", i);
                 return false;
             }
-            place_.name = rosparam_utilities::toString(param__["name"]);
+            place.name = rosparam_utilities::toString(param["name"]);
 
             std::string what;
             std::vector<std::string> groups_;
-            if( !rosparam_utilities::getParam(param__,"goal",groups_,what) )
+            if( !rosparam_utilities::getParam(param,"goal",groups_,what) )
             {
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            place_.groups = groups_;
+            place.groups = groups_;
 
             std::vector<std::string> agents_;
-            if( !rosparam_utilities::getParam(param__,"agent",agents_,what) )
+            if( !rosparam_utilities::getParam(param,"agent",agents_,what) )
             {
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            place_.agents = agents_;
+            place.agents = agents_;
 
-            if( !param__.hasMember("description") )
+            if( !param.hasMember("description") )
             {
                 ROS_WARN("The action #%d has not the field 'description'", i);
-                place_.description = " ";
+                place.description = " ";
             }
             else
             {
-                place_.description = rosparam_utilities::toString(param__["description"]);
+                place.description = rosparam_utilities::toString(param["description"]);
+            }
+
+            if( !param.hasMember("job_exec_name") )
+            {
+                ROS_WARN("The action #%d has not the field 'job_exec_name'", i);
+                place.job_exec_name = " ";
+            }
+            else
+            {
+                place.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
+            }
+
+            if( !param.hasMember("property_pre_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_pre_exec_id'", i);
+                place.pre_exec_property_id = " ";
+            }
+            else
+            {
+                place.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
+            }
+
+            if( !param.hasMember("property_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_exec_id'", i);
+                place.exec_property_id = " ";
+            }
+            else
+            {
+                place.exec_property_id = rosparam_utilities::toString(param["property_exec_id"]);
+            }
+
+            if( !param.hasMember("property_post_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_post_exec_id'", i);
+                place.post_exec_property_id = " ";
+            }
+            else
+            {
+                place.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
             }
 
             bool presence = false;
             for ( int j = 0; j < place_actions.size(); j++)
             {
-                if ( !place_.name.compare(place_actions[j].name) )
+                if ( !place.name.compare(place_actions[j].name) )
                 {
                     presence = true;
                 }
@@ -229,52 +321,92 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
 
             if ( !presence )
             {
-                place_actions.push_back(place_);
+                place_actions.push_back(place);
             }
         }
 
         if ( !type_.compare("pick") )
         {
-            pick pick_;
+            pick_action pick;
 
-            if( !param__.hasMember("name") )
+            if( !param.hasMember("name") )
             {
                 ROS_WARN("The element pick #%d has not the field 'name'", i);
                 return false;
             }
-            pick_.name = rosparam_utilities::toString(param__["name"]);
+            pick.name = rosparam_utilities::toString(param["name"]);
 
             std::string what;
             std::vector<std::string> objects_;
-            if( !rosparam_utilities::getParam(param__,"goal",objects_,what) )
+            if( !rosparam_utilities::getParam(param,"goal",objects_,what) )
             {
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            pick_.objects = objects_;
+            pick.objects = objects_;
 
             std::vector<std::string> agents_;
-            if( !rosparam_utilities::getParam(param__,"agent",agents_,what) )
+            if( !rosparam_utilities::getParam(param,"agent",agents_,what) )
             {
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            pick_.agents = agents_;
+            pick.agents = agents_;
 
-            if( !param__.hasMember("description") )
+            if( !param.hasMember("description") )
             {
                 ROS_WARN("The action #%d has not the field 'description'", i);
-                pick_.description = " ";
+                pick.description = " ";
             }
             else
             {
-                pick_.description = rosparam_utilities::toString(param__["description"]);
+                pick.description = rosparam_utilities::toString(param["description"]);
+            }
+
+            if( !param.hasMember("job_exec_name") )
+            {
+                ROS_WARN("The action #%d has not the field 'job_exec_name'", i);
+                pick.job_exec_name = " ";
+            }
+            else
+            {
+                pick.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
+            }
+
+            if( !param.hasMember("property_pre_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_pre_exec_id'", i);
+                pick.pre_exec_property_id = " ";
+            }
+            else
+            {
+                pick.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
+            }
+
+            if( !param.hasMember("property_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_exec_id'", i);
+                pick.exec_property_id = " ";
+            }
+            else
+            {
+                pick.exec_property_id = rosparam_utilities::toString(param["property_exec_id"]);
+            }
+
+            if( !param.hasMember("property_post_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_post_exec_id'", i);
+                pick.post_exec_property_id = " ";
+            }
+            else
+            {
+                pick.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
             }
 
             bool presence = false;
             for ( int j = 0; j < pick_actions.size(); j++)
             {
-                if ( !pick_.name.compare(pick_actions[j].name) )
+                if ( !pick.name.compare(pick_actions[j].name) )
                 {
                     presence = true;
                 }
@@ -282,13 +414,13 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
 
             if ( !presence )
             {
-                pick_actions.push_back(pick_);
+                pick_actions.push_back(pick);
             }
         }
     }
 
-    action single_action;
-    std::vector<action> actions;
+    action_to_run single_action;
+    std::vector<action_to_run> actions;
     for ( int i = 0; i < recipe.size(); i++ )
     {
         for ( int j = 0; j < go_to_actions.size(); j++ )
@@ -305,6 +437,10 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 single_action.pre_exec_id  = "open";
                 single_action.exec_id      = "open";
                 single_action.post_exec_id = "open";
+//                single_action.job_exec     = go_to_actions[j].job_exec_name;
+//                single_action.pre_exec_id  = go_to_actions[j].pre_exec_property_id;
+//                single_action.exec_id      = go_to_actions[j].exec_property_id;
+//                single_action.post_exec_id = go_to_actions[j].post_exec_property_id;
             }
         }
         for ( int j = 0; j < pick_actions.size(); j++ )
@@ -321,6 +457,10 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 single_action.pre_exec_id  = "open";
                 single_action.exec_id      = "close";
                 single_action.post_exec_id = "close";
+//                single_action.job_exec     = pick_actions[j].job_exec_name;
+//                single_action.pre_exec_id  = pick_actions[j].pre_exec_property_id;
+//                single_action.exec_id      = pick_actions[j].exec_property_id;
+//                single_action.post_exec_id = pick_actions[j].post_exec_property_id;
             }
         }
         for ( int j = 0; j < place_actions.size(); j++ )
@@ -337,14 +477,18 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 single_action.pre_exec_id  = "close";
                 single_action.exec_id      = "open";
                 single_action.post_exec_id = "open";
+//                single_action.job_exec     = place_actions[j].job_exec_name;
+//                single_action.pre_exec_id  = place_actions[j].pre_exec_property_id;
+//                single_action.exec_id      = place_actions[j].exec_property_id;
+//                single_action.post_exec_id = place_actions[j].post_exec_property_id;
             }
         }
         actions.push_back(single_action);
     }
 
-    for ( const action action_: actions)
+    for ( const action_to_run single_action_to_do: actions)
     {
-        if ( !action_.type.compare("pick") )
+        if ( !single_action_to_do.type.compare("pick") )
         {
             if ( !grasped_object.empty() )
             {
@@ -355,15 +499,15 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
 
             manipulation_msgs::PickObjectsGoal pick_goal;
 
-            pick_goal.object_types          = action_.goal;
-            pick_goal.approach_loc_ctrl_id  = action_.approach_loc;
-            pick_goal.to_loc_ctrl_id        = action_.to_loc      ;
-            pick_goal.leave_loc_ctrl_id     = action_.leave_loc   ;
-            pick_goal.job_exec_name         = action_.job_exec    ;
-            pick_goal.tool_id               = action_.tool_id     ;
-            pick_goal.property_pre_exec_id  = action_.pre_exec_id ;
-            pick_goal.property_exec_id      = action_.exec_id     ;
-            pick_goal.property_post_exec_id = action_.post_exec_id;
+            pick_goal.object_types          = single_action_to_do.goal;
+            pick_goal.approach_loc_ctrl_id  = single_action_to_do.approach_loc;
+            pick_goal.to_loc_ctrl_id        = single_action_to_do.to_loc      ;
+            pick_goal.leave_loc_ctrl_id     = single_action_to_do.leave_loc   ;
+            pick_goal.job_exec_name         = single_action_to_do.job_exec    ;
+            pick_goal.tool_id               = single_action_to_do.tool_id     ;
+            pick_goal.property_pre_exec_id  = single_action_to_do.pre_exec_id ;
+            pick_goal.property_exec_id      = single_action_to_do.exec_id     ;
+            pick_goal.property_post_exec_id = single_action_to_do.post_exec_id;
 
             pick_ac.sendGoalAndWait(pick_goal);
             pick_result = *pick_ac.getResult();
@@ -408,7 +552,7 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
             grasped_object = pick_result.object_name;
             res.grasped_object_out = grasped_object;
         }
-        else if ( !action_.type.compare("place") )
+        else if ( !single_action_to_do.type.compare("place") )
         {
             manipulation_msgs::PlaceObjectsGoal place_goal;
 
@@ -422,15 +566,15 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 return true;
             }
 
-            place_goal.slots_group_names     = action_.goal;
-            place_goal.approach_loc_ctrl_id  = action_.approach_loc;
-            place_goal.to_loc_ctrl_id        = action_.to_loc      ;
-            place_goal.leave_loc_ctrl_id     = action_.leave_loc   ;
-            place_goal.job_exec_name         = action_.job_exec    ;
-            place_goal.tool_id               = action_.tool_id     ;
-            place_goal.property_pre_exec_id  = action_.pre_exec_id ;
-            place_goal.property_exec_id      = action_.exec_id     ;
-            place_goal.property_post_exec_id = action_.post_exec_id;
+            place_goal.slots_group_names     = single_action_to_do.goal;
+            place_goal.approach_loc_ctrl_id  = single_action_to_do.approach_loc;
+            place_goal.to_loc_ctrl_id        = single_action_to_do.to_loc      ;
+            place_goal.leave_loc_ctrl_id     = single_action_to_do.leave_loc   ;
+            place_goal.job_exec_name         = single_action_to_do.job_exec    ;
+            place_goal.tool_id               = single_action_to_do.tool_id     ;
+            place_goal.property_pre_exec_id  = single_action_to_do.pre_exec_id ;
+            place_goal.property_exec_id      = single_action_to_do.exec_id     ;
+            place_goal.property_post_exec_id = single_action_to_do.post_exec_id;
 
             place_ac.sendGoalAndWait(place_goal);
             place_result = *place_ac.getResult();
@@ -489,16 +633,16 @@ bool run_recipe( manipulation_interface_gui::recipe_test_msg::Request& req,
             grasped_object.clear();
             res.grasped_object_out = grasped_object;
         }
-        else if ( !action_.type.compare("goto") )
+        else if ( !single_action_to_do.type.compare("goto") )
         {
             manipulation_msgs::GoToGoal go_to_goal;
 
 
-            go_to_goal.location_names.push_back( action_.goal[0] );
-            go_to_goal.to_loc_ctrl_id   = action_.to_loc      ;
-            go_to_goal.job_exec_name    = action_.job_exec    ;
-            go_to_goal.tool_id          = action_.tool_id     ;
-            go_to_goal.property_exec_id = action_.exec_id     ;
+            go_to_goal.location_names.push_back( single_action_to_do.goal[0] );
+            go_to_goal.to_loc_ctrl_id   = single_action_to_do.to_loc      ;
+            go_to_goal.job_exec_name    = single_action_to_do.job_exec    ;
+            go_to_goal.tool_id          = single_action_to_do.tool_id     ;
+            go_to_goal.property_exec_id = single_action_to_do.exec_id     ;
 
             go_to_ac.sendGoalAndWait(go_to_goal);
             goto_result = *go_to_ac.getResult();
@@ -554,7 +698,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "recipe_test_node");
   ros::NodeHandle nh;
 
-  ros::ServiceServer service = nh.advertiseService( "run_recipe", run_recipe);
+  ros::ServiceServer service = nh.advertiseService( "run_recipe", runRecipe);
   ROS_INFO("Ready to run recipe.");
   ros::spin();
 

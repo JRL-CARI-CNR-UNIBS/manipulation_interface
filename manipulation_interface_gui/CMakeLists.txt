@@ -28,7 +28,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate services in the 'srv' folder
  add_service_files(
 	 FILES
-	 recipe_test_msg.srv
+	 RunRecipeTest.srv
  )
 
 ## Generate added messages and services with any dependencies listed here

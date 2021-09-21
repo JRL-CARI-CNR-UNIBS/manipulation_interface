@@ -20,7 +20,7 @@
 #include <fstream>
 #include <rosparam_utilities/rosparam_utilities.h>
 #include <manipulation_interface_mongo/SaveParam.h>
-#include <manipulation_interface_gui/recipe_test_msg.h>
+#include <manipulation_interface_gui/RunRecipeTest.h>
 #include <object_loader_msgs/AddObjects.h>
 #include <object_loader_msgs/ListObjects.h>
 #include <manipulation_msgs/ListOfObjects.h>
@@ -34,6 +34,7 @@
 #include <manipulation_msgs/RemoveObjects.h>
 #include <manipulation_msgs/RemoveSlots.h>
 #include <manipulation_msgs/RemoveSlotsGroup.h>
+#include <manipulation_msgs/ListOfJobExecuters.h>
 
 #include <Eigen/Geometry>
 #include <geometry_msgs/PoseStamped.h>
@@ -102,19 +103,22 @@ bool QNode::init()
 
     js_sub_ = std::make_shared<ros_helper::SubscriptionNotifier<std_msgs::String>>(n_,"/gripper/joint_states",10);
 
-    add_locations_client_             = n_.serviceClient<manipulation_msgs::AddLocations>     ("/go_to_location_server/add_locations");
-    add_boxes_client_                 = n_.serviceClient<manipulation_msgs::AddBoxes>         ("/inbound_pick_server/add_boxes");
-    add_objs_client_                  = n_.serviceClient<manipulation_msgs::AddObjects>       ("/inbound_pick_server/add_objects");
-    add_slots_group_client_           = n_.serviceClient<manipulation_msgs::AddSlotsGroup>    ("/outbound_place_server/add_slots_group");
-    add_slots_client_                 = n_.serviceClient<manipulation_msgs::AddSlots>         ("/outbound_place_server/add_slots");
-    remove_locations_client_          = n_.serviceClient<manipulation_msgs::RemoveLocations>  ("/go_to_location_server/remove_locations");
-    remove_boxes_client_              = n_.serviceClient<manipulation_msgs::RemoveBoxes>      ("/inbound_pick_server/remove_boxes");
-    remove_objs_client_               = n_.serviceClient<manipulation_msgs::RemoveObjects>    ("/inbound_pick_server/remove_objects");
-    remove_slots_group_client_        = n_.serviceClient<manipulation_msgs::RemoveSlotsGroup> ("/outbound_place_server/remove_slots_group");
-    remove_slots_client_              = n_.serviceClient<manipulation_msgs::RemoveSlots>      ("/outbound_place_server/remove_slots");
-    list_objects_client_              = n_.serviceClient<object_loader_msgs::ListObjects>     ("/list_objects");
-    list_manipulation_objects_client_ = n_.serviceClient<manipulation_msgs::ListOfObjects>    ("/inbound_pick_server/list_objects");
-    run_recipe_client_                = n_.serviceClient<manipulation_interface_gui::recipe_test_msg>("run_recipe");
+    add_locations_client_             = n_.serviceClient<manipulation_msgs::AddLocations>       ("/go_to_location_server/add_locations");
+    add_boxes_client_                 = n_.serviceClient<manipulation_msgs::AddBoxes>           ("/inbound_pick_server/add_boxes");
+    add_objs_client_                  = n_.serviceClient<manipulation_msgs::AddObjects>         ("/inbound_pick_server/add_objects");
+    add_slots_group_client_           = n_.serviceClient<manipulation_msgs::AddSlotsGroup>      ("/outbound_place_server/add_slots_group");
+    add_slots_client_                 = n_.serviceClient<manipulation_msgs::AddSlots>           ("/outbound_place_server/add_slots");
+    remove_locations_client_          = n_.serviceClient<manipulation_msgs::RemoveLocations>    ("/go_to_location_server/remove_locations");
+    remove_boxes_client_              = n_.serviceClient<manipulation_msgs::RemoveBoxes>        ("/inbound_pick_server/remove_boxes");
+    remove_objs_client_               = n_.serviceClient<manipulation_msgs::RemoveObjects>      ("/inbound_pick_server/remove_objects");
+    remove_slots_group_client_        = n_.serviceClient<manipulation_msgs::RemoveSlotsGroup>   ("/outbound_place_server/remove_slots_group");
+    remove_slots_client_              = n_.serviceClient<manipulation_msgs::RemoveSlots>        ("/outbound_place_server/remove_slots");
+    list_objects_client_              = n_.serviceClient<object_loader_msgs::ListObjects>       ("/list_objects");
+    list_manipulation_objects_client_ = n_.serviceClient<manipulation_msgs::ListOfObjects>      ("/inbound_pick_server/list_objects");
+    go_to_job_list_client_            = n_.serviceClient<manipulation_msgs::ListOfJobExecuters> ("/go_to_location_server/list_executers");
+    pick_job_list_client_             = n_.serviceClient<manipulation_msgs::ListOfJobExecuters> ("/inbound_pick_server/list_executers");
+    place_job_list_client_            = n_.serviceClient<manipulation_msgs::ListOfJobExecuters> ("/outbound_place_server/list_executers");
+    run_recipe_client_                = n_.serviceClient<manipulation_interface_gui::RunRecipeTest>("run_recipe");
 
     ROS_INFO("Waiting for: %s server", add_locations_client_.getService().c_str());
     add_locations_client_.waitForExistence();
@@ -167,6 +171,18 @@ bool QNode::init()
     ROS_INFO("Waiting for: %s server", run_recipe_client_.getService().c_str());
     run_recipe_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", run_recipe_client_.getService().c_str());
+
+    ROS_INFO("Waiting for: %s server", go_to_job_list_client_.getService().c_str());
+    go_to_job_list_client_.waitForExistence();
+    ROS_INFO("Client %s connected to server", go_to_job_list_client_.getService().c_str());
+
+    ROS_INFO("Waiting for: %s server", pick_job_list_client_.getService().c_str());
+    pick_job_list_client_.waitForExistence();
+    ROS_INFO("Client %s connected to server", pick_job_list_client_.getService().c_str());
+
+    ROS_INFO("Waiting for: %s server", place_job_list_client_.getService().c_str());
+    place_job_list_client_.waitForExistence();
+    ROS_INFO("Client %s connected to server", place_job_list_client_.getService().c_str());
 
     return true;
 }
@@ -272,7 +288,7 @@ std::vector<std::string> QNode::loadObjectsInManipulation()
     return manipulation_object_list.response.object_names;
 }
 
-void QNode::cartMove (const std::vector<float> twist_move)
+void QNode::cartMove (const std::vector<float> &twist_move)
 {
     geometry_msgs::TwistStamped twist_command;
 
@@ -288,7 +304,7 @@ void QNode::cartMove (const std::vector<float> twist_move)
     twist_pub_.publish(twist_command);
 }
 
-void QNode::addObjectType (const int ind)
+void QNode::addObjectType (const int &ind)
 {
     if ( logging_model_action_components_.rowCount() != 0 )
     {
@@ -300,7 +316,7 @@ void QNode::addObjectType (const int ind)
     }
 }
 
-void QNode::addSlotGroups (const int ind)
+void QNode::addSlotGroups (const int &ind)
 {
     if ( logging_model_action_components_.rowCount() != 0 )
     {
@@ -312,7 +328,7 @@ void QNode::addSlotGroups (const int ind)
     }
 }
 
-void QNode::addLocationInfo (const int ind)
+void QNode::addLocationInfo (const int &ind)
 {
     if ( logging_model_action_components_.rowCount() != 0 )
     {
@@ -324,7 +340,7 @@ void QNode::addLocationInfo (const int ind)
     }
 }
 
-void QNode::addSecondLocationInfo( const int ind )
+void QNode::addSecondLocationInfo( const int &ind )
 {
     if ( logging_model_info_action_.rowCount() != 0 )
     {
@@ -336,7 +352,7 @@ void QNode::addSecondLocationInfo( const int ind )
     }
 }
 
-void QNode::addSecondSlotGroups  ( const int ind )
+void QNode::addSecondSlotGroups  ( const int &ind )
 {
     if ( logging_model_info_action_.rowCount() != 0 )
     {
@@ -348,7 +364,7 @@ void QNode::addSecondSlotGroups  ( const int ind )
     }
 }
 
-void QNode::addSecondObjectType  ( const int ind )
+void QNode::addSecondObjectType  ( const int &ind )
 {
     if ( logging_model_info_action_.rowCount() != 0 )
     {
@@ -360,14 +376,14 @@ void QNode::addSecondObjectType  ( const int ind )
     }
 }
 
-void QNode::addObjectCopyGrasp   ( const int index, const int index2 )
+void QNode::addObjectCopyGrasp   ( const int &index, const int &index2 )
 {
     objects_[index].approach.push_back( objects_[index].approach[index2] );
     objects_[index].grasp.push_back   ( objects_[index].grasp[index2] );
     objects_[index].tool.push_back    ( objects_[index].tool[index2] );
 }
 
-void QNode::writeRecipe ( const int index)
+void QNode::writeRecipe ( const int &index)
 {
     for ( std::size_t i = 0; i < recipes_[index].recipe_.size(); i++ )
     {
@@ -432,7 +448,7 @@ std::vector<std::string> QNode::loadRecipesParam ()
     return recipes_names;
 }
 
-bool QNode::addRecipe(const std::string recipe_name)
+bool QNode::addRecipe(const std::string &recipe_name)
 {
     recipe recipe_;
     recipe_.name = recipe_name;
@@ -459,7 +475,7 @@ bool QNode::addRecipe(const std::string recipe_name)
     return true;
 }
 
-bool QNode::removeRecipe(const int ind)
+bool QNode::removeRecipe(const int &ind)
 {
     recipes_.erase(recipes_.begin()+ind);
     return true;
@@ -501,7 +517,7 @@ std::string QNode::runRecipe()
     return callRunRecipe(recipe);
 }
 
-std::string QNode::runSelectedAction(const int index)
+std::string QNode::runSelectedAction(const int &index)
 {
     std::vector<std::string> recipe;
 
@@ -510,14 +526,14 @@ std::string QNode::runSelectedAction(const int index)
     return callRunRecipe(recipe);
 }
 
-std::string QNode::callRunRecipe(const std::vector<std::string> recipe)
+std::string QNode::callRunRecipe(const std::vector<std::string> &recipe)
 {
     XmlRpc::XmlRpcValue param;
     param = getRecipeParam( recipe );
 
     n_.setParam("recipe_to_run", param);
 
-    manipulation_interface_gui::recipe_test_msg recipe_msg;
+    manipulation_interface_gui::RunRecipeTest recipe_msg;
     recipe_msg.request.robot_name = "manipulator";
     recipe_msg.request.grasped_object_in = grasped_object_;
 
@@ -549,7 +565,7 @@ std::string QNode::callRunRecipe(const std::vector<std::string> recipe)
 
 }
 
-XmlRpc::XmlRpcValue QNode::getRecipeParam(const int index)
+XmlRpc::XmlRpcValue QNode::getRecipeParam(const int &index)
 {
     std::string xml_body;
 
@@ -570,7 +586,7 @@ XmlRpc::XmlRpcValue QNode::getRecipeParam(const int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getRecipeParam(const std::vector<std::string> recipe)
+XmlRpc::XmlRpcValue QNode::getRecipeParam(const std::vector<std::string> &recipe)
 {
     std::string xml_body;
 
@@ -600,7 +616,7 @@ XmlRpc::XmlRpcValue QNode::getRecipeParam(const std::vector<std::string> recipe)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getActionGoToParam(const int index)
+XmlRpc::XmlRpcValue QNode::getActionGoToParam(const int &index)
 {
     std::string xml_body;
 
@@ -626,7 +642,7 @@ XmlRpc::XmlRpcValue QNode::getActionGoToParam(const int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getActionPlaceParam(const int index)
+XmlRpc::XmlRpcValue QNode::getActionPlaceParam(const int &index)
 {
     std::string xml_body;
 
@@ -650,7 +666,7 @@ XmlRpc::XmlRpcValue QNode::getActionPlaceParam(const int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getActionPickParam(const int index)
+XmlRpc::XmlRpcValue QNode::getActionPickParam(const int &index)
 {
     std::string xml_body;
 
@@ -674,127 +690,112 @@ XmlRpc::XmlRpcValue QNode::getActionPickParam(const int index)
     return param;
 }
 
-bool QNode::addGoTo(const std::string go_to_name, const std::vector<std::string> &locations, const std::string description, const std::vector<std::string> agents)
+bool QNode::addGoTo(const go_to_action &gt_action)
 {
     if ( logging_model_go_to_.rowCount()!=0 )
     {
         for (int i=0; i<logging_model_go_to_.rowCount(); i++)
         {
             ros::Duration(0.1);
-            if ( !go_to_name.compare( logging_model_go_to_.data( logging_model_go_to_.index( i ), 0 ).toString().toStdString() ) )
+            if ( !gt_action.name.compare( logging_model_go_to_.data( logging_model_go_to_.index( i ), 0 ).toString().toStdString() ) )
             {
                 return false;
             }
-            if ( !go_to_name.compare( logging_model_place_.data( logging_model_place_.index( i ), 0 ).toString().toStdString() ) )
+            if ( !gt_action.name.compare( logging_model_place_.data( logging_model_place_.index( i ), 0 ).toString().toStdString() ) )
             {
                 return false;
             }
-            if ( !go_to_name.compare( logging_model_pick_.data( logging_model_pick_.index( i ), 0 ).toString().toStdString() ) )
+            if ( !gt_action.name.compare( logging_model_pick_.data( logging_model_pick_.index( i ), 0 ).toString().toStdString() ) )
             {
                 return false;
             }
         }
         for ( std::size_t i = 0; i < go_to_actions_.size(); i++)
         {
-            if ( compare( locations, go_to_actions_[i].locations) )
+            if ( compare( gt_action.locations, go_to_actions_[i].locations) )
             {
                 return false;
             }
         }
     }
-    logGoTo(go_to_name);
-    logSecondGoTo(go_to_name);
+    logGoTo(gt_action.name);
+    logSecondGoTo(gt_action.name);
 
-    go_to_action gt;
-    gt.agents      = agents;
-    gt.name = go_to_name;
-    gt.locations = locations;
-    gt.description = description;
-    go_to_actions_.push_back(gt);
+    go_to_actions_.push_back(gt_action);
 
     return true;
 }
 
-bool QNode::addPlace(const std::string place_name, const std::vector<std::string> &groups, const std::string description, const std::vector<std::string> agents)
+bool QNode::addPlace(const place &place_action)
 {
     if ( logging_model_place_.rowCount()!=0 )
     {
         for (int i=0; i<logging_model_place_.rowCount(); i++)
         {
             ros::Duration(0.1);
-            if ( !place_name.compare( logging_model_go_to_.data( logging_model_go_to_.index( i ), 0 ).toString().toStdString() ) )
+            if ( !place_action.name.compare( logging_model_go_to_.data( logging_model_go_to_.index( i ), 0 ).toString().toStdString() ) )
             {
                 return false;
             }
-            if ( !place_name.compare( logging_model_place_.data( logging_model_place_.index( i ), 0 ).toString().toStdString() ) )
+            if ( !place_action.name.compare( logging_model_place_.data( logging_model_place_.index( i ), 0 ).toString().toStdString() ) )
             {
                 return false;
             }
-            if ( !place_name.compare( logging_model_pick_.data( logging_model_pick_.index( i ), 0 ).toString().toStdString() ) )
+            if ( !place_action.name.compare( logging_model_pick_.data( logging_model_pick_.index( i ), 0 ).toString().toStdString() ) )
             {
                 return false;
             }
         }
         for ( std::size_t i = 0; i < place_actions_.size(); i++)
         {
-            if ( compare( groups, place_actions_[i].groups) )
+            if ( compare( place_action.groups, place_actions_[i].groups) )
             {
                 return false;
             }
         }
     }
-    logPlace(place_name);
-    logSecondPlace(place_name);
+    logPlace(place_action.name);
+    logSecondPlace(place_action.name);
 
-    place plc;
-    plc.agents      = agents;
-    plc.name        = place_name;
-    plc.groups      = groups;
-    plc.description = description;
-    place_actions_.push_back(plc);
+    place_actions_.push_back(place_action);
 
     return true;
 }
 
-bool QNode::addPick(const std::string pick_name, const std::vector<std::string> &objects,const  std::string description, const std::vector<std::string> agents)
+bool QNode::addPick(const pick &pick_action)
 {
-    if ( !pick_name.empty())
+    if ( !pick_action.name.empty())
     {
         if ( logging_model_pick_.rowCount()!=0 )
         {
             for (int i=0; i<logging_model_pick_.rowCount(); i++)
             {
                 ros::Duration(0.1);
-                if ( !pick_name.compare( logging_model_go_to_.data( logging_model_go_to_.index( i ), 0 ).toString().toStdString() ) )
+                if ( !pick_action.name.compare( logging_model_go_to_.data( logging_model_go_to_.index( i ), 0 ).toString().toStdString() ) )
                 {
                     return false;
                 }
-                if ( !pick_name.compare( logging_model_place_.data( logging_model_place_.index( i ), 0 ).toString().toStdString() ) )
+                if ( !pick_action.name.compare( logging_model_place_.data( logging_model_place_.index( i ), 0 ).toString().toStdString() ) )
                 {
                     return false;
                 }
-                if ( !pick_name.compare( logging_model_pick_.data( logging_model_pick_.index( i ), 0 ).toString().toStdString() ) )
+                if ( !pick_action.name.compare( logging_model_pick_.data( logging_model_pick_.index( i ), 0 ).toString().toStdString() ) )
                 {
                     return false;
                 }
             }
             for ( std::size_t i = 0; i < pick_actions_.size(); i++)
             {
-                if ( compare( objects, pick_actions_[i].objects) )
+                if ( compare( pick_action.objects, pick_actions_[i].objects) )
                 {
                     return false;
                 }
             }
         }
-        logPick(pick_name);
-        logSecondPick(pick_name);
+        logPick(pick_action.name);
+        logSecondPick(pick_action.name);
 
-        pick pck;
-        pck.agents      = agents;
-        pck.name        = pick_name;
-        pck.objects     = objects;
-        pck.description = description;
-        pick_actions_.push_back(pck);
+        pick_actions_.push_back(pick_action);
         return true;
     }
 
@@ -803,7 +804,7 @@ bool QNode::addPick(const std::string pick_name, const std::vector<std::string> 
     return true;
 }
 
-void QNode::addLocation(const go_to_location location_to_add)
+void QNode::addLocation(const go_to_location &location_to_add)
 {
     logLocation(location_to_add.name);
     logLocationModify(location_to_add.name);
@@ -811,7 +812,7 @@ void QNode::addLocation(const go_to_location location_to_add)
     changed_locations_.push_back(location_to_add);
 }
 
-bool QNode::addLocationCopy(const go_to_location new_loc)
+bool QNode::addLocationCopy(const go_to_location &new_loc)
 {
     for ( std::size_t i = 0; i < go_to_locations_.size(); i++)
     {
@@ -827,7 +828,7 @@ bool QNode::addLocationCopy(const go_to_location new_loc)
     return true;
 }
 
-bool QNode::addObjectCopy(const object_type new_obj)
+bool QNode::addObjectCopy(const object_type &new_obj)
 {
     for ( std::size_t i = 0; i < objects_.size(); i++)
     {
@@ -842,7 +843,7 @@ bool QNode::addObjectCopy(const object_type new_obj)
     return true;
 }
 
-bool QNode::addSlotCopy(const manipulation_slot new_slot)
+bool QNode::addSlotCopy(const manipulation_slot &new_slot)
 {
     for ( std::size_t i = 0; i < manipulation_slots_.size(); i++)
     {
@@ -858,7 +859,7 @@ bool QNode::addSlotCopy(const manipulation_slot new_slot)
     return true;
 }
 
-bool QNode::addBoxCopy(const box new_box)
+bool QNode::addBoxCopy(const box &new_box)
 {
     for ( std::size_t i = 0; i < boxes_.size(); i++)
     {
@@ -874,7 +875,7 @@ bool QNode::addBoxCopy(const box new_box)
     return true;
 }
 
-location QNode::returnPosition( const std::string base_frame, const std::string target_frame )
+location QNode::returnPosition(const std::string &base_frame, const std::string &target_frame )
 {
     tf::TransformListener listener;
     ros::Duration(0.3).sleep();
@@ -899,64 +900,64 @@ location QNode::returnPosition( const std::string base_frame, const std::string 
     return loc;
 }
 
-go_to_action QNode::returnGoToInfo(const int ind)
+go_to_action QNode::returnGoToInfo(const int &ind)
 {
     return go_to_actions_[ind];
 }
 
-pick QNode::returnPickInfo(const int ind)
+pick QNode::returnPickInfo(const int &ind)
 {
     return pick_actions_[ind];
 }
 
-place QNode::returnPlaceInfo(const int ind)
+place QNode::returnPlaceInfo(const int &ind)
 {
     return place_actions_[ind];
 }
 
-go_to_location QNode::returnLocationInfo(const int ind)
+go_to_location QNode::returnLocationInfo(const int &ind)
 {
     return go_to_locations_[ind];
 }
 
-object_type QNode::returnObjectInfo( const int ind)
+object_type QNode::returnObjectInfo( const int &ind)
 {
     return objects_[ind];
 }
 
-box QNode::returnBoxInfo( const int ind)
+box QNode::returnBoxInfo( const int &ind)
 {
     return boxes_[ind];
 }
 
-manipulation_slot QNode::returnSlotInfo(const  int ind)
+manipulation_slot QNode::returnSlotInfo(const  int &ind)
 {
     return manipulation_slots_[ind];
 }
 
-std::string QNode::returnLocationListText(const int ind)
+std::string QNode::returnLocationListText(const int &ind)
 {
     return logging_model_components_.data( logging_model_components_.index( ind ), 0 ).toString().toStdString();
 }
 
-std::string QNode::returnGroupListText(const int ind)
+std::string QNode::returnGroupListText(const int &ind)
 {
     return logging_model_components_.data( logging_model_components_.index( ind ), 0 ).toString().toStdString();
 }
 
-std::string QNode::returnObjectListText(const int ind)
+std::string QNode::returnObjectListText(const int &ind)
 {
     return logging_model_components_.data( logging_model_components_.index( ind ), 0 ).toString().toStdString();
 }
 
-std::string QNode::returnBoxListText(const int ind)
+std::string QNode::returnBoxListText(const int &ind)
 {
     return logging_model_box_.data( logging_model_box_.index( ind ), 0 ).toString().toStdString();
 }
 
 double QNode::returnGripperPosition()
 {
-  return std::stod(gripper_pos_.data);
+    return std::stod(gripper_pos_.data);
 }
 
 void QNode::logGoTo(const std::string &msg)
@@ -1130,12 +1131,12 @@ void QNode::logRecipe (const std::string &msg)
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::removeGoTo(const int ind)
+void QNode::removeGoTo(const int &ind)
 {
     go_to_actions_.erase(go_to_actions_.begin()+ind);
 }
 
-void QNode::removeLocation(const int ind)
+void QNode::removeLocation(const int &ind)
 {
     for ( std::size_t i = 0; i < changed_locations_.size(); i++ )
     {
@@ -1160,22 +1161,22 @@ void QNode::removeLocation(const int ind)
     go_to_locations_.erase(go_to_locations_.begin()+ind);
 }
 
-void QNode::removePlace(const int ind)
+void QNode::removePlace(const int &ind)
 {
     place_actions_.erase(place_actions_.begin()+ind);
 }
 
-void QNode::removePick(const int ind)
+void QNode::removePick(const int &ind)
 {
     pick_actions_.erase(pick_actions_.begin()+ind);
 }
 
-void QNode::removeObject(const int ind)
+void QNode::removeObject(const int &ind)
 {
     objects_.erase(objects_.begin()+ind);
 }
 
-void QNode::removeSlot(const int ind)
+void QNode::removeSlot(const int &ind)
 {
     for ( std::size_t i = 0; i < changed_slots_.size(); i++ )
     {
@@ -1200,7 +1201,7 @@ void QNode::removeSlot(const int ind)
     manipulation_slots_.erase(manipulation_slots_.begin()+ind);
 }
 
-void QNode::removeBox(const int ind)
+void QNode::removeBox(const int &ind)
 {
     for ( std::size_t i = 0; i < changed_boxes_.size(); i++ )
     {
@@ -1224,7 +1225,7 @@ void QNode::removeBox(const int ind)
     boxes_.erase(boxes_.begin()+ind);
 }
 
-std::vector<int> QNode::removeGroup(const int ind)
+std::vector<int> QNode::removeGroup(const int &ind)
 {
     for ( std::size_t i = 0; i < changed_groups_.size(); i++ )
     {
@@ -1263,7 +1264,7 @@ std::vector<int> QNode::removeGroup(const int ind)
     return indexes;
 }
 
-void QNode::activeConfiguration(const std::string config)
+void QNode::activeConfiguration(const std::string &config)
 {
     start_ctrl_req_.request.start_configuration = config;
     start_ctrl_req_.request.strictness = 1;
@@ -1284,7 +1285,7 @@ void QNode::activeConfiguration(const std::string config)
     ROS_INFO("Controller %s started.",start_ctrl_req_.request.start_configuration.c_str());
 }
 
-void QNode::moveGripper( const std::string str )
+void QNode::moveGripper( const std::string &str )
 {
     ROS_INFO("Gripper are moving");
     gripper_req_.request.skill_name = " ";
@@ -1300,11 +1301,11 @@ void QNode::moveGripper( const std::string str )
 
     if ( js_sub_->waitForANewData() )
     {
-      gripper_pos_ = js_sub_->getData();
+        gripper_pos_ = js_sub_->getData();
     }
 }
 
-std::string QNode::getXmlMaxNumberString(const int value )
+std::string QNode::getXmlMaxNumberString(const int &value )
 {
     std::string xml_body;
 
@@ -1326,7 +1327,7 @@ std::string QNode::getXmlMaxNumberString(const int value )
     return xml_body;
 }
 
-std::string QNode::getXmlDoubleString( const double value )
+std::string QNode::getXmlDoubleString( const double &value )
 {
     std::string xml_body;
 
@@ -1341,7 +1342,7 @@ std::string QNode::getXmlDoubleString( const double value )
     return xml_body;
 }
 
-std::string QNode::getXmlDoubleStringWithName(const std::string param_name, const double value)
+std::string QNode::getXmlDoubleStringWithName(const std::string &param_name, const double &value)
 {
     std::string xml_body;
 
@@ -1358,7 +1359,7 @@ std::string QNode::getXmlDoubleStringWithName(const std::string param_name, cons
     return xml_body;
 }
 
-std::string QNode::getXmlStringParam( const std::string param_name, const std::string value )
+std::string QNode::getXmlStringParam( const std::string &param_name, const std::string &value )
 {
     std::string xml_body;
 
@@ -1377,7 +1378,7 @@ std::string QNode::getXmlStringParam( const std::string param_name, const std::s
     return xml_body;
 }
 
-std::string QNode::getXmlPositionString( const std::string name_pos, const position pos )
+std::string QNode::getXmlPositionString( const std::string &name_pos, const position &pos )
 {
     std::string xml_body;
 
@@ -1404,7 +1405,7 @@ std::string QNode::getXmlPositionString( const std::string name_pos, const posit
     return xml_body;
 }
 
-std::string QNode::getXmlQuaternionString( const quaternion quat )
+std::string QNode::getXmlQuaternionString( const quaternion &quat )
 {
     std::string xml_body;
 
@@ -1432,7 +1433,7 @@ std::string QNode::getXmlQuaternionString( const quaternion quat )
     return xml_body;
 }
 
-std::string QNode::getXmlGroupString( const std::string name, const std::vector<std::string> string_group )
+std::string QNode::getXmlGroupString( const std::string &name, const std::vector<std::string> &string_group )
 {
     std::string xml_body;
 
@@ -1465,7 +1466,7 @@ std::string QNode::getXmlGroupString( const std::string name, const std::vector<
     return xml_body;
 }
 
-std::string QNode::getXmlObjectGraspString( const int index, const int index2 )
+std::string QNode::getXmlObjectGraspString( const int &index, const int &index2 )
 {
     std::string xml_body;
 
@@ -1487,7 +1488,7 @@ std::string QNode::getXmlObjectGraspString( const int index, const int index2 )
     return xml_body;
 }
 
-std::string QNode::getXmlObjectGraspPosesString( const int index )
+std::string QNode::getXmlObjectGraspPosesString( const int &index )
 {
     std::string xml_body;
 
@@ -1515,7 +1516,7 @@ std::string QNode::getXmlObjectGraspPosesString( const int index )
     return xml_body;
 }
 
-XmlRpc::XmlRpcValue QNode::getGoToLocationParam(const int index)
+XmlRpc::XmlRpcValue QNode::getGoToLocationParam(const int &index)
 {
     //    /go_to_location
     std::string xml_body;
@@ -1539,7 +1540,7 @@ XmlRpc::XmlRpcValue QNode::getGoToLocationParam(const int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getBoxParam(const int index)
+XmlRpc::XmlRpcValue QNode::getBoxParam(const int &index)
 {
     //    /inbound/boxes
     std::string xml_body;
@@ -1564,7 +1565,7 @@ XmlRpc::XmlRpcValue QNode::getBoxParam(const int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getObjectGraspParam(const int index, const int index2)
+XmlRpc::XmlRpcValue QNode::getObjectGraspParam(const int &index, const int &index2)
 {
     //    /nameObj/grasp_poses
     std::string xml_body = getXmlObjectGraspString( index, index2 );
@@ -1576,7 +1577,7 @@ XmlRpc::XmlRpcValue QNode::getObjectGraspParam(const int index, const int index2
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getObjectParam(const int index)
+XmlRpc::XmlRpcValue QNode::getObjectParam(const int &index)
 {
     std::string xml_body;
 
@@ -1597,7 +1598,7 @@ XmlRpc::XmlRpcValue QNode::getObjectParam(const int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getGroupParam(const int index)
+XmlRpc::XmlRpcValue QNode::getGroupParam(const int &index)
 {
     std::string xml_body;
 
@@ -1617,7 +1618,7 @@ XmlRpc::XmlRpcValue QNode::getGroupParam(const int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getSlotParam(const int index)
+XmlRpc::XmlRpcValue QNode::getSlotParam(const int &index)
 {
     std::string xml_body;
 
@@ -1644,7 +1645,7 @@ XmlRpc::XmlRpcValue QNode::getSlotParam(const int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getGoToParam(const int index)
+XmlRpc::XmlRpcValue QNode::getGoToParam(const int &index)
 {
     std::string xml_body;
 
@@ -1656,6 +1657,10 @@ XmlRpc::XmlRpcValue QNode::getGoToParam(const int index)
     xml_body.append(getXmlStringParam("type", "goto"));
     xml_body.append(getXmlGroupString("agent", go_to_actions_compare_[index].agents));
     xml_body.append(getXmlGroupString("goal", go_to_actions_compare_[index].locations));
+    xml_body.append(getXmlStringParam("job_exec_name", go_to_actions_compare_[index].job_exec_name));
+    xml_body.append(getXmlStringParam("property_pre_exec_id", go_to_actions_compare_[index].pre_exec_property_id));
+    xml_body.append(getXmlStringParam("property_exec_id", go_to_actions_compare_[index].exec_property_id));
+    xml_body.append(getXmlStringParam("property_post_exec_id", go_to_actions_compare_[index].post_exec_property_id));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1668,7 +1673,7 @@ XmlRpc::XmlRpcValue QNode::getGoToParam(const int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getPickParam(const int index)
+XmlRpc::XmlRpcValue QNode::getPickParam(const int &index)
 {
     std::string xml_body;
 
@@ -1680,6 +1685,10 @@ XmlRpc::XmlRpcValue QNode::getPickParam(const int index)
     xml_body.append(getXmlStringParam("type", "pick"));
     xml_body.append(getXmlGroupString("agent", pick_actions_compare_[index].agents));
     xml_body.append(getXmlGroupString("goal", pick_actions_compare_[index].objects));
+    xml_body.append(getXmlStringParam("job_exec_name", pick_actions_compare_[index].job_exec_name));
+    xml_body.append(getXmlStringParam("property_pre_exec_id", pick_actions_compare_[index].pre_exec_property_id));
+    xml_body.append(getXmlStringParam("property_exec_id", pick_actions_compare_[index].exec_property_id));
+    xml_body.append(getXmlStringParam("property_post_exec_id", pick_actions_compare_[index].post_exec_property_id));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1692,7 +1701,7 @@ XmlRpc::XmlRpcValue QNode::getPickParam(const int index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getPlaceParam(const int index)
+XmlRpc::XmlRpcValue QNode::getPlaceParam(const int &index)
 {
     std::string xml_body;
 
@@ -1704,6 +1713,10 @@ XmlRpc::XmlRpcValue QNode::getPlaceParam(const int index)
     xml_body.append(getXmlStringParam("type", "place"));
     xml_body.append(getXmlGroupString("agent", place_actions_compare_[index].agents));
     xml_body.append(getXmlGroupString("goal", place_actions_compare_[index].groups));
+    xml_body.append(getXmlStringParam("job_exec_name", place_actions_compare_[index].job_exec_name));
+    xml_body.append(getXmlStringParam("property_pre_exec_id", place_actions_compare_[index].pre_exec_property_id));
+    xml_body.append(getXmlStringParam("property_exec_id", place_actions_compare_[index].exec_property_id));
+    xml_body.append(getXmlStringParam("property_post_exec_id", place_actions_compare_[index].post_exec_property_id));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1716,7 +1729,7 @@ XmlRpc::XmlRpcValue QNode::getPlaceParam(const int index)
     return param;
 }
 
-void QNode::setTargetFrame( const int ind )
+void QNode::setTargetFrame( const int &ind )
 {
     if ( robot_name_params_.size() != 0 )
     {
@@ -2023,12 +2036,12 @@ bool QNode::saveComponents()
     ros::ServiceClient client = n_.serviceClient<manipulation_interface_mongo::SaveParam>("/save_components_params_on_mongo");
     manipulation_interface_mongo::SaveParam srv;
     if (client.call(srv))
-      return true;
+        return true;
     else
-      return false;
+        return false;
 }
 
-bool QNode::loadNewLocation(const go_to_location& location_to_add)
+bool QNode::loadNewLocation(const go_to_location &location_to_add)
 {
     if ( !location_to_add.name.empty() )
     {
@@ -2122,31 +2135,31 @@ bool QNode::loadNewGroup( const std::string &group_to_add)
         bool presence = false;
         for ( int i = 0; i < logging_model_group_.rowCount(); i++ )
         {
-          if ( !group_to_add.compare(logging_model_group_.data( logging_model_group_.index( i ),0 ).toString().toStdString()) )
-          {
-            presence = true;
-          }
+            if ( !group_to_add.compare(logging_model_group_.data( logging_model_group_.index( i ),0 ).toString().toStdString()) )
+            {
+                presence = true;
+            }
         }
         if (!presence)
         {
-          manipulation_msgs::AddSlotsGroup add_groups_srv;
-          manipulation_msgs::SlotsGroup group_srv;
-          group_srv.name = group_to_add;
-          add_groups_srv.request.add_slots_groups.push_back(group_srv);
-          if ( !add_slots_group_client_.call(add_groups_srv) )
-          {
-            ROS_ERROR("Error while calling add groups service");
-            return false;
-          }
-          if ( add_groups_srv.response.results == manipulation_msgs::AddSlotsGroup::Response::Error )
-          {
-            ROS_WARN("Can't add the group %s to location manager", group_to_add.c_str());
-            return false;
-          }
-          else
-          {
-            ROS_INFO("Added group: %s", group_to_add.c_str());
-          }
+            manipulation_msgs::AddSlotsGroup add_groups_srv;
+            manipulation_msgs::SlotsGroup group_srv;
+            group_srv.name = group_to_add;
+            add_groups_srv.request.add_slots_groups.push_back(group_srv);
+            if ( !add_slots_group_client_.call(add_groups_srv) )
+            {
+                ROS_ERROR("Error while calling add groups service");
+                return false;
+            }
+            if ( add_groups_srv.response.results == manipulation_msgs::AddSlotsGroup::Response::Error )
+            {
+                ROS_WARN("Can't add the group %s to location manager", group_to_add.c_str());
+                return false;
+            }
+            else
+            {
+                ROS_INFO("Added group: %s", group_to_add.c_str());
+            }
         }
     }
     return true;
@@ -2228,19 +2241,19 @@ bool QNode::saveActions()
     ros::ServiceClient client = n_.serviceClient<manipulation_interface_mongo::SaveParam>("/save_actions_param_on_mongo");
     manipulation_interface_mongo::SaveParam srv;
     if (client.call(srv))
-      return true;
+        return true;
     else
-      return false;
+        return false;
 }
 
-void QNode::addObject( const object_type object )
+void QNode::addObject( const object_type &object )
 {
     logObject(object.type);
     logObjectModify(object.type);
     objects_.push_back(object);
 }
 
-void QNode::addSlot( const manipulation_slot slot )
+void QNode::addSlot( const manipulation_slot &slot )
 {
     if ( logging_model_group_.rowCount()!=0 )
     {
@@ -2275,7 +2288,7 @@ void QNode::addSlot( const manipulation_slot slot )
     changed_slots_.push_back(slot);
 }
 
-void QNode::addBox(const box internal_box)
+void QNode::addBox(const box &internal_box)
 {
     logBox(internal_box.name);
     logBoxModify(internal_box.name);
@@ -2283,7 +2296,7 @@ void QNode::addBox(const box internal_box)
     changed_boxes_.push_back(internal_box);
 }
 
-void QNode::addLocationChanges(const int ind, const go_to_location new_location)
+void QNode::addLocationChanges(const int &ind, const go_to_location &new_location)
 {
     if ( !go_to_locations_[ind].name.compare( new_location.name ) )
     {
@@ -2297,7 +2310,7 @@ void QNode::addLocationChanges(const int ind, const go_to_location new_location)
     }
 }
 
-void QNode::addSlotChanges(const int ind, const manipulation_slot new_slot)
+void QNode::addSlotChanges(const int &ind, const manipulation_slot &new_slot)
 {
     if ( !manipulation_slots_[ind].name.compare( new_slot.name ) )
     {
@@ -2311,7 +2324,7 @@ void QNode::addSlotChanges(const int ind, const manipulation_slot new_slot)
     }
 }
 
-void QNode::addBoxChanges(const int ind, const box new_box)
+void QNode::addBoxChanges(const int &ind, const box &new_box)
 {
     if ( !boxes_[ind].name.compare( new_box.name ) )
     {
@@ -2325,7 +2338,7 @@ void QNode::addBoxChanges(const int ind, const box new_box)
     }
 }
 
-void QNode::addObjectChanges(const int ind, const object_type new_object)
+void QNode::addObjectChanges(const int &ind, const object_type &new_object)
 {
     if ( !objects_[ind].type.compare( new_object.type ) )
     {
@@ -2346,7 +2359,7 @@ void QNode::loadTF()
     listener.getFrameStrings(TFs_);
 }
 
-void QNode::loadParam( const int ind )
+void QNode::loadParam( const int &ind )
 {
     if (!n_.getParamNames(param_names_))
     {
@@ -2401,7 +2414,7 @@ void QNode::loadRobots()
     }
 }
 
-void QNode::writeParam(const int ind)
+void QNode::writeParam(const int &ind)
 {
     loadParam( ind );
 
@@ -3253,14 +3266,14 @@ bool QNode::readGotoPickAndPlaceFromParam()
 
         if ( !type_.compare("goto") )
         {
-            go_to_action go_to_;
+            go_to_action go_to_to_read;
 
             if( !param.hasMember("name") )
             {
                 ROS_WARN("The action #%d has not the field 'name'", i);
                 return false;
             }
-            go_to_.name = rosparam_utilities::toString(param["name"]);
+            go_to_to_read.name = rosparam_utilities::toString(param["name"]);
 
             std::string what;
             std::vector<std::string> locations_;
@@ -3269,7 +3282,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            go_to_.locations = locations_;
+            go_to_to_read.locations = locations_;
 
             std::vector<std::string> agents_;
             if( !rosparam_utilities::getParam(param,"agent",agents_,what) )
@@ -3277,22 +3290,63 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            go_to_.agents = agents_;
+            go_to_to_read.agents = agents_;
 
             if( !param.hasMember("description") )
             {
                 ROS_WARN("The action #%d has not the field 'description'", i);
-                go_to_.description = " ";
+                go_to_to_read.description = " ";
             }
             else
             {
-                go_to_.description = rosparam_utilities::toString(param["description"]);
+                go_to_to_read.description = rosparam_utilities::toString(param["description"]);
             }
+
+            if( !param.hasMember("job_exec_name") )
+            {
+                ROS_WARN("The action #%d has not the field 'job_exec_name'", i);
+                go_to_to_read.job_exec_name = " ";
+            }
+            else
+            {
+                go_to_to_read.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
+            }
+
+            if( !param.hasMember("property_pre_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_pre_exec_id'", i);
+                go_to_to_read.pre_exec_property_id = " ";
+            }
+            else
+            {
+                go_to_to_read.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
+            }
+
+            if( !param.hasMember("property_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_exec_id'", i);
+                go_to_to_read.exec_property_id = " ";
+            }
+            else
+            {
+                go_to_to_read.exec_property_id = rosparam_utilities::toString(param["property_exec_id"]);
+            }
+
+            if( !param.hasMember("property_post_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_post_exec_id'", i);
+                go_to_to_read.post_exec_property_id = " ";
+            }
+            else
+            {
+                go_to_to_read.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
+            }
+
 
             bool presence = false;
             for ( std::size_t j = 0; j < go_to_actions_.size(); j++)
             {
-                if ( !go_to_.name.compare(go_to_actions_[j].name) )
+                if ( !go_to_to_read.name.compare(go_to_actions_[j].name) )
                 {
                     presence = true;
                 }
@@ -3300,21 +3354,21 @@ bool QNode::readGotoPickAndPlaceFromParam()
 
             if ( !presence )
             {
-                go_to_actions_.push_back(go_to_);
-                go_to_actions_compare_.push_back(go_to_);
+                go_to_actions_.push_back(go_to_to_read);
+                go_to_actions_compare_.push_back(go_to_to_read);
             }
         }
 
         if ( !type_.compare("place") )
         {
-            place place_;
+            place place_to_read;
 
             if( !param.hasMember("name") )
             {
                 ROS_WARN("The element place #%d has not the field 'name'", i);
                 return false;
             }
-            place_.name = rosparam_utilities::toString(param["name"]);
+            place_to_read.name = rosparam_utilities::toString(param["name"]);
 
             std::string what;
             std::vector<std::string> groups;
@@ -3323,7 +3377,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            place_.groups = groups;
+            place_to_read.groups = groups;
 
             std::vector<std::string> agents_;
             if( !rosparam_utilities::getParam(param,"agent",agents_,what) )
@@ -3331,22 +3385,62 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            place_.agents = agents_;
+            place_to_read.agents = agents_;
 
             if( !param.hasMember("description") )
             {
                 ROS_WARN("The action #%d has not the field 'description'", i);
-                place_.description = " ";
+                place_to_read.description = " ";
             }
             else
             {
-                place_.description = rosparam_utilities::toString(param["description"]);
+                place_to_read.description = rosparam_utilities::toString(param["description"]);
+            }
+
+            if( !param.hasMember("job_exec_name") )
+            {
+                ROS_WARN("The action #%d has not the field 'job_exec_name'", i);
+                place_to_read.job_exec_name = " ";
+            }
+            else
+            {
+                place_to_read.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
+            }
+
+            if( !param.hasMember("property_pre_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_pre_exec_id'", i);
+                place_to_read.pre_exec_property_id = " ";
+            }
+            else
+            {
+                place_to_read.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
+            }
+
+            if( !param.hasMember("property_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_exec_id'", i);
+                place_to_read.exec_property_id = " ";
+            }
+            else
+            {
+                place_to_read.exec_property_id = rosparam_utilities::toString(param["property_exec_id"]);
+            }
+
+            if( !param.hasMember("property_post_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_post_exec_id'", i);
+                place_to_read.post_exec_property_id = " ";
+            }
+            else
+            {
+                place_to_read.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
             }
 
             bool presence = false;
             for ( std::size_t j = 0; j < place_actions_.size(); j++)
             {
-                if ( !place_.name.compare(place_actions_[j].name) )
+                if ( !place_to_read.name.compare(place_actions_[j].name) )
                 {
                     presence = true;
                 }
@@ -3354,21 +3448,21 @@ bool QNode::readGotoPickAndPlaceFromParam()
 
             if ( !presence )
             {
-                place_actions_.push_back(place_);
-                place_actions_compare_.push_back(place_);
+                place_actions_.push_back(place_to_read);
+                place_actions_compare_.push_back(place_to_read);
             }
         }
 
         if ( !type_.compare("pick") )
         {
-            pick pick_;
+            pick pick_to_read;
 
             if( !param.hasMember("name") )
             {
                 ROS_WARN("The element pick #%d has not the field 'name'", i);
                 return false;
             }
-            pick_.name = rosparam_utilities::toString(param["name"]);
+            pick_to_read.name = rosparam_utilities::toString(param["name"]);
 
             std::string what;
             std::vector<std::string> objects;
@@ -3377,7 +3471,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            pick_.objects = objects;
+            pick_to_read.objects = objects;
 
             std::vector<std::string> agents_;
             if( !rosparam_utilities::getParam(param,"agent",agents_,what) )
@@ -3385,22 +3479,62 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 ROS_WARN("Action %d  has not the field 'goal'", i);
                 return false;
             }
-            pick_.agents = agents_;
+            pick_to_read.agents = agents_;
 
             if( !param.hasMember("description") )
             {
                 ROS_WARN("The action #%d has not the field 'description'", i);
-                pick_.description = " ";
+                pick_to_read.description = " ";
             }
             else
             {
-                pick_.description = rosparam_utilities::toString(param["description"]);
+                pick_to_read.description = rosparam_utilities::toString(param["description"]);
+            }
+
+            if( !param.hasMember("job_exec_name") )
+            {
+                ROS_WARN("The action #%d has not the field 'job_exec_name'", i);
+                pick_to_read.job_exec_name = " ";
+            }
+            else
+            {
+                pick_to_read.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
+            }
+
+            if( !param.hasMember("property_pre_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_pre_exec_id'", i);
+                pick_to_read.pre_exec_property_id = " ";
+            }
+            else
+            {
+                pick_to_read.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
+            }
+
+            if( !param.hasMember("property_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_exec_id'", i);
+                pick_to_read.exec_property_id = " ";
+            }
+            else
+            {
+                pick_to_read.exec_property_id = rosparam_utilities::toString(param["property_exec_id"]);
+            }
+
+            if( !param.hasMember("property_post_exec_id") )
+            {
+                ROS_WARN("The action #%d has not the field 'property_post_exec_id'", i);
+                pick_to_read.post_exec_property_id = " ";
+            }
+            else
+            {
+                pick_to_read.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
             }
 
             bool presence = false;
             for ( std::size_t j = 0; j < pick_actions_.size(); j++)
             {
-                if ( !pick_.name.compare(pick_actions_[j].name) )
+                if ( !pick_to_read.name.compare(pick_actions_[j].name) )
                 {
                     presence = true;
                 }
@@ -3408,14 +3542,111 @@ bool QNode::readGotoPickAndPlaceFromParam()
 
             if ( !presence )
             {
-                pick_actions_.push_back(pick_);
-                pick_actions_compare_.push_back(pick_);
+                pick_actions_.push_back(pick_to_read);
+                pick_actions_compare_.push_back(pick_to_read);
             }
         }
     }
 
     return true;
 }
+
+bool QNode::getGoToJobList(std::vector<std::string> &goto_job_list)
+{
+    manipulation_msgs::ListOfJobExecuters job_list_srv;
+    if ( !go_to_job_list_client_.call(job_list_srv) )
+    {
+        ROS_ERROR("Unable to call /go_to_location_server/list_executers service");
+        goto_job_list.clear();
+        return false;
+    }
+    else
+    {
+        goto_job_list = job_list_srv.response.executers;
+        return true;
+    }
+}
+
+bool QNode::getPickJobList(std::vector<std::string> &pick_job_list)
+{
+    manipulation_msgs::ListOfJobExecuters job_list_srv;
+    if ( !pick_job_list_client_.call(job_list_srv) )
+    {
+        ROS_ERROR("Unable to call /inbound_pick_server/list_executers");
+        pick_job_list.clear();
+        return false;
+    }
+    else
+    {
+        pick_job_list = job_list_srv.response.executers;
+        return true;
+    }
+}
+
+bool QNode::getPlaceJobList(std::vector<std::string> &place_job_list)
+{
+    manipulation_msgs::ListOfJobExecuters job_list_srv;
+    if ( !place_job_list_client_.call(job_list_srv) )
+    {
+        ROS_ERROR("Unable to call /outbound_place_server/list_executers");
+        place_job_list.clear();
+        return false;
+    }
+    else
+    {
+        place_job_list = job_list_srv.response.executers;
+        return true;
+    }
+}
+
+
+//bool QNode::getPreExecProp(std::vector<std::string> &pre_exec_prop_list)
+//{
+//    manipulation_msgs::ListPreExec list_pre_exec_srv;
+//    if ( !list_pre_exec_prop_client_.call(list_pre_exec_srv) )
+//    {
+//        ROS_ERROR("Unable to call list_pre_exec_prop_server");
+//        pre_exec_prop_list.clear();
+//        return false;
+//    }
+//    else
+//    {
+//        pre_exec_prop_list = list_pre_exec_srv.response.list;
+//        return true;
+//    }
+//}
+
+//bool QNode::getExecProp(std::vector<std::string> &exec_prop_list)
+//{
+//    manipulation_msgs::ListExec list_exec_srv;
+//    if ( !list_exec_prop_client_.call(list_exec_srv) )
+//    {
+//        ROS_ERROR("Unable to call list_exec_prop_server");
+//        exec_prop_list.clear();
+//        return false;
+//    }
+//    else
+//    {
+//        exec_prop_list = list_exec_srv.response.list;
+//        return true;
+//    }
+//}
+
+//bool QNode::getPostExecProp(std::vector<std::string> &post_exec_prop_list)
+//{
+//    manipulation_msgs::ListPostExec list_post_exec_srv;
+//    if ( !list_post_exec_prop_client_.call(list_post_exec_srv) )
+//    {
+//        ROS_ERROR("Unable to call list_post_exec_prop_server");
+//        post_exec_prop_list.clear();
+//        return false;
+//    }
+//    else
+//    {
+//        post_exec_prop_list = list_post_exec_srv.response.list;
+//        return true;
+//    }
+//}
 
 bool QNode::compare(const std::vector<std::string> &v1, const std::vector<std::string> &v2)
 {

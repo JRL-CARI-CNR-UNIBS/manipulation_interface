@@ -73,6 +73,10 @@ struct go_to_action
     std::vector<std::string> locations;
     std::string description;
     std::vector<std::string> agents;
+    std::string job_exec_name;
+    std::string pre_exec_property_id;
+    std::string exec_property_id;
+    std::string post_exec_property_id;
 };
 
 struct place
@@ -81,6 +85,10 @@ struct place
     std::vector<std::string> groups;
     std::string description;
     std::vector<std::string> agents;
+    std::string job_exec_name;
+    std::string pre_exec_property_id;
+    std::string exec_property_id;
+    std::string post_exec_property_id;
 };
 
 struct pick
@@ -89,6 +97,10 @@ struct pick
     std::vector<std::string> objects;
     std::string description;
     std::vector<std::string> agents;
+    std::string job_exec_name;
+    std::string pre_exec_property_id;
+    std::string exec_property_id;
+    std::string post_exec_property_id;
 };
 
 struct object_type
@@ -151,45 +163,45 @@ public:
 
 	bool init();
 
-    void cartMove (const std::vector<float> twist_move);
+    void cartMove (const std::vector<float> &twist_move);
 
     bool saveRecipe();
     std::string runRecipe();
-    std::string runSelectedAction (const int index );
-    std::string callRunRecipe     (const std::vector<std::string> recipe);
+    std::string runSelectedAction (const int &index );
+    std::string callRunRecipe     (const std::vector<std::string> &recipe);
     std::vector<std::string> loadRecipesParam();
 
 //    void initialAddComponentsInManipulation();
 
-    XmlRpc::XmlRpcValue getRecipeParam      (const std::vector<std::string> recipe);
-    XmlRpc::XmlRpcValue getRecipeParam      (const int index);
-    XmlRpc::XmlRpcValue getActionGoToParam  (const int index);
-    XmlRpc::XmlRpcValue getActionPlaceParam (const int index);
-    XmlRpc::XmlRpcValue getActionPickParam  (const int index);
+    XmlRpc::XmlRpcValue getRecipeParam      (const std::vector<std::string> &recipe);
+    XmlRpc::XmlRpcValue getRecipeParam      (const int &index);
+    XmlRpc::XmlRpcValue getActionGoToParam  (const int &index);
+    XmlRpc::XmlRpcValue getActionPlaceParam (const int &index);
+    XmlRpc::XmlRpcValue getActionPickParam  (const int &index);
 
-    bool addGoTo               (const std::string go_to_name, const std::vector<std::string> &locations, const std::string description, const std::vector<std::string> agents);
-    bool addPlace              (const std::string place_name, const std::vector<std::string> &groups,    const std::string description, const std::vector<std::string> agents);
-    bool addPick               (const std::string pick_name,  const std::vector<std::string> &objects,   const std::string description, const std::vector<std::string> agents);
-    bool addRecipe             (const std::string recipe_name);
-    bool addLocationCopy       (const go_to_location    new_loc);
-    bool addObjectCopy         (const object_type       new_obj);
-    bool addSlotCopy           (const manipulation_slot new_slot);
-    bool addBoxCopy            (const box               new_box);
-    void addLocation           (const go_to_location location_to_add);
-    void addObject             (const object_type object);
-    void addSlot               (const manipulation_slot slot);
-    void addBox                (const box internal_box);
-    void addObjectType         (const int ind);
-    void addSlotGroups         (const int ind);
-    void addLocationInfo       (const int ind);
-    void addSecondLocationInfo (const int ind);
-    void addSecondSlotGroups   (const int ind);
-    void addSecondObjectType   (const int ind);
-    void addLocationChanges    (const int ind,   const go_to_location new_location);
-    void addSlotChanges        (const int ind,   const manipulation_slot new_slot);
-    void addBoxChanges         (const int ind,   const box new_box);
-    void addObjectChanges      (const int ind,   const object_type new_object);
-    void addObjectCopyGrasp    (const int index, const int index2);
+    bool addGoTo               (const go_to_action &gt_action);
+    bool addPlace              (const place &place_action);
+    bool addPick               (const pick &pick_action);
+    bool addRecipe             (const std::string &recipe_name);
+    bool addLocationCopy       (const go_to_location    &new_loc);
+    bool addObjectCopy         (const object_type       &new_obj);
+    bool addSlotCopy           (const manipulation_slot &new_slot);
+    bool addBoxCopy            (const box               &new_box);
+    void addLocation           (const go_to_location &location_to_add);
+    void addObject             (const object_type &object);
+    void addSlot               (const manipulation_slot &slot);
+    void addBox                (const box &internal_box);
+    void addObjectType         (const int &ind);
+    void addSlotGroups         (const int &ind);
+    void addLocationInfo       (const int &ind);
+    void addSecondLocationInfo (const int &ind);
+    void addSecondSlotGroups   (const int &ind);
+    void addSecondObjectType   (const int &ind);
+    void addLocationChanges    (const int &ind,   const go_to_location &new_location);
+    void addSlotChanges        (const int &ind,   const manipulation_slot &new_slot);
+    void addBoxChanges         (const int &ind,   const box &new_box);
+    void addObjectChanges      (const int &ind,   const object_type &new_object);
+    void addObjectCopyGrasp    (const int &index, const int &index2);
 
     std::vector<std::string> loadObjectsInManipulation();
 
@@ -198,42 +210,42 @@ public:
     bool loadNewGroup    (const std::string       &group_to_add);
     bool loadNewSlot     (const manipulation_slot &slot_to_add);
 
-    location          returnPosition(const std::string base_frame, const std::string target_frame);
-    go_to_action      returnGoToInfo         (const int ind);
-    pick              returnPickInfo         (const int ind);
-    place             returnPlaceInfo        (const int ind);
-    go_to_location    returnLocationInfo     (const int ind);
-    object_type       returnObjectInfo       (const int ind);
-    box               returnBoxInfo          (const int ind);
-    manipulation_slot returnSlotInfo         (const int ind);
-    recipe            returnRecipeInfo       (const int ind);
-    std::string       returnLocationListText (const int ind);
-    std::string       returnGroupListText    (const int ind);
-    std::string       returnObjectListText   (const int ind);
-    std::string       returnObjDistListText  (const int ind);
-    std::string       returnBoxListText      (const int ind);
+    location          returnPosition(const std::string &base_frame, const std::string &target_frame);
+    go_to_action      returnGoToInfo         (const int &ind);
+    pick              returnPickInfo         (const int &ind);
+    place             returnPlaceInfo        (const int &ind);
+    go_to_location    returnLocationInfo     (const int &ind);
+    object_type       returnObjectInfo       (const int &ind);
+    box               returnBoxInfo          (const int &ind);
+    manipulation_slot returnSlotInfo         (const int &ind);
+    recipe            returnRecipeInfo       (const int &ind);
+    std::string       returnLocationListText (const int &ind);
+    std::string       returnGroupListText    (const int &ind);
+    std::string       returnObjectListText   (const int &ind);
+    std::string       returnObjDistListText  (const int &ind);
+    std::string       returnBoxListText      (const int &ind);
     double returnGripperPosition();
 
-    std::string getXmlMaxNumberString        (const int value);
-    std::string getXmlDoubleString           (const double value);
-    std::string getXmlDoubleStringWithName   (const std::string param_name, const double value);
-    std::string getXmlStringParam            (const std::string param_name, const std::string value);
-    std::string getXmlPositionString         (const std::string name_pos,  const position pos);
-    std::string getXmlQuaternionString       (const quaternion quat);
-    std::string getXmlGroupString            (const std::string name, const std::vector<std::string> string_group);
-    std::string getXmlObjectGraspString      (const int index, const int index2);
-    std::string getXmlObjectGraspPosesString (const int index);
+    std::string getXmlMaxNumberString        (const int &value);
+    std::string getXmlDoubleString           (const double &value);
+    std::string getXmlDoubleStringWithName   (const std::string &param_name, const double &value);
+    std::string getXmlStringParam            (const std::string &param_name, const std::string &value);
+    std::string getXmlPositionString         (const std::string &name_pos,  const position &pos);
+    std::string getXmlQuaternionString       (const quaternion  &quat);
+    std::string getXmlGroupString            (const std::string &name, const std::vector<std::string> &string_group);
+    std::string getXmlObjectGraspString      (const int &index, const int &index2);
+    std::string getXmlObjectGraspPosesString (const int &index);
 
-    XmlRpc::XmlRpcValue getObjectGraspParam  (const int index, const int index2);
-    XmlRpc::XmlRpcValue getObjectParam       (const int index);
-    XmlRpc::XmlRpcValue getGoToLocationParam (const int index);
-    XmlRpc::XmlRpcValue getBoxParam          (const int index);
-    XmlRpc::XmlRpcValue getGroupParam        (const int index);
-    XmlRpc::XmlRpcValue getObjectNameParam   (const int index);
-    XmlRpc::XmlRpcValue getSlotParam         (const int index);
-    XmlRpc::XmlRpcValue getGoToParam         (const int index);
-    XmlRpc::XmlRpcValue getPickParam         (const int index);
-    XmlRpc::XmlRpcValue getPlaceParam        (const int index);
+    XmlRpc::XmlRpcValue getObjectGraspParam  (const int &index, const int &index2);
+    XmlRpc::XmlRpcValue getObjectParam       (const int &index);
+    XmlRpc::XmlRpcValue getGoToLocationParam (const int &index);
+    XmlRpc::XmlRpcValue getBoxParam          (const int &index);
+    XmlRpc::XmlRpcValue getGroupParam        (const int &index);
+    XmlRpc::XmlRpcValue getObjectNameParam   (const int &index);
+    XmlRpc::XmlRpcValue getSlotParam         (const int &index);
+    XmlRpc::XmlRpcValue getGoToParam         (const int &index);
+    XmlRpc::XmlRpcValue getPickParam         (const int &index);
+    XmlRpc::XmlRpcValue getPlaceParam        (const int &index);
 
     void loadTF                        ();
     void loadRobots                    ();
@@ -253,11 +265,11 @@ public:
     bool readSlotsGroupFromParam       ();
     bool readGotoPickAndPlaceFromParam ();
 
-    void setTargetFrame (const int ind);
-    void loadParam      (const int ind);
-    void writeParam     (const int ind);
-    void writeRecipe    (const int ind);
-    bool removeRecipe   (const int ind);
+    void setTargetFrame (const int &ind);
+    void loadParam      (const int &ind);
+    void writeParam     (const int &ind);
+    void writeRecipe    (const int &ind);
+    bool removeRecipe   (const int &ind);
 
     /*********************
 	** Logging
@@ -312,19 +324,25 @@ public:
     void logSecondSlots      (const std::string &msg);
     void logSecondLocations  (const std::string &msg);
 
-    void removeGoTo     (const int ind);
-    void removeLocation (const int ind);
-    void removePlace    (const int ind);
-    void removePick     (const int ind);
-    void removeObject   (const int ind);
-    void removeSlot     (const int ind);
-    void removeBox      (const int ind);
-    void activeConfiguration(const std::string config);
-    void moveGripper        (const std::string str);
-    std::vector<int> removeGroup( const int ind);
+    void removeGoTo     (const int &ind);
+    void removeLocation (const int &ind);
+    void removePlace    (const int &ind);
+    void removePick     (const int &ind);
+    void removeObject   (const int &ind);
+    void removeSlot     (const int &ind);
+    void removeBox      (const int &ind);
+    void activeConfiguration(const std::string &config);
+    void moveGripper        (const std::string &str);
+    std::vector<int> removeGroup( const int &ind);
     bool compare( const std::vector<std::string> &v1, const std::vector<std::string> &v2);
     void readGripperPosition();
 
+    bool getGoToJobList (std::vector<std::string> &goto_job_list);
+    bool getPlaceJobList(std::vector<std::string> &place_job_list);
+    bool getPickJobList (std::vector<std::string> &pick_job_list);
+    bool getPreExecProp (std::vector<std::string> &pre_exec_prop_list);
+    bool getExecProp    (std::vector<std::string> &exec_prop_list);
+    bool getPostExecProp(std::vector<std::string> &post_exec_prop_list);
 
     std::vector<std::string> TFs_;
     std::vector<std::string> robots_;
@@ -359,6 +377,9 @@ private:
     ros::ServiceClient list_objects_client_;
     ros::ServiceClient list_manipulation_objects_client_;
     ros::ServiceClient run_recipe_client_;
+    ros::ServiceClient go_to_job_list_client_;
+    ros::ServiceClient pick_job_list_client_;
+    ros::ServiceClient place_job_list_client_;
 
     ros::Publisher     twist_pub_;
     ros::ServiceClient set_ctrl_srv_;

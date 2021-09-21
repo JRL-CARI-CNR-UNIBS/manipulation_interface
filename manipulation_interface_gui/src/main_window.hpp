@@ -141,6 +141,9 @@ public Q_SLOTS:
     void on_comboConfiguration_currentIndexChanged   (int index);
     void on_comboConfiguration2_currentIndexChanged  (int index);
     void on_comboRefFrame_currentIndexChanged        (int index);
+    void on_comboJobType_currentIndexChanged         (int index);
+//    void on_comboPreExecProp_currentIndexChanged     (int index);
+//    void on_comboPostExecProp_currentIndexChanged    (int index);
     void on_TfList_currentIndexChanged               (int index);
     void on_gripperPercentage_valueChanged           (int value);
     void on_gripperForcePercentage_valueChanged      (int value);
@@ -164,6 +167,10 @@ public Q_SLOTS:
     /******************************************
     ** Manual connections
     *******************************************/
+//    void writeJobType();
+//    void writePreExecProp();
+//    void writePostExecProp();
+//    void writeJobProperty();
     void updateLoggingView(); // no idea why this can't connect automatically
 
 private:
