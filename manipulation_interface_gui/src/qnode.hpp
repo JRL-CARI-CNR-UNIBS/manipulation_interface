@@ -301,6 +301,7 @@ public:
     QStringListModel* loggingModelSecondPick       () {return &logging_model_second_pick_;}
     QStringListModel* loggingModelRecipe           () {return &logging_model_recipe_;}
     QStringListModel* loggingModelActionComponents () {return &logging_model_action_components_;}
+    QStringListModel* loggingModelJobProperties    () {return &logging_model_job_properties_;}
     void logGoTo             (const std::string &msg);
     void logPlace            (const std::string &msg);
     void logPick             (const std::string &msg);
@@ -340,9 +341,9 @@ public:
     bool getGoToJobList (std::vector<std::string> &goto_job_list);
     bool getPlaceJobList(std::vector<std::string> &place_job_list);
     bool getPickJobList (std::vector<std::string> &pick_job_list);
-    bool getPreExecProp (std::vector<std::string> &pre_exec_prop_list);
-    bool getExecProp    (std::vector<std::string> &exec_prop_list);
-    bool getPostExecProp(std::vector<std::string> &post_exec_prop_list);
+    bool getPreExecProp (const std::string &job_name, std::vector<std::string> &pre_exec_prop_list);
+    bool getExecProp    (const std::string &job_name, std::vector<std::string> &exec_prop_list);
+    bool getPostExecProp(const std::string &job_name, std::vector<std::string> &post_exec_prop_list);
 
     std::vector<std::string> TFs_;
     std::vector<std::string> robots_;
@@ -406,6 +407,7 @@ private:
     QStringListModel logging_model_second_pick_;
     QStringListModel logging_model_action_components_;
     QStringListModel logging_model_recipe_;
+    QStringListModel logging_model_job_properties_;
 
     std::vector<go_to_location>    changed_locations_;
     std::vector<manipulation_slot> changed_slots_;

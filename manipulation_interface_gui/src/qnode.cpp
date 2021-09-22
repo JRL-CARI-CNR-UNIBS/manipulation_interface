@@ -35,6 +35,7 @@
 #include <manipulation_msgs/RemoveSlots.h>
 #include <manipulation_msgs/RemoveSlotsGroup.h>
 #include <manipulation_msgs/ListOfJobExecuters.h>
+#include <manipulation_jobs_msgs/ListOfExecuterProperties.h>
 
 #include <Eigen/Geometry>
 #include <geometry_msgs/PoseStamped.h>
@@ -3599,54 +3600,68 @@ bool QNode::getPlaceJobList(std::vector<std::string> &place_job_list)
     }
 }
 
+bool QNode::getPreExecProp(const std::string &job_name, std::vector<std::string> &pre_exec_prop_list)
+{
+    std::string service_name;
+    service_name.append("/");
+    service_name.append(job_name);
+    service_name.append("/list_pre_executer_properties");
+    ros::ServiceClient list_pre_exec_prop_client_ = n_.serviceClient<manipulation_jobs_msgs::ListOfExecuterProperties>(service_name);
+    manipulation_jobs_msgs::ListOfExecuterProperties list_pre_exec_srv;
+    if ( !list_pre_exec_prop_client_.call(list_pre_exec_srv) )
+    {
+        ROS_ERROR("Unable to call list_pre_exec_prop_server");
+        pre_exec_prop_list.clear();
+        return false;
+    }
+    else
+    {
+        pre_exec_prop_list = list_pre_exec_srv.response.properties;
+        return true;
+    }
+}
 
-//bool QNode::getPreExecProp(std::vector<std::string> &pre_exec_prop_list)
-//{
-//    manipulation_msgs::ListPreExec list_pre_exec_srv;
-//    if ( !list_pre_exec_prop_client_.call(list_pre_exec_srv) )
-//    {
-//        ROS_ERROR("Unable to call list_pre_exec_prop_server");
-//        pre_exec_prop_list.clear();
-//        return false;
-//    }
-//    else
-//    {
-//        pre_exec_prop_list = list_pre_exec_srv.response.list;
-//        return true;
-//    }
-//}
+bool QNode::getExecProp(const std::string &job_name, std::vector<std::string> &exec_prop_list)
+{
+    std::string service_name;
+    service_name.append("/");
+    service_name.append(job_name);
+    service_name.append("/list_executer_properties");
+    ros::ServiceClient list_exec_prop_client = n_.serviceClient<manipulation_jobs_msgs::ListOfExecuterProperties>(service_name);
+    manipulation_jobs_msgs::ListOfExecuterProperties list_exec_srv;
+    if ( !list_exec_prop_client.call(list_exec_srv) )
+    {
+        ROS_ERROR("Unable to call list_exec_prop_server");
+        exec_prop_list.clear();
+        return false;
+    }
+    else
+    {
+        exec_prop_list = list_exec_srv.response.properties;
+        return true;
+    }
+}
 
-//bool QNode::getExecProp(std::vector<std::string> &exec_prop_list)
-//{
-//    manipulation_msgs::ListExec list_exec_srv;
-//    if ( !list_exec_prop_client_.call(list_exec_srv) )
-//    {
-//        ROS_ERROR("Unable to call list_exec_prop_server");
-//        exec_prop_list.clear();
-//        return false;
-//    }
-//    else
-//    {
-//        exec_prop_list = list_exec_srv.response.list;
-//        return true;
-//    }
-//}
-
-//bool QNode::getPostExecProp(std::vector<std::string> &post_exec_prop_list)
-//{
-//    manipulation_msgs::ListPostExec list_post_exec_srv;
-//    if ( !list_post_exec_prop_client_.call(list_post_exec_srv) )
-//    {
-//        ROS_ERROR("Unable to call list_post_exec_prop_server");
-//        post_exec_prop_list.clear();
-//        return false;
-//    }
-//    else
-//    {
-//        post_exec_prop_list = list_post_exec_srv.response.list;
-//        return true;
-//    }
-//}
+bool QNode::getPostExecProp(const std::string &job_name, std::vector<std::string> &post_exec_prop_list)
+{
+    std::string service_name;
+    service_name.append("/");
+    service_name.append(job_name);
+    service_name.append("/list_post_executer_properties");
+    ros::ServiceClient list_post_exec_prop_client_ = n_.serviceClient<manipulation_jobs_msgs::ListOfExecuterProperties>(service_name);
+    manipulation_jobs_msgs::ListOfExecuterProperties list_post_exec_srv;
+    if ( !list_post_exec_prop_client_.call(list_post_exec_srv) )
+    {
+        ROS_ERROR("Unable to call list_post_exec_prop_server");
+        post_exec_prop_list.clear();
+        return false;
+    }
+    else
+    {
+        post_exec_prop_list = list_post_exec_srv.response.properties;
+        return true;
+    }
+}
 
 bool QNode::compare(const std::vector<std::string> &v1, const std::vector<std::string> &v2)
 {

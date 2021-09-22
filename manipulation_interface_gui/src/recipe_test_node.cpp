@@ -48,16 +48,16 @@ struct pick_action
 
 struct action_to_run
 {
-    std::string type; // action
+    std::string type;              // action
     std::vector<std::string> goal; // description
-    std::string approach_loc; // approach_loc_ctrl_id
-    std::string to_loc; // to_loc_ctrl_id
-    std::string leave_loc; // leave_loc_ctrl_id
-    std::string tool_id; // tool_id
-    std::string job_exec; // job_exec_name
-    std::string pre_exec_id; // property_pre_exec_id
-    std::string exec_id; // property_exec_id
-    std::string post_exec_id; // property_post_exec_id
+    std::string approach_loc;      // approach_loc_ctrl_id
+    std::string to_loc;            // to_loc_ctrl_id
+    std::string leave_loc;         // leave_loc_ctrl_id
+    std::string tool_id;           // tool_id
+    std::string job_exec;          // job_exec_name
+    std::string pre_exec_id;       // property_pre_exec_id
+    std::string exec_id;           // property_exec_id
+    std::string post_exec_id;      // property_post_exec_id
 };
 
 bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
@@ -110,8 +110,6 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
     {
         recipe.push_back(static_cast<std::string>(params[i]));
     }
-
-
 
     if ( !nh_.getParam("/multi_skills/tasks",params) )
     {

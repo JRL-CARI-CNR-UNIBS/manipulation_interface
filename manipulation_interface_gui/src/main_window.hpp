@@ -167,10 +167,10 @@ public Q_SLOTS:
     /******************************************
     ** Manual connections
     *******************************************/
-//    void writeJobType();
-//    void writePreExecProp();
-//    void writePostExecProp();
-//    void writeJobProperty();
+    void writeJobType();
+    void writePreExecProp();
+    void writePostExecProp();
+    void writeJobProperty();
     void updateLoggingView(); // no idea why this can't connect automatically
 
 private:

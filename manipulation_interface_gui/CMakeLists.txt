@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
 	configuration_msgs
 	manipulation_msgs
   manipulation_utils
+	manipulation_jobs_msgs
 	geometry_msgs
 	subscription_notifier)
 
@@ -49,6 +50,7 @@ catkin_package(
 	configuration_msgs
 	manipulation_msgs
 	manipulation_utils
+	manipulation_jobs_msgs
 	geometry_msgs
 	subscription_notifier
 )

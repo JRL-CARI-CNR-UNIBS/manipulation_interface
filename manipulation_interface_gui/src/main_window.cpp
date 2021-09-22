@@ -61,6 +61,7 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
     ui_.listPick              ->setModel(qnode_.loggingModelSecondPick());
     ui_.listRecipe            ->setModel(qnode_.loggingModelRecipe());
     ui_.listActionComponents  ->setModel(qnode_.loggingModelActionComponents());
+    ui_.jobPropertyList       ->setModel(qnode_.loggingModelJobProperties());
 
     QObject::connect(&qnode_, SIGNAL(loggingUpdated()), this, SLOT(updateLoggingView()));
 
@@ -160,19 +161,7 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
             ui_.recipeBox->addItem( QString::fromStdString(recipes_names[i]) );
         }
     }
-//    std::vector<std::string> exec_list;
-//    if ( qnode_.getExecProp(exec_list) )
-//    {
-//        for ( std::size_t i = 0; i < exec_list.size(); i++ )
-//        {
-//            ui_.comboJobType->addItem( QString::fromStdString(exec_list[i]) );
-//        }
-//    }
-
-//    writeJobType();
-//    writeJobProperty();
-//    writePreExecProp();
-//    writePostExecProp();
+    writeJobType();
 }
 
 MainWindow::~MainWindow() {}
@@ -192,10 +181,26 @@ void MainWindow::addGoTo( int state )
 {
     std::string go_to_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
-    std::string job_exec_name = ui_.comboJobType->currentText().toStdString();
-    std::string exec_property_id = ui_.jobPropertyList->model()->data( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->currentIndex().row(), 0 ), 0 ).toString().toStdString();
-    std::string pre_exec_property_id = ui_.comboPreExecProp->currentText().toStdString();
-    std::string post_exec_property_id = ui_.comboPostExecProp->currentText().toStdString();
+    std::string job_exec_name;
+    if ( ui_.comboJobType->count() == 0 )
+        job_exec_name = "";
+    else
+        job_exec_name = ui_.comboJobType->currentText().toStdString();
+    std::string exec_property_id;
+    if ( ui_.jobPropertyList->model()->rowCount() == 0 )
+        exec_property_id = "";
+    else
+        exec_property_id = ui_.jobPropertyList->model()->data( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->currentIndex().row(), 0 ), 0 ).toString().toStdString();
+    std::string pre_exec_property_id;
+    if ( ui_.comboPreExecProp->count() == 0 )
+        pre_exec_property_id = "";
+    else
+        pre_exec_property_id= ui_.comboPreExecProp->currentText().toStdString();
+    std::string post_exec_property_id;
+    if ( ui_.comboPostExecProp->count() == 0 )
+        post_exec_property_id = "";
+    else
+        post_exec_property_id = ui_.comboPostExecProp->currentText().toStdString();
     std::vector<std::string> locations;
     std::vector<std::string> agents;
 
@@ -264,10 +269,26 @@ void MainWindow::addPlace( int state )
 {
     std::string place_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
-    std::string job_exec_name = ui_.comboJobType->currentText().toStdString();
-    std::string exec_property_id = ui_.jobPropertyList->model()->data( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->currentIndex().row(), 0 ), 0 ).toString().toStdString();
-    std::string pre_exec_property_id = ui_.comboPreExecProp->currentText().toStdString();
-    std::string post_exec_property_id = ui_.comboPostExecProp->currentText().toStdString();
+    std::string job_exec_name;
+    if ( ui_.comboJobType->count() == 0 )
+        job_exec_name = "";
+    else
+        job_exec_name = ui_.comboJobType->currentText().toStdString();
+    std::string exec_property_id;
+    if ( ui_.jobPropertyList->model()->rowCount() == 0 )
+        exec_property_id = "";
+    else
+        exec_property_id = ui_.jobPropertyList->model()->data( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->currentIndex().row(), 0 ), 0 ).toString().toStdString();
+    std::string pre_exec_property_id;
+    if ( ui_.comboPreExecProp->count() == 0 )
+        pre_exec_property_id = "";
+    else
+        pre_exec_property_id= ui_.comboPreExecProp->currentText().toStdString();
+    std::string post_exec_property_id;
+    if ( ui_.comboPostExecProp->count() == 0 )
+        post_exec_property_id = "";
+    else
+        post_exec_property_id = ui_.comboPostExecProp->currentText().toStdString();
     std::vector<std::string> groups;
     std::vector<std::string> agents;
 
@@ -337,10 +358,26 @@ void MainWindow::addPick( int state )
 {
     std::string pick_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
-    std::string job_exec_name = ui_.comboJobType->currentText().toStdString();
-    std::string exec_property_id = ui_.jobPropertyList->model()->data( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->currentIndex().row(), 0 ), 0 ).toString().toStdString();
-    std::string pre_exec_property_id = ui_.comboPreExecProp->currentText().toStdString();
-    std::string post_exec_property_id = ui_.comboPostExecProp->currentText().toStdString();
+    std::string job_exec_name;
+    if ( ui_.comboJobType->count() == 0 )
+        job_exec_name = "";
+    else
+        job_exec_name = ui_.comboJobType->currentText().toStdString();
+    std::string exec_property_id;
+    if ( ui_.jobPropertyList->model()->rowCount() == 0 )
+        exec_property_id = "";
+    else
+        exec_property_id = ui_.jobPropertyList->model()->data( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->currentIndex().row(), 0 ), 0 ).toString().toStdString();
+    std::string pre_exec_property_id;
+    if ( ui_.comboPreExecProp->count() == 0 )
+        pre_exec_property_id = "";
+    else
+        pre_exec_property_id= ui_.comboPreExecProp->currentText().toStdString();
+    std::string post_exec_property_id;
+    if ( ui_.comboPostExecProp->count() == 0 )
+        post_exec_property_id = "";
+    else
+        post_exec_property_id = ui_.comboPostExecProp->currentText().toStdString();
     std::vector<std::string> objects;
     std::vector<std::string> agents;
 
@@ -2104,6 +2141,10 @@ void MainWindow::on_comboActionType_currentIndexChanged(int index)
     {
         qnode_.writeGroups();
     }
+    writeJobType();
+    writePreExecProp();
+    writeJobProperty();
+    writePostExecProp();
 }
 
 void MainWindow::on_comboConfiguration_currentIndexChanged(int index)
@@ -2293,8 +2334,11 @@ void MainWindow::on_listPlace_pressed(const QModelIndex &index)
 {
     qnode_.addSlotGroups( index.row() );
     place pl = qnode_.returnPlaceInfo( index.row() );
-    QString qstr = QString::fromStdString( pl.description );
-    ui_.editActionDescription->setText( qstr );
+    ui_.editActionDescription2->setText( QString::fromStdString( pl.description ) );
+    ui_.labelJobType2->setText( QString::fromStdString( pl.job_exec_name ) );
+    ui_.labelPreExec2->setText( QString::fromStdString( pl.pre_exec_property_id ) );
+    ui_.labelExecProp2->setText( QString::fromStdString( pl.exec_property_id ) );
+    ui_.labelPostExec2->setText( QString::fromStdString( pl.post_exec_property_id ) );
     ui_.listGoTo->clearSelection();
     ui_.listPick->clearSelection();
     if ( pl.agents.size() == 2 )
@@ -2328,8 +2372,11 @@ void MainWindow::on_listPick_pressed(const QModelIndex &index)
 {
     qnode_.addObjectType( index.row() );
     pick pk = qnode_.returnPickInfo( index.row() );
-    QString qstr = QString::fromStdString( pk.description );
-    ui_.editActionDescription2->setText( qstr );
+    ui_.editActionDescription2->setText( QString::fromStdString( pk.description ) );
+    ui_.labelJobType2->setText( QString::fromStdString( pk.job_exec_name ) );
+    ui_.labelPreExec2->setText( QString::fromStdString( pk.pre_exec_property_id ) );
+    ui_.labelExecProp2->setText( QString::fromStdString( pk.exec_property_id ) );
+    ui_.labelPostExec2->setText( QString::fromStdString( pk.post_exec_property_id ) );
     ui_.listPlace->clearSelection();
     ui_.listGoTo->clearSelection();
     if ( pk.agents.size() == 2 )
@@ -2363,8 +2410,11 @@ void MainWindow::on_listGoTo_pressed(const QModelIndex &index)
 {
     qnode_.addLocationInfo( index.row() );
     go_to_action gt = qnode_.returnGoToInfo( index.row() );
-    QString qstr = QString::fromStdString( gt.description );
-    ui_.editActionDescription2->setText( qstr );
+    ui_.editActionDescription2->setText( QString::fromStdString( gt.description ) );
+    ui_.labelJobType2->setText( QString::fromStdString( gt.job_exec_name ) );
+    ui_.labelPreExec2->setText( QString::fromStdString( gt.pre_exec_property_id ) );
+    ui_.labelExecProp2->setText( QString::fromStdString( gt.exec_property_id ) );
+    ui_.labelPostExec2->setText( QString::fromStdString( gt.post_exec_property_id ) );
     ui_.listPlace->clearSelection();
     ui_.listPick->clearSelection();
     if ( gt.agents.size() == 2 )
@@ -2398,8 +2448,11 @@ void MainWindow::on_goToList_pressed(const QModelIndex &index)
 {
     qnode_.addSecondLocationInfo( index.row() );
     go_to_action gt = qnode_.returnGoToInfo( index.row() );
-    QString qstr = QString::fromStdString( gt.description );
-    ui_.editActionDescription->setText( qstr );
+    ui_.editActionDescription->setText( QString::fromStdString( gt.description ) );
+    ui_.labelJobType->setText( QString::fromStdString( gt.job_exec_name ) );
+    ui_.labelPreExec->setText( QString::fromStdString( gt.pre_exec_property_id ) );
+    ui_.labelExecProp->setText( QString::fromStdString( gt.exec_property_id ) );
+    ui_.labelPostExec->setText( QString::fromStdString( gt.post_exec_property_id ) );
     ui_.placeList->clearSelection();
     ui_.pickList->clearSelection();
     if ( gt.agents.size() == 2 )
@@ -2433,8 +2486,11 @@ void MainWindow::on_placeList_pressed(const QModelIndex &index)
 {
     qnode_.addSecondSlotGroups( index.row() );
     place pl = qnode_.returnPlaceInfo( index.row() );
-    QString qstr = QString::fromStdString( pl.description );
-    ui_.editActionDescription->setText( qstr );
+    ui_.editActionDescription->setText( QString::fromStdString( pl.description ) );
+    ui_.labelJobType->setText( QString::fromStdString( pl.job_exec_name ) );
+    ui_.labelPreExec->setText( QString::fromStdString( pl.pre_exec_property_id ) );
+    ui_.labelExecProp->setText( QString::fromStdString( pl.exec_property_id ) );
+    ui_.labelPostExec->setText( QString::fromStdString( pl.post_exec_property_id ) );
     ui_.goToList->clearSelection();
     ui_.pickList->clearSelection();
     if ( pl.agents.size() == 2 )
@@ -2468,8 +2524,11 @@ void MainWindow::on_pickList_pressed (const QModelIndex &index)
 {
     qnode_.addSecondObjectType( index.row() );
     pick pk = qnode_.returnPickInfo( index.row() );
-    QString qstr = QString::fromStdString( pk.description );
-    ui_.editActionDescription->setText( qstr );
+    ui_.editActionDescription->setText( QString::fromStdString( pk.description ) );
+    ui_.labelJobType->setText( QString::fromStdString( pk.job_exec_name ) );
+    ui_.labelPreExec->setText( QString::fromStdString( pk.pre_exec_property_id ) );
+    ui_.labelExecProp->setText( QString::fromStdString( pk.exec_property_id ) );
+    ui_.labelPostExec->setText( QString::fromStdString( pk.post_exec_property_id ) );
     ui_.placeList->clearSelection();
     ui_.goToList->clearSelection();
     if ( pk.agents.size() == 2 )
@@ -2582,58 +2641,133 @@ void MainWindow::plotMsg(std::string msg)
 
 void MainWindow::on_comboJobType_currentIndexChanged(int index)
 {
-    std::string job_type = ui_.comboJobType->currentText().toStdString();
+    writeJobProperty();
+    writePreExecProp();
+    writePostExecProp();
 }
 
-//void MainWindow::writeJobType()
-//{
-//    ui_.comboJobType->clear();
-//    std::string action_type = ui_.comboActionType->currentText().toStdString();
-//    std::vector<std::string> exec_prop_list;
-//    if ( qnode_.getExecProp( exec_prop_list ) )
-//    {
-//        for ( std::size_t i = 0; i < exec_prop_list.size(); i++ )
-//        {
-//            if ( exec_prop_list[i].find( action_type ) )
-//                ui_.comboJobType->addItem( QString::fromStdString( exec_prop_list[i] ) );
-//        }
-//    }
-//}
+void MainWindow::writeJobType()
+{
+    std::vector<std::string> job_list;
+    ui_.comboJobType->clear();
+    int action_index = ui_.comboActionType->currentIndex();
+    if ( action_index == 0)
+    {
+        if ( !qnode_.getGoToJobList( job_list ) )
+        {
+            ROS_ERROR("Unable to get goto job list");
+            return;
+        }
+        else
+        {
+            if ( job_list.size() == 0 )
+                ROS_WARN("Job list is empty");
 
-//void MainWindow::writePreExecProp()
-//{
-//    ui_.comboPreExecProp->clear();
-//    std::string action_type = ui_.comboActionType->currentText().toStdString();
-//    std::vector<std::string> pre_exec_prop_list;
-//    if ( qnode_.getPreExecProp( pre_exec_prop_list ))
-//    {
-//        for ( std::size_t i = 0; i < pre_exec_prop_list.size(); i++ )
-//        {
-//            if ( pre_exec_prop_list[i].find( action_type ) )
-//                ui_.comboPreExecProp->addItem( QString::fromStdString( pre_exec_prop_list[i] ) );
-//        }
-//    }
-//}
+            for ( std::size_t i = 0; i < job_list.size(); i++ )
+            {
+                ui_.comboJobType->addItem( QString::fromStdString( job_list[i] ) );
+            }
+        }
+    }
+    else if ( action_index == 1 )
+    {
+        if ( !qnode_.getPickJobList( job_list ) )
+        {
+            ROS_ERROR("Unable to get pick job list");
+            return;
+        }
+        else
+        {
+            if ( job_list.size() == 0 )
+                ROS_WARN("Job list is empty");
 
-//void MainWindow::writePostExecProp()
-//{
-//    ui_.comboPostExecProp->clear();
-//    std::string action_type = ui_.comboActionType->currentText().toStdString();
-//    std::vector<std::string> post_exec_prop_list;
-//    if ( qnode_.getPreExecProp( post_exec_prop_list ))
-//    {
-//        for ( std::size_t i = 0; i < post_exec_prop_list.size(); i++ )
-//        {
-//            if ( post_exec_prop_list[i].find( action_type ) )
-//                ui_.comboPostExecProp->addItem( QString::fromStdString( post_exec_prop_list[i] ) );
-//        }
-//    }
-//}
+            for ( std::size_t i = 0; i < job_list.size(); i++ )
+            {
+                ui_.comboJobType->addItem( QString::fromStdString( job_list[i] ) );
+            }
+        }
+    }
+    else if ( action_index == 2 )
+    {
+        if ( !qnode_.getPlaceJobList( job_list ) )
+        {
+            ROS_ERROR("Unable to get place job list");
+            return;
+        }
+        else
+        {
+            if ( job_list.size() == 0 )
+                ROS_WARN("Job list is empty");
 
-//void MainWindow::writeJobProperty()
-//{
+            for ( std::size_t i = 0; i < job_list.size(); i++ )
+            {
+                ui_.comboJobType->addItem( QString::fromStdString( job_list[i] ) );
+            }
+        }
+    }
+}
 
-//}
+void MainWindow::writePreExecProp()
+{
+    ui_.comboPreExecProp->clear();
+    std::string job_type = ui_.comboJobType->currentText().toStdString();
+    std::vector<std::string> pre_exec_prop_list;
+    if ( !qnode_.getPreExecProp( job_type, pre_exec_prop_list ))
+    {
+        ROS_ERROR("Unable to get pre executer property list");
+        return;
+    }
+    else
+    {
+        for ( std::size_t i = 0; i < pre_exec_prop_list.size(); i++ )
+        {
+            ui_.comboPreExecProp->addItem( QString::fromStdString( pre_exec_prop_list[i] ) );
+        }
+    }
+}
+
+void MainWindow::writePostExecProp()
+{
+    ui_.comboPostExecProp->clear();
+    std::string job_type = ui_.comboJobType->currentText().toStdString();
+    std::vector<std::string> post_exec_prop_list;
+    if ( !qnode_.getPostExecProp( job_type, post_exec_prop_list ) )
+    {
+        ROS_ERROR("Unable to get post executer property list");
+        return;
+    }
+    else
+    {
+        for ( std::size_t i = 0; i < post_exec_prop_list.size(); i++ )
+        {
+            ui_.comboPostExecProp->addItem( QString::fromStdString( post_exec_prop_list[i] ) );
+        }
+    }
+}
+
+void MainWindow::writeJobProperty()
+{
+    if ( ui_.jobPropertyList->model()->rowCount() > 0 )
+    {
+        ui_.jobPropertyList->model()->removeRows( 0, ui_.jobPropertyList->model()->rowCount()-1 );
+    }
+    std::string job_type = ui_.comboJobType->currentText().toStdString();
+    std::vector<std::string> exec_prop_list;
+    if ( !qnode_.getExecProp( job_type, exec_prop_list ) )
+    {
+        ROS_ERROR("Unable to get executer property list");
+        return;
+    }
+    else
+    {
+        for ( std::size_t i = 0; i < exec_prop_list.size(); i++ )
+        {
+            ui_.jobPropertyList->model()->insertRow( ui_.jobPropertyList->model()->rowCount() );
+            QVariant new_row( QString( exec_prop_list[i].c_str() ) );
+            ui_.jobPropertyList->model()->setData( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->model()->rowCount()-1, 0 ), new_row );
+        }
+    }
+}
 
 
 /*****************************************************************************
