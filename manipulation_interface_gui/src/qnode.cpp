@@ -277,7 +277,7 @@ std::vector<std::string> QNode::loadObjectsInManipulation()
             {
                 ROS_INFO("There isn't a grasp description of %s", type_.c_str() );
             }
-            ROS_FATAL_STREAM("object\n"<< obj);
+//            ROS_FATAL_STREAM("object\n"<< obj);
             add_objects_srv.request.add_objects.push_back( obj );
         }
 
