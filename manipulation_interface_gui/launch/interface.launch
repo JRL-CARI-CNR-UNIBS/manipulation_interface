@@ -2,9 +2,9 @@
 
 <launch>
 
-  <include file="$(find manipulation_interface_gui)/launch/skills.launch" />
-
   <include file="$(find manipulation_interface_mongo)/launch/start.launch" />
+
+  <include file="$(find manipulation_interface_gui)/launch/skills.launch" />
 
   <node  name="manipulation_interface_gui" type="manipulation_interface_gui" pkg="manipulation_interface_gui" output='screen'/>
 

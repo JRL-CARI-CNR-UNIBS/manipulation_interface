@@ -12,6 +12,8 @@
   <node pkg="robotiq_ur_modbus"  type="test_robotiq_ros.py" name="robotiq_ur_modbus_pick" args="/robotiq_gripper" output="screen"/>
 </group>
 -->
+
+<!-- <arg name="pipeline" default="dirrt" /> -->
 <arg name="pipeline" default="dirrt" />
 <arg name="load_param" default="load" />
 <arg name="debug" default="false" />

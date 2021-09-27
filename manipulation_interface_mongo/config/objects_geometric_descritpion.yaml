@@ -1,13 +1,7 @@
 object_geometries:
-  oggetto_prova:
-    color: [0.2,0.2,0.2, 0.4]
-    box:  [0.03,0.03,0.03]
-    offset_quaternion: [ 0, 0, 0, 1 ]
-    offset: [0, 0, 0]
-
   blank_piece_location:
     color: [1,0.8,0,1.0]
-    box:  [0.04,0.04,0.01]
+    box:  [0.03,0.03,0.01]
     offset: [0.0,0.0,0.005]
 
   squadra_piccola:

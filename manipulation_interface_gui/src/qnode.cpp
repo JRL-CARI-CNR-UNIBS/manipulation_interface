@@ -190,27 +190,45 @@ bool QNode::init()
 
 std::vector<std::string> QNode::loadObjectsInManipulation()
 {
+  manipulation_msgs::ListOfObjects manipulation_object_list;
+
+  if ( !list_manipulation_objects_client_.call( manipulation_object_list ) )
+  {
+    ROS_ERROR("Unable to obtain the object list by manipulation");
+    std::vector<std::string> objects_list;
+    return objects_list;
+  }
+
+  manipulation_msgs::RemoveObjects remove_objects_srv;
+  remove_objects_srv.request.object_names = manipulation_object_list.response.object_names;
+
+  if ( !remove_objs_client_.call(remove_objects_srv) )
+  {
+      ROS_ERROR("Unable to remove the objects by the manipulation");
+      std::vector<std::string> objects_list;
+      return objects_list;
+  }
+
+
     object_loader_msgs::ListObjects objects_list;
-    manipulation_msgs::ListOfObjects manipulation_object_list;
 
     if ( !list_objects_client_.call( objects_list ) )
     {
-        ROS_ERROR("Unable to obtain the object list");
-        return manipulation_object_list.response.object_names;
+        ROS_ERROR("Unable to obtain the object list by object loader");
+        return objects_list.response.ids;
     }
 
-    manipulation_msgs::RemoveObjects remove_objects_srv;
     manipulation_msgs::AddObjects add_objects_srv;
 
     if ( !objects_list.response.ids.empty() )
     {
-        remove_objects_srv.request.object_names = objects_list.response.ids;
+//        remove_objects_srv.request.object_names = objects_list.response.ids;
 
-        if ( !remove_objs_client_.call(remove_objects_srv) )
-        {
-            ROS_ERROR("Unable to remove the objects by the manipulation");
-            return manipulation_object_list.response.object_names;
-        }
+//        if ( !remove_objs_client_.call(remove_objects_srv) )
+//        {
+//            ROS_ERROR("Unable to remove the objects by the manipulation");
+//            return objects_list.response.ids;
+//        }
 
         for ( std::size_t i = 0; i < objects_list.response.ids.size(); i++ )
         {

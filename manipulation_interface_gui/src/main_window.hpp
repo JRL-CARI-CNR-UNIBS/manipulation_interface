@@ -104,7 +104,6 @@ public Q_SLOTS:
     void on_buttonRemoveElement_clicked           (bool check);
     void on_buttonLoadRecipe_clicked              (bool check);
     void on_buttonLoadActions_clicked             (bool check);
-    void on_buttonLoadObjects_clicked             (bool check);
     void on_buttonRunSelectedAction_clicked       (bool check);
     void on_buttonAntiX_pressed    ();
     void on_buttonAntiY_pressed    ();
@@ -163,6 +162,7 @@ public Q_SLOTS:
 
     void saveActions();
     void saveRecipe();
+    void loadObjects();
 
     /******************************************
     ** Manual connections

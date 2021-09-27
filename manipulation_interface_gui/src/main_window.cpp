@@ -961,16 +961,10 @@ void MainWindow::on_buttonRunRecipe_clicked(bool check)
         plotMsg("Empty recipe");
         return;
     }
-    num_run_recipe_clicked_++;
-    if ( num_run_recipe_clicked_ % 2 )
-    {
-        plotMsg("Did you load the objects?");
-    }
-    else
-    {
-        std::string risp = qnode_.runRecipe();
-        plotMsg(risp);
-    }
+    loadObjects();
+    std::string risp = qnode_.runRecipe();
+    plotMsg(risp);
+
 }
 
 void MainWindow::on_buttonGripper_clicked(bool check)
@@ -1733,7 +1727,7 @@ void MainWindow::on_buttonAntiZ_released  ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonLoadObjects_clicked(bool check)
+void MainWindow::loadObjects()
 {
     std::vector<std::string> object_list = qnode_.loadObjectsInManipulation();
     if ( object_list.empty() )
@@ -1765,17 +1759,10 @@ void MainWindow::on_buttonRunSelectedAction_clicked(bool check)
     QModelIndexList indexes =  ui_.listRecipe->selectionModel()->selectedIndexes();
     if ( !indexes.empty() )
     {
-        num_run_action_clicked_++;
-        if ( num_run_action_clicked_ % 2 )
-        {
-            plotMsg("Did you load the objects?");
-        }
-        else
-        {
-            int index = indexes.at(0).row();
-            std::string risp = qnode_.runSelectedAction(index);
-            plotMsg(risp);
-        }
+      loadObjects();
+      int index = indexes.at(0).row();
+      std::string risp = qnode_.runSelectedAction(index);
+      plotMsg(risp);
     }
     else
     {
