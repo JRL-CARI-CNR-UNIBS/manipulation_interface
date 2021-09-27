@@ -34,9 +34,6 @@ Q_OBJECT
 public:
     MainWindow(int argc, char** argv,
                ros::NodeHandle n,
-               ros::NodeHandle nh_i,
-               ros::NodeHandle nh_o,
-               ros::NodeHandle nh_g,
                QWidget *parent = 0);
 	~MainWindow();
 
@@ -67,7 +64,7 @@ public Q_SLOTS:
     void on_buttonAddBox_clicked                  (bool check);
     void on_buttonAddLocationChanges_clicked      (bool check);
     void on_buttonAddSlotChanges_clicked          (bool check);
-    void on_buttonAddBoxChanges_clicked          (bool check);
+    void on_buttonAddBoxChanges_clicked           (bool check);
     void on_buttonAddObjectChanges_clicked        (bool check);
     void on_buttonAddLeavePositionSlot_clicked    (bool check);
     void on_buttonAddLeavePositionBox_clicked     (bool check);
@@ -107,7 +104,6 @@ public Q_SLOTS:
     void on_buttonRemoveElement_clicked           (bool check);
     void on_buttonLoadRecipe_clicked              (bool check);
     void on_buttonLoadActions_clicked             (bool check);
-    void on_buttonLoadObjects_clicked             (bool check);
     void on_buttonRunSelectedAction_clicked       (bool check);
     void on_buttonAntiX_pressed    ();
     void on_buttonAntiY_pressed    ();
@@ -144,6 +140,9 @@ public Q_SLOTS:
     void on_comboConfiguration_currentIndexChanged   (int index);
     void on_comboConfiguration2_currentIndexChanged  (int index);
     void on_comboRefFrame_currentIndexChanged        (int index);
+    void on_comboJobType_currentIndexChanged         (int index);
+//    void on_comboPreExecProp_currentIndexChanged     (int index);
+//    void on_comboPostExecProp_currentIndexChanged    (int index);
     void on_TfList_currentIndexChanged               (int index);
     void on_gripperPercentage_valueChanged           (int value);
     void on_gripperForcePercentage_valueChanged      (int value);
@@ -163,56 +162,58 @@ public Q_SLOTS:
 
     void saveActions();
     void saveRecipe();
+    void loadObjects();
 
     /******************************************
     ** Manual connections
     *******************************************/
+    void writeJobType();
+    void writePreExecProp();
+    void writePostExecProp();
+    void writeJobProperty();
     void updateLoggingView(); // no idea why this can't connect automatically
 
 private:
-	Ui::MainWindowDesign ui;
-	QNode qnode;
-    int num_grasp = 0, num_approach = 0, num_picks = 0, num_places = 0;
-    std::vector<location>    actual_object_grasp;
-    std::vector<position>    actual_object_approach;
-    std::vector<position>    actual_object_leave;
-    std::vector<double>      actual_pre_gripper_position;
-    std::vector<double>      actual_post_gripper_position;
-    std::vector<double>      actual_approach_gripper_position;
-    std::vector<double>      actual_gripper_grasp_force;
-    std::vector<std::string> actual_tool_approach;
-    std::vector<std::string> actual_tool_grasp;
-    std::vector<std::string> actual_tool_leave;
-    position                 actual_slot_approach;
-    location                 actual_slot_final_position;
-    position                 actual_slot_leave;
-    position                 actual_box_approach;
-    location                 actual_box_final;
-    position                 actual_box_leave;
-    object_type              actual_object_to_modify;
-    double                   actual_gripper_force = 100;
-    bool init_approach_object = false;
-    bool init_slot_approach   = false;
-    bool init_slot_final      = false;
-    bool init_box_approach    = false;
-    bool init_box_final       = false;
-    bool init_objects         = false;
-    bool init_slot_leave      = false;
-    bool init_box_leave       = false;
-    float max_vel  = 0.1;
-    float max_rot  = 0.7;
-    int   perc_vel = 50;
-    double max_gripper_position = 85;
-    double min_gripper_position = 0;
-    double max_force_gripper    = 100;
-    std::string tf_name_space = "manipulation";
-    position default_approach;
+    Ui::MainWindowDesign ui_;
+    QNode qnode_;
+    int num_grasp_ = 0;
+    std::vector<location>    actual_object_grasp_;
+    std::vector<position>    actual_object_approach_;
+    std::vector<position>    actual_object_leave_;
+    std::vector<double>      actual_pre_gripper_position_;
+    std::vector<double>      actual_post_gripper_position_;
+    std::vector<double>      actual_approach_gripper_position_;
+    std::vector<double>      actual_gripper_grasp_force_;
+    std::vector<std::string> actual_tool_approach_;
+    std::vector<std::string> actual_tool_grasp_;
+    std::vector<std::string> actual_tool_leave_;
+    position                 actual_slot_approach_;
+    location                 actual_slot_final_position_;
+    position                 actual_slot_leave_;
+    position                 actual_box_approach_;
+    location                 actual_box_final_;
+    position                 actual_box_leave_;
+    object_type              actual_object_to_modify_;
+    double                   actual_gripper_force_ = 100;
+    bool init_slot_approach_   = false;
+    bool init_slot_final_      = false;
+    bool init_box_approach_    = false;
+    bool init_box_final_       = false;
+    bool init_objects_         = false;
+    bool init_slot_leave_      = false;
+    bool init_box_leave_       = false;
+    float max_vel_  = 0.1;
+    float max_rot_  = 0.7;
+    int   perc_vel_ = 50;
+    double max_gripper_position_ = 85;
+    std::string tf_name_space_ = "manipulation";
+    position default_approach_;
     double default_x_approach_ = 0;
     double default_y_approach_ = 0;
     double default_z_approach_ = -0.1;
 
-    int n_run_recipe_clicked_ = 0;
-    int n_run_action_clicked_ = 0;
+    int num_run_recipe_clicked_ = 0;
+    int num_run_action_clicked_ = 0;
 
 };
 

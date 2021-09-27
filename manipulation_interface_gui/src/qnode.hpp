@@ -22,6 +22,7 @@
 #include <ros/ros.h>
 #endif
 #include <string>
+#include <std_msgs/String.h>
 #include <QThread>
 #include <thread>
 #include <QStringListModel>
@@ -72,6 +73,10 @@ struct go_to_action
     std::vector<std::string> locations;
     std::string description;
     std::vector<std::string> agents;
+    std::string job_exec_name;
+    std::string pre_exec_property_id;
+    std::string exec_property_id;
+    std::string post_exec_property_id;
 };
 
 struct place
@@ -80,6 +85,10 @@ struct place
     std::vector<std::string> groups;
     std::string description;
     std::vector<std::string> agents;
+    std::string job_exec_name;
+    std::string pre_exec_property_id;
+    std::string exec_property_id;
+    std::string post_exec_property_id;
 };
 
 struct pick
@@ -88,6 +97,10 @@ struct pick
     std::vector<std::string> objects;
     std::string description;
     std::vector<std::string> agents;
+    std::string job_exec_name;
+    std::string pre_exec_property_id;
+    std::string exec_property_id;
+    std::string post_exec_property_id;
 };
 
 struct object_type
@@ -145,99 +158,94 @@ class QNode : public QThread {
     Q_OBJECT
 public:
     QNode(int argc, char** argv,
-          ros::NodeHandle n_,
-          ros::NodeHandle nh_i_,
-          ros::NodeHandle nh_o_,
-          ros::NodeHandle nh_g_);
+          ros::NodeHandle n_);
 	virtual ~QNode();
 
 	bool init();
 
-    void cartMove (std::vector<float> twist_move);
+    void cartMove (const std::vector<float> &twist_move);
 
     bool saveRecipe();
     std::string runRecipe();
-    std::string runSelectedAction( int index );
-    std::string callRunRecipe(std::vector<std::string> recipe);
+    std::string runSelectedAction (const int &index );
+    std::string callRunRecipe     (const std::vector<std::string> &recipe);
     std::vector<std::string> loadRecipesParam();
 
 //    void initialAddComponentsInManipulation();
 
-    XmlRpc::XmlRpcValue getRecipeParam(std::vector<std::string> recipe_);
-    XmlRpc::XmlRpcValue getRecipeParam      (int index);
-    XmlRpc::XmlRpcValue getActionGoToParam  (int index);
-    XmlRpc::XmlRpcValue getActionPlaceParam (int index);
-    XmlRpc::XmlRpcValue getActionPickParam  (int index);
+    XmlRpc::XmlRpcValue getRecipeParam      (const std::vector<std::string> &recipe);
+    XmlRpc::XmlRpcValue getRecipeParam      (const int &index);
+    XmlRpc::XmlRpcValue getActionGoToParam  (const int &index);
+    XmlRpc::XmlRpcValue getActionPlaceParam (const int &index);
+    XmlRpc::XmlRpcValue getActionPickParam  (const int &index);
 
-    void addLocation (go_to_location location_to_add);
-    bool addRecipe   (std::string recipe_name);
-    bool addGoTo     (std::string go_to_name, std::vector<std::string> locations_, std::string description, std::vector<std::string> agents_);
-    bool addPlace    (std::string place_name, std::vector<std::string> groups_, std::string description, std::vector<std::string> agents_);
-    bool addPick     (std::string pick_name, std::vector<std::string> objects_, std::string description, std::vector<std::string> agents_);
-    bool add_object  (object_type object_);
-    bool addSlot     (manipulation_slot slot_);
-    bool addBox      (box box_);
-    void addObjectType         (int ind);
-    void addSlotGroups         (int ind);
-    void addLocationInfo       (int ind);
-    bool addObjectsPick        (int ind);
-    bool addGroupsPlace        (int ind);
-    bool addLocationsGoTo      (int ind);
-    bool addSecondLocationInfo (int ind);
-    bool addSecondSlotGroups   (int ind);
-    bool addSecondObjectType   (int ind);
-    bool addLocationChanges    (int ind, go_to_location new_location);
-    bool addSlotChanges        (int ind, manipulation_slot new_slot);
-    bool addBoxChanges         (int ind, box new_box);
-    bool addObjectChanges      (int ind, object_type new_object);
-    bool addObjectCopyGrasp    (int index, int index2);
-    bool addLocationCopy (go_to_location new_loc);
-    bool addObjectCopy   (object_type new_obj);
-    bool addSlotCopy     (manipulation_slot new_slot);
-    bool addBoxCopy      (box new_box);
+    bool addGoTo               (const go_to_action &gt_action);
+    bool addPlace              (const place &place_action);
+    bool addPick               (const pick &pick_action);
+    bool addRecipe             (const std::string &recipe_name);
+    bool addLocationCopy       (const go_to_location    &new_loc);
+    bool addObjectCopy         (const object_type       &new_obj);
+    bool addSlotCopy           (const manipulation_slot &new_slot);
+    bool addBoxCopy            (const box               &new_box);
+    void addLocation           (const go_to_location &location_to_add);
+    void addObject             (const object_type &object);
+    void addSlot               (const manipulation_slot &slot);
+    void addBox                (const box &internal_box);
+    void addObjectType         (const int &ind);
+    void addSlotGroups         (const int &ind);
+    void addLocationInfo       (const int &ind);
+    void addSecondLocationInfo (const int &ind);
+    void addSecondSlotGroups   (const int &ind);
+    void addSecondObjectType   (const int &ind);
+    void addLocationChanges    (const int &ind,   const go_to_location &new_location);
+    void addSlotChanges        (const int &ind,   const manipulation_slot &new_slot);
+    void addBoxChanges         (const int &ind,   const box &new_box);
+    void addObjectChanges      (const int &ind,   const object_type &new_object);
+    void addObjectCopyGrasp    (const int &index, const int &index2);
 
     std::vector<std::string> loadObjectsInManipulation();
-    bool loadNewLocation (const go_to_location &location_name_);
-    bool loadNewBox      (const box &box_to_add);
-    bool loadNewGroup    (const std::string &group_to_add);
-    bool loadNewSlot     (const manipulation_slot &slot_name_);
 
-    location          returnPosition(std::string base_frame, std::string target_frame);
-    go_to_action      returnGoToInfo         (int ind);
-    pick              returnPickInfo         (int ind);
-    place             returnPlaceInfo        (int ind);
-    go_to_location    returnLocationInfo     (int ind);
-    object_type       returnObjectInfo       (int ind);
-    box               returnBoxInfo          (int ind);
-    manipulation_slot returnSlotInfo         (int ind);
-    recipe            returnRecipeInfo       (int ind);
-    std::string       returnLocationListText (int ind);
-    std::string       returnGroupListText    (int ind);
-    std::string       returnObjectListText   (int ind);
-    std::string       returnObjDistListText  (int ind);
-    std::string       returnBoxListText      (int ind);
+    bool loadNewLocation (const go_to_location    &location_to_add);
+    bool loadNewBox      (const box               &box_to_add);
+    bool loadNewGroup    (const std::string       &group_to_add);
+    bool loadNewSlot     (const manipulation_slot &slot_to_add);
+
+    location          returnPosition(const std::string &base_frame, const std::string &target_frame);
+    go_to_action      returnGoToInfo         (const int &ind);
+    pick              returnPickInfo         (const int &ind);
+    place             returnPlaceInfo        (const int &ind);
+    go_to_location    returnLocationInfo     (const int &ind);
+    object_type       returnObjectInfo       (const int &ind);
+    box               returnBoxInfo          (const int &ind);
+    manipulation_slot returnSlotInfo         (const int &ind);
+    recipe            returnRecipeInfo       (const int &ind);
+    std::string       returnLocationListText (const int &ind);
+    std::string       returnGroupListText    (const int &ind);
+    std::string       returnObjectListText   (const int &ind);
+    std::string       returnObjDistListText  (const int &ind);
+    std::string       returnBoxListText      (const int &ind);
     double returnGripperPosition();
 
-    std::string getXmlMaxNumberString        (int value);
-    std::string getXmlDoubleString           (double value);
-    std::string getXmlDoubleStringWithName   ( std::string param_name, double value);
-    std::string getXmlStringParam            (std::string param_name, std::string value);
-    std::string getXmlPositionString         (std::string name_pos,  position pos);
-    std::string getXmlQuaternionString       (quaternion quat);
-    std::string getXmlGroupString            (std::string name, std::vector<std::string> string_group);
-    std::string getXmlObjectGraspString      (int index, int index2);
-    std::string getXmlObjectGraspPosesString (int index);
+    std::string getXmlMaxNumberString        (const int &value);
+    std::string getXmlDoubleString           (const double &value);
+    std::string getXmlDoubleStringWithName   (const std::string &param_name, const double &value);
+    std::string getXmlStringParam            (const std::string &param_name, const std::string &value);
+    std::string getXmlPositionString         (const std::string &name_pos,  const position &pos);
+    std::string getXmlQuaternionString       (const quaternion  &quat);
+    std::string getXmlGroupString            (const std::string &name, const std::vector<std::string> &string_group);
+    std::string getXmlObjectGraspString      (const int &index, const int &index2);
+    std::string getXmlObjectGraspPosesString (const int &index);
 
-    XmlRpc::XmlRpcValue getObjectGraspParam  (int index, int index2);
-    XmlRpc::XmlRpcValue getObjectParam       (int index);
-    XmlRpc::XmlRpcValue getGoToLocationParam (int index);
-    XmlRpc::XmlRpcValue getBoxParam          (int index);
-    XmlRpc::XmlRpcValue getGroupParam        (int index);
-    XmlRpc::XmlRpcValue getObjectNameParam   (int index);
-    XmlRpc::XmlRpcValue getSlotParam         (int index);
-    XmlRpc::XmlRpcValue getGoToParam         (int index);
-    XmlRpc::XmlRpcValue getPickParam         (int index);
-    XmlRpc::XmlRpcValue getPlaceParam        (int index);
+    XmlRpc::XmlRpcValue getObjectGraspParam  (const int &index, const int &index2);
+    XmlRpc::XmlRpcValue getObjectParam       (const int &index);
+    XmlRpc::XmlRpcValue getGoToLocationParam (const int &index);
+    XmlRpc::XmlRpcValue getBoxParam          (const int &index);
+    XmlRpc::XmlRpcValue getGroupParam        (const int &index);
+    XmlRpc::XmlRpcValue getObjectNameParam   (const int &index);
+    XmlRpc::XmlRpcValue getSlotParam         (const int &index);
+    XmlRpc::XmlRpcValue getGoToParam         (const int &index);
+    XmlRpc::XmlRpcValue getPickParam         (const int &index);
+    XmlRpc::XmlRpcValue getPlaceParam        (const int &index);
 
     void loadTF                        ();
     void loadRobots                    ();
@@ -257,11 +265,11 @@ public:
     bool readSlotsGroupFromParam       ();
     bool readGotoPickAndPlaceFromParam ();
 
-    void setTargetFrame (int ind);
-    void loadParam      (int ind);
-    void writeParam     (int ind);
-    void writeRecipe    (int ind);
-    bool removeRecipe   (int ind);
+    void setTargetFrame (const int &ind);
+    void loadParam      (const int &ind);
+    void writeParam     (const int &ind);
+    void writeRecipe    (const int &ind);
+    bool removeRecipe   (const int &ind);
 
     /*********************
 	** Logging
@@ -274,25 +282,26 @@ public:
 	         Fatal
 	 };
 
-    QStringListModel* loggingModelGoTo             () {return &logging_model_go_to;}
-    QStringListModel* loggingModelPlace            () {return &logging_model_place;}
-    QStringListModel* loggingModelPick             () {return &logging_model_pick;}
-    QStringListModel* loggingModelObject           () {return &logging_model_object;}
-    QStringListModel* loggingModelSlot             () {return &logging_model_slot;}
-    QStringListModel* loggingModelBox              () {return &logging_model_box;}
-    QStringListModel* loggingModelGroup            () {return &logging_model_group;}
-    QStringListModel* loggingModelLocation         () {return &logging_model_location;}
-    QStringListModel* loggingModelObjectModify     () {return &logging_model_object_modify;}
-    QStringListModel* loggingModelSlotModify       () {return &logging_model_slot_modify;}
-    QStringListModel* loggingModelBoxModify        () {return &logging_model_box_modify;}
-    QStringListModel* loggingModelLocationModify   () {return &logging_model_location_modify;}
-    QStringListModel* loggingModelComponents       () {return &logging_model_components;}
-    QStringListModel* loggingModelInfoAction       () {return &logging_model_info_action;}
-    QStringListModel* loggingModelSecondGoto       () {return &logging_model_second_go_to;}
-    QStringListModel* loggingModelSecondPlace      () {return &logging_model_second_place;}
-    QStringListModel* loggingModelSecondPick       () {return &logging_model_second_pick;}
-    QStringListModel* loggingModelRecipe           () {return &logging_model_recipe;}
-    QStringListModel* loggingModelActionComponents () {return &logging_model_action_components;}
+    QStringListModel* loggingModelGoTo             () {return &logging_model_go_to_;}
+    QStringListModel* loggingModelPlace            () {return &logging_model_place_;}
+    QStringListModel* loggingModelPick             () {return &logging_model_pick_;}
+    QStringListModel* loggingModelObject           () {return &logging_model_object_;}
+    QStringListModel* loggingModelSlot             () {return &logging_model_slot_;}
+    QStringListModel* loggingModelBox              () {return &logging_model_box_;}
+    QStringListModel* loggingModelGroup            () {return &logging_model_group_;}
+    QStringListModel* loggingModelLocation         () {return &logging_model_location_;}
+    QStringListModel* loggingModelObjectModify     () {return &logging_model_object_modify_;}
+    QStringListModel* loggingModelSlotModify       () {return &logging_model_slot_modify_;}
+    QStringListModel* loggingModelBoxModify        () {return &logging_model_box_modify_;}
+    QStringListModel* loggingModelLocationModify   () {return &logging_model_location_modify_;}
+    QStringListModel* loggingModelComponents       () {return &logging_model_components_;}
+    QStringListModel* loggingModelInfoAction       () {return &logging_model_info_action_;}
+    QStringListModel* loggingModelSecondGoto       () {return &logging_model_second_go_to_;}
+    QStringListModel* loggingModelSecondPlace      () {return &logging_model_second_place_;}
+    QStringListModel* loggingModelSecondPick       () {return &logging_model_second_pick_;}
+    QStringListModel* loggingModelRecipe           () {return &logging_model_recipe_;}
+    QStringListModel* loggingModelActionComponents () {return &logging_model_action_components_;}
+    QStringListModel* loggingModelJobProperties    () {return &logging_model_job_properties_;}
     void logGoTo             (const std::string &msg);
     void logPlace            (const std::string &msg);
     void logPick             (const std::string &msg);
@@ -316,42 +325,46 @@ public:
     void logSecondSlots      (const std::string &msg);
     void logSecondLocations  (const std::string &msg);
 
-    void removeGoTo     (int ind);
-    void removeLocation (int ind);
-    void removePlace    (int ind);
-    void removePick     (int ind);
-    void removeObject   (int ind);
-    void removeSlot     (int ind);
-    void removeBox      (int ind);
-    void activeConfiguration(std::string config);
-    void moveGripper        (std::string str);
-    std::vector<int> removeGroup( int ind);
-    bool compare(std::vector<std::string> &v1, std::vector<std::string> &v2);
+    void removeGoTo     (const int &ind);
+    void removeLocation (const int &ind);
+    void removePlace    (const int &ind);
+    void removePick     (const int &ind);
+    void removeObject   (const int &ind);
+    void removeSlot     (const int &ind);
+    void removeBox      (const int &ind);
+    void activeConfiguration(const std::string &config);
+    void moveGripper        (const std::string &str);
+    std::vector<int> removeGroup( const int &ind);
+    bool compare( const std::vector<std::string> &v1, const std::vector<std::string> &v2);
+    void readGripperPosition();
 
-    std::vector<std::string> TFs;
-    std::vector<std::string> robots;
-    std::string base_frame;
-    std::string target_frame;
-    std::string frame_id;
+    bool getGoToJobList (std::vector<std::string> &goto_job_list);
+    bool getPlaceJobList(std::vector<std::string> &place_job_list);
+    bool getPickJobList (std::vector<std::string> &pick_job_list);
+    bool getPreExecProp (const std::string &job_name, std::vector<std::string> &pre_exec_prop_list);
+    bool getExecProp    (const std::string &job_name, std::vector<std::string> &exec_prop_list);
+    bool getPostExecProp(const std::string &job_name, std::vector<std::string> &post_exec_prop_list);
+
+    std::vector<std::string> TFs_;
+    std::vector<std::string> robots_;
+    std::string base_frame_;
+    std::string target_frame_;
+    std::string frame_id_;
 
 Q_SIGNALS:
 	void loggingUpdated();
     void rosShutdown();
 
 private:
-	int init_argc;
-	char** init_argv;
-    std::thread t_component;
+    int init_argc_;
+    char** init_argv_;
 
-    ros::NodeHandle n;
-    ros::NodeHandle nh_i;
-    ros::NodeHandle nh_o;
-    ros::NodeHandle nh_g;
+    ros::NodeHandle n_;
 
-    std::shared_ptr<ros_helper::SubscriptionNotifier<sensor_msgs::JointState>> js_sub;
-    sensor_msgs::JointState gripper_state;
 
-    ros::ServiceClient add_objs_to_scene_client_;
+    std::shared_ptr<ros_helper::SubscriptionNotifier<std_msgs::String>> js_sub_;
+    std_msgs::String gripper_pos_;
+
     ros::ServiceClient add_locations_client_;
     ros::ServiceClient add_boxes_client_;
     ros::ServiceClient add_objs_client_;
@@ -365,90 +378,87 @@ private:
     ros::ServiceClient list_objects_client_;
     ros::ServiceClient list_manipulation_objects_client_;
     ros::ServiceClient run_recipe_client_;
+    ros::ServiceClient go_to_job_list_client_;
+    ros::ServiceClient pick_job_list_client_;
+    ros::ServiceClient place_job_list_client_;
 
-    ros::Publisher     twist_pub;
-    ros::ServiceClient set_ctrl_srv;
-    ros::ServiceClient gripper_srv;
-    configuration_msgs::StartConfiguration start_ctrl_req;
-    manipulation_msgs::JobExecution gripper_req;
+    ros::Publisher     twist_pub_;
+    ros::ServiceClient set_ctrl_srv_;
+    ros::ServiceClient gripper_srv_;
+    configuration_msgs::StartConfiguration start_ctrl_req_;
+    manipulation_msgs::JobExecution gripper_req_;
 
-    QStringListModel logging_model_go_to;
-    QStringListModel logging_model_place;
-    QStringListModel logging_model_pick;
-    QStringListModel logging_model_object;
-    QStringListModel logging_model_slot;
-    QStringListModel logging_model_box;
-    QStringListModel logging_model_group;
-    QStringListModel logging_model_location;
-    QStringListModel logging_model_object_modify;
-    QStringListModel logging_model_slot_modify;
-    QStringListModel logging_model_box_modify;
-    QStringListModel logging_model_location_modify;
-    QStringListModel logging_model_components;
-    QStringListModel logging_model_info_action;
-    QStringListModel logging_model_second_go_to;
-    QStringListModel logging_model_second_place;
-    QStringListModel logging_model_second_pick;
-    QStringListModel logging_model_action_components;
-    QStringListModel logging_model_recipe;
+    QStringListModel logging_model_go_to_;
+    QStringListModel logging_model_place_;
+    QStringListModel logging_model_pick_;
+    QStringListModel logging_model_object_;
+    QStringListModel logging_model_slot_;
+    QStringListModel logging_model_box_;
+    QStringListModel logging_model_group_;
+    QStringListModel logging_model_location_;
+    QStringListModel logging_model_object_modify_;
+    QStringListModel logging_model_slot_modify_;
+    QStringListModel logging_model_box_modify_;
+    QStringListModel logging_model_location_modify_;
+    QStringListModel logging_model_components_;
+    QStringListModel logging_model_info_action_;
+    QStringListModel logging_model_second_go_to_;
+    QStringListModel logging_model_second_place_;
+    QStringListModel logging_model_second_pick_;
+    QStringListModel logging_model_action_components_;
+    QStringListModel logging_model_recipe_;
+    QStringListModel logging_model_job_properties_;
 
-    std::vector<object_type>       changed_objects;
-    std::vector<go_to_location>    changed_locations;
-    std::vector<manipulation_slot> changed_slots;
-    std::vector<box>               changed_boxes;
-    std::vector<std::string>       changed_groups;
-    std::vector<object_type>       objects_to_remove;
-    std::vector<go_to_location>    locations_to_remove;
-    std::vector<manipulation_slot> slots_to_remove;
-    std::vector<box>               boxes_to_remove;
-    std::vector<std::string>       groups_to_remove;
+    std::vector<go_to_location>    changed_locations_;
+    std::vector<manipulation_slot> changed_slots_;
+    std::vector<box>               changed_boxes_;
+    std::vector<std::string>       changed_groups_;
+    std::vector<go_to_location>    locations_to_remove_;
+    std::vector<manipulation_slot> slots_to_remove_;
+    std::vector<box>               boxes_to_remove_;
+    std::vector<std::string>       groups_to_remove_;
 
-    std::vector<go_to_location>    go_to_locations;
-    std::vector<go_to_action>      go_to_actions;
-    std::vector<place>             place_actions;
-    std::vector<pick>              pick_actions;
-    std::vector<object_type>       objects;
-    std::vector<manipulation_slot> manipulation_slots;
-    std::vector<std::string>       groups;
-    std::vector<box>               boxes;
-    std::vector<recipe>            recipes;
-    std::vector<go_to_location>    go_to_locations_compare;
-    std::vector<go_to_action>      go_to_actions_compare;
-    std::vector<place>             place_actions_compare;
-    std::vector<pick>              pick_actions_compare;
-    std::vector<object_type>       objects_compare;
-    std::vector<manipulation_slot> slots_compare;
-    std::vector<std::string>       groups_compare;
-    std::vector<box>               boxes_compare;
-    std::vector<recipe>            recipes_compare;
-    std::vector<go_to_action>      second_go_to_actions;
-    std::vector<place>             second_place_actions;
-    std::vector<pick>              second_pick_actions;
-    std::vector<action>            action_list;
-    std::vector<std::string>       param_names;
-    std::vector<std::string>       robot_name_params;
+    std::vector<go_to_location>    go_to_locations_;
+    std::vector<go_to_action>      go_to_actions_;
+    std::vector<place>             place_actions_;
+    std::vector<pick>              pick_actions_;
+    std::vector<object_type>       objects_;
+    std::vector<manipulation_slot> manipulation_slots_;
+    std::vector<std::string>       groups_;
+    std::vector<box>               boxes_;
+    std::vector<recipe>            recipes_;
+    std::vector<go_to_location>    go_to_locations_compare_;
+    std::vector<go_to_action>      go_to_actions_compare_;
+    std::vector<place>             place_actions_compare_;
+    std::vector<pick>              pick_actions_compare_;
+    std::vector<object_type>       objects_compare_;
+    std::vector<manipulation_slot> slots_compare_;
+    std::vector<std::string>       groups_compare_;
+    std::vector<box>               boxes_compare_;
+    std::vector<recipe>            recipes_compare_;
+    std::vector<std::string>       param_names_;
+    std::vector<std::string>       robot_name_params_;
 
-    const std::string init_value  = "<value>";
-    const std::string end_value   = "</value>";
-    const std::string init_struct = "<struct>";
-    const std::string end_struct  = "</struct>";
-    const std::string init_member = "<member>";
-    const std::string end_member  = "</member>";
-    const std::string init_name   = "<name>";
-    const std::string end_name    = "</name>";
-    const std::string init_array  = "<array>";
-    const std::string end_array   = "</array>";
-    const std::string init_data   = "<data>";
-    const std::string end_data    = "</data>";
-    const std::string init_double = "<double>";
-    const std::string end_double  = "</double>";
-    const std::string init_int    = "<int>";
-    const std::string end_int     = "</int>";
-    const std::string init_string = "<string>";
-    const std::string end_string  = "</string>";
+    const std::string init_value_  = "<value>";
+    const std::string end_value_   = "</value>";
+    const std::string init_struct_ = "<struct>";
+    const std::string end_struct_  = "</struct>";
+    const std::string init_member_ = "<member>";
+    const std::string end_member_  = "</member>";
+    const std::string init_name_   = "<name>";
+    const std::string end_name_    = "</name>";
+    const std::string init_array_  = "<array>";
+    const std::string end_array_   = "</array>";
+    const std::string init_data_   = "<data>";
+    const std::string end_data_    = "</data>";
+    const std::string init_double_ = "<double>";
+    const std::string end_double_  = "</double>";
+    const std::string init_int_    = "<int>";
+    const std::string end_int_     = "</int>";
+    const std::string init_string_ = "<string>";
+    const std::string end_string_  = "</string>";
 
-    bool tc_finito = false;
-    std::string grasped_object;
+    std::string grasped_object_;
 };
 
 }  // namespace manipulation_interface_gui
