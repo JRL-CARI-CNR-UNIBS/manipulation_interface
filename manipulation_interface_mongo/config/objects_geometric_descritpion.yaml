@@ -5,25 +5,25 @@ object_geometries:
     offset: [0.0,0.0,0.005]
 
   squadra_piccola:
-    color: [0.2,0.2,0.2, 1.]
+    # color: [0.2,0.2,0.2, 1.]
     box:  [0.019,0.03,0.012]
     offset_quaternion: [ 0, 0, 0, 1 ]
     offset: [0, 0, 0]
 
   pin:
-    color: [0.2,0.2,0.2, 0.4]
+    # color: [0.2,0.2,0.2, 0.4]
     box:  [0.02,0.02,0.03]
     offset_quaternion: [ 0, 0, 0, 1 ]
     offset: [0, 0, 0]
 
   squadra_grande:
-    color: [0.2,0.2,0.2, 1.]
+    # color: [0.2,0.2,0.2, 1.]
     box:  [0.03,0.01,0.03]
     offset_quaternion: [ 0, 0, 0, 1 ]
     offset: [0, 0, 0]
 
   cube:
-    color: [0.2,0.2,0.2, 0.4]
+    # color: [0.2,0.2,0.2, 0.4]
     box:  [0.03,0.03,0.03]
     offset_quaternion: [ 0, 0, 0, 1 ]
     offset: [0, 0, 0]

@@ -13,7 +13,6 @@
 </group>
 -->
 
-<!-- <arg name="pipeline" default="dirrt" /> -->
 <arg name="pipeline" default="dirrt" />
 <arg name="load_param" default="load" />
 <arg name="debug" default="false" />

@@ -2392,6 +2392,29 @@ void QNode::loadParam( const int &ind )
 
         setTargetFrame(0);
 
+        XmlRpc::XmlRpcValue config;
+        int i = 0;
+        while (i < 50)
+        {
+            if (!n_.getParam("/inbound/boxes",config))
+            {
+                ROS_WARN("Waiting the param publication");
+                ros::Duration(0.1);
+                i++;
+            }
+            else
+            {
+                i = 100;
+            }
+        }
+
+        if ( i == 50 )
+        {
+            ROS_ERROR("Mongo didn't load the params");
+            ROS_ERROR("You probably need to change the Python version to mongo_connection");
+            return;
+        }
+
         readBoxesFromParam();
         ROS_INFO("Read boxes finish");
         readObjectFromParam();

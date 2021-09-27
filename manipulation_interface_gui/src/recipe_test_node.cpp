@@ -539,9 +539,9 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                     break;
             }
 
-            if (pick_result.result < 0)
+            if ( pick_result.result < 0 )
             {
-                ROS_ERROR("Unable to pick -> object type = %s",pick_result.object_name.c_str());
+                ROS_ERROR("Unable to pick -> object type = %s", pick_result.object_name.c_str() );
                 grasped_object.clear();
                 res.grasped_object_out = grasped_object;
                 return true;
