@@ -222,81 +222,60 @@ std::vector<std::string> QNode::loadObjectsInManipulation()
 
     if ( !objects_list.response.ids.empty() )
     {
-//        remove_objects_srv.request.object_names = objects_list.response.ids;
-
-//        if ( !remove_objs_client_.call(remove_objects_srv) )
-//        {
-//            ROS_ERROR("Unable to remove the objects by the manipulation");
-//            return objects_list.response.ids;
-//        }
-
         for ( std::size_t i = 0; i < objects_list.response.ids.size(); i++ )
         {
             manipulation_msgs::Object obj;
-            obj.name = objects_list.response.ids[i];
-            obj.type = objects_list.response.types[i];
+            obj.name = objects_list.response.ids.at(i);
+            obj.type = objects_list.response.types.at(i);
             std::string type_ = obj.type;
-            int index = -1;
-            for ( std::size_t j = 0; j < objects_.size(); j++ )
+            bool presence = false;
+            for ( const std::pair<std::string,object_type> &single_obj: map_objects_ )
             {
-                if ( !obj.type.compare( objects_[j].type ) )
+                if ( !obj.type.compare( single_obj.first ) )
                 {
-                    index = j;
+                    presence = true;
+                    for ( std::size_t j = 0; j < single_obj.second.grasp.size(); j++ )
+                    {
+                        manipulation_msgs::Grasp grasp_;
+                        grasp_.tool_name      = single_obj.second.tool.at(j);
+                        grasp_.location.name  = obj.name+"/grasp_"+std::to_string(j)+"_"+single_obj.second.tool.at(j);
+                        grasp_.location.frame = obj.name;
+
+                        grasp_.location.pose.position.x    = single_obj.second.grasp.at(j).pos.origin_x;
+                        grasp_.location.pose.position.y    = single_obj.second.grasp.at(j).pos.origin_y;
+                        grasp_.location.pose.position.z    = single_obj.second.grasp.at(j).pos.origin_z;
+                        grasp_.location.pose.orientation.w = single_obj.second.grasp.at(j).quat.rotation_w;
+                        grasp_.location.pose.orientation.x = single_obj.second.grasp.at(j).quat.rotation_x;
+                        grasp_.location.pose.orientation.y = single_obj.second.grasp.at(j).quat.rotation_y;
+                        grasp_.location.pose.orientation.z = single_obj.second.grasp.at(j).quat.rotation_z;
+
+                        grasp_.location.approach_relative_pose.position.x = single_obj.second.approach.at(j).origin_x;
+                        grasp_.location.approach_relative_pose.position.y = single_obj.second.approach.at(j).origin_y;
+                        grasp_.location.approach_relative_pose.position.z = single_obj.second.approach.at(j).origin_z;
+
+                        grasp_.location.leave_relative_pose.position.x = single_obj.second.leave.at(j).origin_x;
+                        grasp_.location.leave_relative_pose.position.y = single_obj.second.leave.at(j).origin_y;
+                        grasp_.location.leave_relative_pose.position.z = single_obj.second.leave.at(j).origin_z;
+
+                        obj.grasping_locations.push_back(grasp_);
+                    }
                 }
             }
-
-            if ( index != -1)
-            {
-                for ( std::size_t j = 0; j < objects_[index].grasp.size(); j++ )
-                {
-                    manipulation_msgs::Grasp grasp_;
-                    grasp_.tool_name = objects_[index].tool[j];
-                    grasp_.location.name = obj.name+"/grasp_"+std::to_string(j)+"_"+objects_[index].tool[j];
-                    grasp_.location.frame = obj.name;
-
-                    grasp_.location.pose.position.x    = objects_[index].grasp[j].pos.origin_x;
-                    grasp_.location.pose.position.y    = objects_[index].grasp[j].pos.origin_y;
-                    grasp_.location.pose.position.z    = objects_[index].grasp[j].pos.origin_z;
-                    grasp_.location.pose.orientation.w = objects_[index].grasp[j].quat.rotation_w;
-                    grasp_.location.pose.orientation.x = objects_[index].grasp[j].quat.rotation_x;
-                    grasp_.location.pose.orientation.y = objects_[index].grasp[j].quat.rotation_y;
-                    grasp_.location.pose.orientation.z = objects_[index].grasp[j].quat.rotation_z;
-
-                    grasp_.location.approach_relative_pose.position.x = objects_[index].approach[j].origin_x;
-                    grasp_.location.approach_relative_pose.position.y = objects_[index].approach[j].origin_y;
-                    grasp_.location.approach_relative_pose.position.z = objects_[index].approach[j].origin_z;
-
-                    grasp_.location.leave_relative_pose.position.x = objects_[index].leave[j].origin_x;
-                    grasp_.location.leave_relative_pose.position.y = objects_[index].leave[j].origin_y;
-                    grasp_.location.leave_relative_pose.position.z = objects_[index].leave[j].origin_z;
-
-                    obj.grasping_locations.push_back(grasp_);
-                }
-            }
-            else
-            {
+            if ( !presence )
                 ROS_INFO("There isn't a grasp description of %s", type_.c_str() );
-            }
-//            ROS_FATAL_STREAM("object\n"<< obj);
             add_objects_srv.request.add_objects.push_back( obj );
         }
 
         if ( !add_objs_client_.call(add_objects_srv) )
-        {
             ROS_ERROR("Unable to add the objects to the manipulation");
-        }
         if ( add_objects_srv.response.results == manipulation_msgs::AddObjects::Response::Success )
-        {
             ROS_INFO("The objects are added");
-        }
         if ( add_objects_srv.response.results == manipulation_msgs::AddObjects::Response::Error )
         {
             ROS_ERROR("Error");
         }
         if ( add_objects_srv.response.results == manipulation_msgs::AddObjects::Response::BoxNotFound )
-        {
             ROS_ERROR("Box not found");
-        }
     }
 
     if ( !list_manipulation_objects_client_.call( manipulation_object_list ) )
@@ -311,103 +290,79 @@ void QNode::cartMove (const std::vector<float> &twist_move)
 {
     geometry_msgs::TwistStamped twist_command;
 
-    twist_command.header.frame_id=frame_id_;
-    twist_command.twist.linear.x=twist_move.at(0);
-    twist_command.twist.linear.y=twist_move.at(1);
-    twist_command.twist.linear.z=twist_move.at(2);
-    twist_command.twist.angular.x=twist_move.at(3);
-    twist_command.twist.angular.y=twist_move.at(4);
-    twist_command.twist.angular.z=twist_move.at(5);
+    twist_command.header.frame_id = frame_id_;
+    twist_command.twist.linear.x  = twist_move.at(0);
+    twist_command.twist.linear.y  = twist_move.at(1);
+    twist_command.twist.linear.z  = twist_move.at(2);
+    twist_command.twist.angular.x = twist_move.at(3);
+    twist_command.twist.angular.y = twist_move.at(4);
+    twist_command.twist.angular.z = twist_move.at(5);
 
     twist_command.header.stamp=ros::Time::now();
     twist_pub_.publish(twist_command);
 }
 
-void QNode::addObjectType (const int &ind)
+void QNode::addObjectType (const std::string &name)
 {
     if ( logging_model_action_components_.rowCount() != 0 )
-    {
         logging_model_action_components_.removeRows(0,logging_model_action_components_.rowCount());
-    }
-    for ( std::size_t i = 0; i < pick_actions_[ind].objects.size(); i++)
-    {
-        logActionComponents( pick_actions_[ind].objects[i] );
-    }
+    for ( std::size_t i = 0; i < map_pick_actions_.at(name).objects.size(); i++)
+        logActionComponents( map_pick_actions_.at(name).objects.at(i) );
 }
 
-void QNode::addSlotGroups (const int &ind)
+void QNode::addSlotGroups (const std::string &name)
 {
     if ( logging_model_action_components_.rowCount() != 0 )
-    {
         logging_model_action_components_.removeRows(0,logging_model_action_components_.rowCount());
-    }
-    for ( std::size_t i = 0; i < place_actions_[ind].groups.size(); i++)
-    {
-        logActionComponents( place_actions_[ind].groups[i] );
-    }
+    for ( std::size_t i = 0; i < map_place_actions_.at(name).groups.size(); i++)
+        logActionComponents( map_place_actions_.at(name).groups.at(i) );
 }
 
-void QNode::addLocationInfo (const int &ind)
+void QNode::addLocationInfo (const std::string &name)
 {
     if ( logging_model_action_components_.rowCount() != 0 )
-    {
         logging_model_action_components_.removeRows(0,logging_model_action_components_.rowCount());
-    }
-    for ( std::size_t i = 0; i < go_to_actions_[ind].locations.size(); i++)
-    {
-        logActionComponents( go_to_actions_[ind].locations[i] );
-    }
+
+    for ( std::size_t i = 0; i < map_go_to_actions_.at(name).locations.size(); i++)
+        logActionComponents( map_go_to_actions_.at(name).locations.at(i) );
 }
 
-void QNode::addSecondLocationInfo( const int &ind )
+void QNode::addSecondLocationInfo(const std::string &name)
 {
     if ( logging_model_info_action_.rowCount() != 0 )
-    {
         logging_model_info_action_.removeRows(0,logging_model_info_action_.rowCount());
-    }
-    for ( std::size_t i = 0; i < go_to_actions_[ind].locations.size(); i++)
-    {
-        logInfoAction( go_to_actions_[ind].locations[i] );
-    }
+
+    for ( std::size_t i = 0; i < map_go_to_actions_.at(name).locations.size(); i++)
+        logInfoAction( map_go_to_actions_.at(name).locations.at(i) );
 }
 
-void QNode::addSecondSlotGroups  ( const int &ind )
+void QNode::addSecondSlotGroups  ( const std::string &name )
 {
     if ( logging_model_info_action_.rowCount() != 0 )
-    {
         logging_model_info_action_.removeRows(0,logging_model_info_action_.rowCount());
-    }
-    for ( std::size_t i = 0; i < place_actions_[ind].groups.size(); i++)
-    {
-        logInfoAction( place_actions_[ind].groups[i] );
-    }
+    for ( std::size_t i = 0; i < map_place_actions_.at(name).groups.size(); i++)
+        logInfoAction( map_place_actions_.at(name).groups.at(i) );
 }
 
-void QNode::addSecondObjectType  ( const int &ind )
+void QNode::addSecondObjectType  (const std::string &name )
 {
     if ( logging_model_info_action_.rowCount() != 0 )
-    {
         logging_model_info_action_.removeRows(0,logging_model_info_action_.rowCount());
-    }
-    for ( std::size_t i = 0; i < pick_actions_[ind].objects.size(); i++)
-    {
-        logInfoAction( pick_actions_[ind].objects[i] );
-    }
+    for ( std::size_t i = 0; i < map_pick_actions_.at(name).objects.size(); i++)
+        logInfoAction( map_pick_actions_.at(name).objects.at(i) );
 }
 
-void QNode::addObjectCopyGrasp   ( const int &index, const int &index2 )
+void QNode::addObjectCopyGrasp( const std::string &name, const int &index )
 {
-    objects_[index].approach.push_back( objects_[index].approach[index2] );
-    objects_[index].grasp.push_back   ( objects_[index].grasp[index2] );
-    objects_[index].tool.push_back    ( objects_[index].tool[index2] );
+    map_objects_.at(name).approach.push_back( map_objects_.at(name).approach.at(index) );
+    map_objects_.at(name).grasp.push_back   ( map_objects_.at(name).grasp.at(index) );
+    map_objects_.at(name).tool.push_back    ( map_objects_.at(name).tool.at(index) );
 }
 
-void QNode::writeRecipe ( const int &index)
+void QNode::writeRecipe ( const std::string &name)
 {
-    for ( std::size_t i = 0; i < recipes_[index].recipe_.size(); i++ )
-    {
-        logRecipe( recipes_[index].recipe_[i] );
-    }
+    for ( std::size_t i = 0; i < map_recipes_.at(name).recipe_.size(); i++ )
+        logRecipe( map_recipes_.at(name).recipe_.at(i) );
 }
 
 std::vector<std::string> QNode::loadRecipesParam ()
@@ -434,9 +389,7 @@ std::vector<std::string> QNode::loadRecipesParam ()
         recipe single_recipe;
 
         if ( !param.hasMember("name") )
-        {
             ROS_WARN("The recipe #%d has not the field 'name'", i);
-        }
         single_recipe.name = rosparam_utilities::toString(param["name"]);
 
         std::string what;
@@ -448,18 +401,14 @@ std::vector<std::string> QNode::loadRecipesParam ()
         }
         single_recipe.recipe_ = recipe_;
         bool presence = false;
-        for ( std::size_t j = 0; j < recipes_.size(); j++)
-        {
-            if ( !single_recipe.name.compare(recipes_[j].name) )
-            {
-                presence = true;
-            }
-        }
+        for ( const std::pair<std::string,recipe> one_recipe: map_recipes_ )
+            if ( !single_recipe.name.compare(one_recipe.first) )
+                 presence = true;
 
         if ( !presence )
         {
-            recipes_.push_back(single_recipe);
-            recipes_compare_.push_back(single_recipe);
+            map_recipes_.insert(std::make_pair(single_recipe.name,single_recipe));
+            map_recipes_compare_.insert(std::make_pair(single_recipe.name,single_recipe));
             recipes_names.push_back(single_recipe.name);
         }
     }
@@ -469,34 +418,28 @@ std::vector<std::string> QNode::loadRecipesParam ()
 
 bool QNode::addRecipe(const std::string &recipe_name)
 {
-    recipe recipe_;
-    recipe_.name = recipe_name;
+    recipe in_recipe;
+    in_recipe.name = recipe_name;
 
     for ( int i = 0; i < logging_model_recipe_.rowCount(); i++ )
+        in_recipe.recipe_.push_back( logging_model_recipe_.data( logging_model_recipe_.index(i) ).toString().toStdString() );
+
+    for ( const std::pair<std::string,recipe> single_recipe: map_recipes_ )
     {
-        recipe_.recipe_.push_back( logging_model_recipe_.data( logging_model_recipe_.index(i) ).toString().toStdString() );
+        if ( !recipe_name.compare( single_recipe.first ) )
+            return false;
+        if ( compare( in_recipe.recipe_, single_recipe.second.recipe_ ) )
+            return false;
     }
 
-    for ( std::size_t i = 0; i < recipes_.size(); i++ )
-    {
-        if ( !recipe_name.compare( recipes_[i].name ) )
-        {
-            return false;
-        }
-        if ( compare( recipe_.recipe_, recipes_[i].recipe_ ) )
-        {
-            return false;
-        }
-    }
-
-    recipes_.push_back(recipe_);
+    map_recipes_.insert(std::make_pair(in_recipe.name,in_recipe));
 
     return true;
 }
 
-bool QNode::removeRecipe(const int &ind)
+bool QNode::removeRecipe(const std::string &name)
 {
-    recipes_.erase(recipes_.begin()+ind);
+    map_recipes_.erase(map_recipes_.find(name));
     return true;
 }
 
@@ -506,10 +449,9 @@ bool QNode::saveRecipe()
 
     checkRecipesParam();
 
-    for ( std::size_t i = 0; i < recipes_.size(); i++)
-    {
-        param[i] = getRecipeParam(i);
-    }
+    int i = 0;
+    for ( const std::pair<std::string,recipe> &single_recipe: map_recipes_ )
+        param[i++] = getRecipeParam(single_recipe.first);
     n_.setParam("/multi_skills/recipes", param);
     param.clear();
 
@@ -529,9 +471,7 @@ std::string QNode::runRecipe()
     std::vector<std::string> recipe;
 
     for ( int i = 0; i < logging_model_recipe_.rowCount(); i++ )
-    {
         recipe.push_back( logging_model_recipe_.data( logging_model_recipe_.index(i) ).toString().toStdString() );
-    }
 
     return callRunRecipe(recipe);
 }
@@ -584,15 +524,15 @@ std::string QNode::callRunRecipe(const std::vector<std::string> &recipe)
 
 }
 
-XmlRpc::XmlRpcValue QNode::getRecipeParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getRecipeParam(const std::string &name)
 {
     std::string xml_body;
 
     xml_body.append(init_value_);
     xml_body.append(init_struct_);
 
-    xml_body.append(getXmlStringParam("name", recipes_[index].name));
-    xml_body.append(getXmlGroupString("recipe", recipes_[index].recipe_));
+    xml_body.append(getXmlStringParam("name", name));
+    xml_body.append(getXmlGroupString("recipe", map_recipes_.at(name).recipe_));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -618,7 +558,7 @@ XmlRpc::XmlRpcValue QNode::getRecipeParam(const std::vector<std::string> &recipe
     {
         xml_body.append(init_value_);
         xml_body.append(init_string_);
-        xml_body.append(recipe[i]);
+        xml_body.append(recipe.at(i));
         xml_body.append(end_string_);
         xml_body.append(end_value_);
     }
@@ -635,7 +575,7 @@ XmlRpc::XmlRpcValue QNode::getRecipeParam(const std::vector<std::string> &recipe
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getActionGoToParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getActionGoToParam(const std::string &name)
 {
     std::string xml_body;
 
@@ -647,7 +587,7 @@ XmlRpc::XmlRpcValue QNode::getActionGoToParam(const int &index)
     xml_body.append(getXmlStringParam("property_exec_id", "open"));
     xml_body.append(getXmlStringParam("tool_id", "gripper_fake"));
     std::vector<std::string> names;
-    names.push_back(go_to_actions_[index].name);
+    names.push_back(name);
     xml_body.append(getXmlGroupString("description", names));
 
     xml_body.append(end_struct_);
@@ -661,7 +601,7 @@ XmlRpc::XmlRpcValue QNode::getActionGoToParam(const int &index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getActionPlaceParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getActionPlaceParam(const std::string &name)
 {
     std::string xml_body;
 
@@ -672,7 +612,7 @@ XmlRpc::XmlRpcValue QNode::getActionPlaceParam(const int &index)
     xml_body.append(getXmlStringParam("approach_loc_ctrl_id", "trj_tracker"));
     xml_body.append(getXmlStringParam("property_exec_id", "open"));
     xml_body.append(getXmlStringParam("tool_id", "gripper_fake"));
-    xml_body.append(getXmlGroupString("description", place_actions_[index].groups));
+    xml_body.append(getXmlGroupString("description", map_place_actions_.at(name).groups));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -685,7 +625,7 @@ XmlRpc::XmlRpcValue QNode::getActionPlaceParam(const int &index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getActionPickParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getActionPickParam(const std::string &name)
 {
     std::string xml_body;
 
@@ -696,7 +636,7 @@ XmlRpc::XmlRpcValue QNode::getActionPickParam(const int &index)
     xml_body.append(getXmlStringParam("approach_loc_ctrl_id", "trj_tracker"));
     xml_body.append(getXmlStringParam("property_exec_id", "open"));
     xml_body.append(getXmlStringParam("tool_id", "gripper_fake"));
-    xml_body.append(getXmlGroupString("description", pick_actions_[index].objects));
+    xml_body.append(getXmlGroupString("description", map_pick_actions_.at(name).objects));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -717,30 +657,20 @@ bool QNode::addGoTo(const go_to_action &gt_action)
         {
             ros::Duration(0.1);
             if ( !gt_action.name.compare( logging_model_go_to_.data( logging_model_go_to_.index( i ), 0 ).toString().toStdString() ) )
-            {
                 return false;
-            }
             if ( !gt_action.name.compare( logging_model_place_.data( logging_model_place_.index( i ), 0 ).toString().toStdString() ) )
-            {
                 return false;
-            }
             if ( !gt_action.name.compare( logging_model_pick_.data( logging_model_pick_.index( i ), 0 ).toString().toStdString() ) )
-            {
                 return false;
-            }
         }
-        for ( std::size_t i = 0; i < go_to_actions_.size(); i++)
-        {
-            if ( compare( gt_action.locations, go_to_actions_[i].locations) )
-            {
+        for ( const std::pair<std::string,go_to_action> &single_go_to: map_go_to_actions_ )
+            if ( compare( gt_action.locations, single_go_to.second.locations ))
                 return false;
-            }
-        }
     }
     logGoTo(gt_action.name);
     logSecondGoTo(gt_action.name);
 
-    go_to_actions_.push_back(gt_action);
+    map_go_to_actions_.insert(std::make_pair(gt_action.name,gt_action));
 
     return true;
 }
@@ -753,30 +683,20 @@ bool QNode::addPlace(const place &place_action)
         {
             ros::Duration(0.1);
             if ( !place_action.name.compare( logging_model_go_to_.data( logging_model_go_to_.index( i ), 0 ).toString().toStdString() ) )
-            {
                 return false;
-            }
             if ( !place_action.name.compare( logging_model_place_.data( logging_model_place_.index( i ), 0 ).toString().toStdString() ) )
-            {
                 return false;
-            }
             if ( !place_action.name.compare( logging_model_pick_.data( logging_model_pick_.index( i ), 0 ).toString().toStdString() ) )
-            {
                 return false;
-            }
         }
-        for ( std::size_t i = 0; i < place_actions_.size(); i++)
-        {
-            if ( compare( place_action.groups, place_actions_[i].groups) )
-            {
+        for ( const std::pair<std::string,place> &single_place: map_place_actions_ )
+            if ( compare( place_action.groups, single_place.second.groups) )
                 return false;
-            }
-        }
     }
     logPlace(place_action.name);
     logSecondPlace(place_action.name);
 
-    place_actions_.push_back(place_action);
+    map_place_actions_.insert(std::make_pair(place_action.name,place_action));
 
     return true;
 }
@@ -791,30 +711,20 @@ bool QNode::addPick(const pick &pick_action)
             {
                 ros::Duration(0.1);
                 if ( !pick_action.name.compare( logging_model_go_to_.data( logging_model_go_to_.index( i ), 0 ).toString().toStdString() ) )
-                {
                     return false;
-                }
                 if ( !pick_action.name.compare( logging_model_place_.data( logging_model_place_.index( i ), 0 ).toString().toStdString() ) )
-                {
                     return false;
-                }
                 if ( !pick_action.name.compare( logging_model_pick_.data( logging_model_pick_.index( i ), 0 ).toString().toStdString() ) )
-                {
                     return false;
-                }
             }
-            for ( std::size_t i = 0; i < pick_actions_.size(); i++)
-            {
-                if ( compare( pick_action.objects, pick_actions_[i].objects) )
-                {
+            for ( const std::pair<std::string,pick> &single_pick: map_pick_actions_ )
+                if ( compare( pick_action.objects, single_pick.second.objects) )
                     return false;
-                }
-            }
         }
         logPick(pick_action.name);
         logSecondPick(pick_action.name);
 
-        pick_actions_.push_back(pick_action);
+        map_pick_actions_.insert(std::make_pair(pick_action.name,pick_action));
         return true;
     }
 
@@ -827,21 +737,17 @@ void QNode::addLocation(const go_to_location &location_to_add)
 {
     logLocation(location_to_add.name);
     logLocationModify(location_to_add.name);
-    go_to_locations_.push_back(location_to_add);
-    changed_locations_.push_back(location_to_add);
+    map_go_to_locations_.insert(std::make_pair(location_to_add.name,location_to_add));
 }
 
 bool QNode::addLocationCopy(const go_to_location &new_loc)
 {
-    for ( std::size_t i = 0; i < go_to_locations_.size(); i++)
+    for ( const std::pair<std::string,go_to_location> single_location: map_go_to_locations_ )
     {
-        if ( !new_loc.name.compare( go_to_locations_[i].name ) )
-        {
+        if ( !new_loc.name.compare( single_location.first ) )
             return false;
-        }
     }
-    go_to_locations_.push_back( new_loc );
-    changed_locations_.push_back( new_loc );
+    map_go_to_locations_.insert(std::make_pair(new_loc.name,new_loc));
     logLocation( new_loc.name );
     logLocationModify( new_loc.name );
     return true;
@@ -849,14 +755,12 @@ bool QNode::addLocationCopy(const go_to_location &new_loc)
 
 bool QNode::addObjectCopy(const object_type &new_obj)
 {
-    for ( std::size_t i = 0; i < objects_.size(); i++)
+    for ( const std::pair<std::string,object_type> single_obj: map_objects_ )
     {
-        if ( !new_obj.type.compare( objects_[i].type ) )
-        {
+        if ( !new_obj.type.compare( single_obj.first ) )
             return false;
-        }
     }
-    objects_.push_back( new_obj );
+    map_objects_.insert(std::make_pair(new_obj.type,new_obj));
     logObject( new_obj.type );
     logObjectModify( new_obj.type );
     return true;
@@ -864,15 +768,12 @@ bool QNode::addObjectCopy(const object_type &new_obj)
 
 bool QNode::addSlotCopy(const manipulation_slot &new_slot)
 {
-    for ( std::size_t i = 0; i < manipulation_slots_.size(); i++)
+    for ( const std::pair<std::string,manipulation_slot> &single_slot: map_manipulation_slots_ )
     {
-        if ( !new_slot.name.compare( manipulation_slots_[i].name ) )
-        {
+        if ( !new_slot.name.compare( single_slot.first ) )
             return false;
-        }
     }
-    manipulation_slots_.push_back( new_slot );
-    changed_slots_.push_back( new_slot );
+    map_manipulation_slots_.insert(std::make_pair(new_slot.name,new_slot));
     logSlot( new_slot.name );
     logSlotModify( new_slot.name );
     return true;
@@ -880,15 +781,12 @@ bool QNode::addSlotCopy(const manipulation_slot &new_slot)
 
 bool QNode::addBoxCopy(const box &new_box)
 {
-    for ( std::size_t i = 0; i < boxes_.size(); i++)
+    for ( const std::pair<std::string,box> &single_box: map_boxes_ )
     {
-        if ( !new_box.name.compare( boxes_[i].name ) )
-        {
+        if ( !new_box.name.compare( single_box.first ) )
             return false;
-        }
     }
-    boxes_.push_back( new_box );
-    changed_boxes_.push_back( new_box );
+    map_boxes_.insert(std::make_pair(new_box.name,new_box));
     logBox( new_box.name );
     logBoxModify( new_box.name );
     return true;
@@ -909,9 +807,9 @@ location QNode::returnPosition(const std::string &base_frame, const std::string 
         ROS_ERROR("%s",ex.what());
         ros::Duration(1.0).sleep();
     }
-    loc.pos.origin_x = transform.getOrigin().getX();
-    loc.pos.origin_y = transform.getOrigin().getY();
-    loc.pos.origin_z = transform.getOrigin().getZ();
+    loc.pos.origin_x    = transform.getOrigin().getX();
+    loc.pos.origin_y    = transform.getOrigin().getY();
+    loc.pos.origin_z    = transform.getOrigin().getZ();
     loc.quat.rotation_x = transform.getRotation().getX();
     loc.quat.rotation_y = transform.getRotation().getY();
     loc.quat.rotation_z = transform.getRotation().getZ();
@@ -919,59 +817,39 @@ location QNode::returnPosition(const std::string &base_frame, const std::string 
     return loc;
 }
 
-go_to_action QNode::returnGoToInfo(const int &ind)
+go_to_action QNode::returnGoToInfo(const std::string &name)
 {
-    return go_to_actions_[ind];
+    return map_go_to_actions_.at(name);
 }
 
-pick QNode::returnPickInfo(const int &ind)
+pick QNode::returnPickInfo(const std::string &name)
 {
-    return pick_actions_[ind];
+    return map_pick_actions_.at(name);
 }
 
-place QNode::returnPlaceInfo(const int &ind)
+place QNode::returnPlaceInfo(const std::string &name)
 {
-    return place_actions_[ind];
+    return map_place_actions_.at(name);
 }
 
-go_to_location QNode::returnLocationInfo(const int &ind)
+go_to_location QNode::returnLocationInfo(const std::string &name)
 {
-    return go_to_locations_[ind];
+    return map_go_to_locations_.at(name);
 }
 
-object_type QNode::returnObjectInfo( const int &ind)
+object_type QNode::returnObjectInfo( const std::string &name)
 {
-    return objects_[ind];
+    return map_objects_.at(name);
 }
 
-box QNode::returnBoxInfo( const int &ind)
+box QNode::returnBoxInfo( const std::string &name)
 {
-    return boxes_[ind];
+    return map_boxes_.at(name);
 }
 
-manipulation_slot QNode::returnSlotInfo(const  int &ind)
+manipulation_slot QNode::returnSlotInfo(const  std::string &name)
 {
-    return manipulation_slots_[ind];
-}
-
-std::string QNode::returnLocationListText(const int &ind)
-{
-    return logging_model_components_.data( logging_model_components_.index( ind ), 0 ).toString().toStdString();
-}
-
-std::string QNode::returnGroupListText(const int &ind)
-{
-    return logging_model_components_.data( logging_model_components_.index( ind ), 0 ).toString().toStdString();
-}
-
-std::string QNode::returnObjectListText(const int &ind)
-{
-    return logging_model_components_.data( logging_model_components_.index( ind ), 0 ).toString().toStdString();
-}
-
-std::string QNode::returnBoxListText(const int &ind)
-{
-    return logging_model_box_.data( logging_model_box_.index( ind ), 0 ).toString().toStdString();
+    return map_manipulation_slots_.at(name);
 }
 
 double QNode::returnGripperPosition()
@@ -1150,137 +1028,104 @@ void QNode::logRecipe (const std::string &msg)
     Q_EMIT loggingUpdated(); // used to readjust the scrollbar
 }
 
-void QNode::removeGoTo(const int &ind)
+void QNode::removeGoTo(const std::string &name)
 {
-    go_to_actions_.erase(go_to_actions_.begin()+ind);
+    map_go_to_actions_.erase(map_go_to_actions_.find(name));
 }
 
-void QNode::removeLocation(const int &ind)
+void QNode::removeLocation(const std::string &name)
 {
-    for ( std::size_t i = 0; i < changed_locations_.size(); i++ )
-    {
-        if ( !go_to_locations_[ind].name.compare( changed_locations_[i].name ) )
-        {
-            changed_locations_.erase( changed_locations_.begin() + i );
-        }
-    }
-
     manipulation_msgs::RemoveLocations remove_location_srv;
-    if ( !go_to_locations_[ind].name.empty() )
+    if ( map_go_to_locations_.find(name) != map_go_to_locations_.end() )
     {
-        ROS_WARN("Locations to remove: %s", go_to_locations_[ind].name.c_str());
-        remove_location_srv.request.location_names.push_back(go_to_locations_[ind].name);
+        ROS_WARN("Location to remove: %s", name.c_str());
+        remove_location_srv.request.location_names.push_back(name);
         if ( !remove_locations_client_.call(remove_location_srv) )
         {
             ROS_ERROR("Error while calling remove locations service");
+            return;
         }
-
+        map_go_to_locations_.erase(map_go_to_locations_.find(name));
     }
 
-    go_to_locations_.erase(go_to_locations_.begin()+ind);
 }
 
-void QNode::removePlace(const int &ind)
+void QNode::removePlace(const std::string &name)
 {
-    place_actions_.erase(place_actions_.begin()+ind);
+    if ( map_place_actions_.find(name) != map_place_actions_.end() )
+        map_place_actions_.erase(map_place_actions_.find(name));
 }
 
-void QNode::removePick(const int &ind)
+void QNode::removePick(const std::string &name)
 {
-    pick_actions_.erase(pick_actions_.begin()+ind);
+    if ( map_pick_actions_.find(name) != map_pick_actions_.end() )
+        map_pick_actions_.erase(map_pick_actions_.find(name));
 }
 
-void QNode::removeObject(const int &ind)
+void QNode::removeObject(const std::string &name)
 {
-    objects_.erase(objects_.begin()+ind);
+    if ( map_objects_.find(name) != map_objects_.end() )
+        map_objects_.erase(map_objects_.find(name));
 }
 
-void QNode::removeSlot(const int &ind)
+void QNode::removeSlot(const std::string &name)
 {
-    for ( std::size_t i = 0; i < changed_slots_.size(); i++ )
-    {
-        if ( !manipulation_slots_[ind].name.compare( changed_slots_[i].name ) )
-        {
-            changed_slots_.erase( changed_slots_.begin() + i );
-        }
-    }
-
     manipulation_msgs::RemoveSlots remove_slots_srv;
 
-    if ( !manipulation_slots_[ind].name.empty() )
+    if ( map_manipulation_slots_.find(name) != map_manipulation_slots_.end() )
     {
-        ROS_WARN("Slot to remove: %s", manipulation_slots_[ind].name.c_str());
-        remove_slots_srv.request.slots_names.push_back(manipulation_slots_[ind].name);
+        ROS_WARN("Slot to remove: %s", name.c_str());
+        remove_slots_srv.request.slots_names.push_back(name);
         if ( !remove_slots_client_.call(remove_slots_srv) )
         {
             ROS_ERROR("Error while calling remove slots service");
+            return;
         }
+        map_manipulation_slots_.erase(map_manipulation_slots_.find(name));
     }
-
-    manipulation_slots_.erase(manipulation_slots_.begin()+ind);
 }
 
-void QNode::removeBox(const int &ind)
+void QNode::removeBox(const std::string &name)
 {
-    for ( std::size_t i = 0; i < changed_boxes_.size(); i++ )
-    {
-        if ( !boxes_[ind].name.compare( changed_boxes_[i].name ) )
-        {
-            changed_boxes_.erase( changed_boxes_.begin() + i );
-        }
-    }
-
     manipulation_msgs::RemoveBoxes remove_boxes_srv;
-    if ( !boxes_[ind].name.empty() )
+    if ( map_boxes_.find(name) != map_boxes_.end() )
     {
-        ROS_WARN("Box to remove: %s", boxes_[ind].name.c_str());
-        remove_boxes_srv.request.box_names.push_back(boxes_[ind].name);
+        ROS_WARN("Box to remove: %s", name.c_str());
+        remove_boxes_srv.request.box_names.push_back(name);
         if ( !remove_boxes_client_.call(remove_boxes_srv) )
-        {
             ROS_ERROR("Error while calling remove boxes service");
-        }
+        map_boxes_.erase(map_boxes_.find(name));
     }
-
-    boxes_.erase(boxes_.begin()+ind);
 }
 
-std::vector<int> QNode::removeGroup(const int &ind)
+std::vector<std::string> QNode::removeGroup(const std::string &name)
 {
-    for ( std::size_t i = 0; i < changed_groups_.size(); i++ )
+    std::vector<std::string> slot_names;
+    for ( const std::pair<std::string,manipulation_slot> &single_slot: map_manipulation_slots_ )
     {
-        if ( !groups_.at(ind).compare( changed_groups_.at(i) ) )
-        {
-            changed_groups_.erase( changed_groups_.begin() + i );
-        }
-    }
-
-    std::vector<int> indexes;
-    for ( std::size_t i = 0; i < manipulation_slots_.size(); i++)
-    {
-        if ( ! manipulation_slots_[i].group.compare( groups_.at(ind) ) )
-        {
-            indexes.push_back(i);
-        }
-    }
-    for ( int i = indexes.size()-1; i >= 0; i--)
-    {
-        removeSlot(indexes[i]);
+        if ( !single_slot.second.group.compare(name) )
+            slot_names.push_back(single_slot.first);
     }
 
     manipulation_msgs::RemoveSlotsGroup remove_groups_srv;
 
-    if ( !groups_.at(ind).empty() )
+    if ( map_groups_.find(name) != map_groups_.end() )
     {
-        ROS_WARN("Group to remove: %s", groups_.at(ind).c_str());
-        remove_groups_srv.request.slots_group_names.push_back(groups_.at(ind));
+        ROS_WARN("Group to remove: %s", name.c_str());
+        remove_groups_srv.request.slots_group_names.push_back(name);
         if ( !remove_slots_group_client_.call(remove_groups_srv))
         {
             ROS_ERROR("Error while calling remove groups service");
+            std::vector<std::string> empty;
+            return empty;
         }
+
+        for ( int i = slot_names.size()-1; i >= 0; i--)
+            removeSlot(slot_names.at(i));
+        map_groups_.erase(map_groups_.find(name));
     }
 
-    groups_.erase(groups_.begin()+ind);
-    return indexes;
+    return slot_names;
 }
 
 void QNode::activeConfiguration(const std::string &config)
@@ -1319,9 +1164,7 @@ void QNode::moveGripper( const std::string &str )
     }
 
     if ( js_sub_->waitForANewData() )
-    {
         gripper_pos_ = js_sub_->getData();
-    }
 }
 
 std::string QNode::getXmlMaxNumberString(const int &value )
@@ -1471,7 +1314,7 @@ std::string QNode::getXmlGroupString( const std::string &name, const std::vector
     {
         xml_body.append(init_value_);
         xml_body.append(init_string_);
-        xml_body.append(string_group[i]);
+        xml_body.append(string_group.at(i));
         xml_body.append(end_string_);
         xml_body.append(end_value_);
     }
@@ -1485,21 +1328,21 @@ std::string QNode::getXmlGroupString( const std::string &name, const std::vector
     return xml_body;
 }
 
-std::string QNode::getXmlObjectGraspString( const int &index, const int &index2 )
+std::string QNode::getXmlObjectGraspString(const std::string &name, const int &index )
 {
     std::string xml_body;
 
     xml_body.append(init_value_);
     xml_body.append(init_struct_);
 
-    xml_body.append(getXmlStringParam("tool", objects_compare_[index].tool[index2]));
-    xml_body.append(getXmlPositionString("position", objects_compare_[index].grasp[index2].pos));
-    xml_body.append(getXmlQuaternionString(objects_compare_[index].grasp[index2].quat));
-    xml_body.append(getXmlPositionString("approach_distance", objects_compare_[index].approach[index2]));
-    xml_body.append(getXmlPositionString("leave_distance", objects_compare_[index].leave[index2]));
-    xml_body.append(getXmlDoubleStringWithName("pre_gripper_position", objects_compare_[index].pre_gripper_position[index2]));
-    xml_body.append(getXmlDoubleStringWithName("post_gripper_position", objects_compare_[index].post_gripper_position[index2]));
-    xml_body.append(getXmlDoubleStringWithName("gripper_force", objects_compare_[index].gripper_force[index2]));
+    xml_body.append(getXmlStringParam         ("tool",                  map_objects_compare_.at(name).tool.at(index)));
+    xml_body.append(getXmlPositionString      ("position",              map_objects_compare_.at(name).grasp.at(index).pos));
+    xml_body.append(getXmlQuaternionString    (                         map_objects_compare_.at(name).grasp.at(index).quat));
+    xml_body.append(getXmlPositionString      ("approach_distance",     map_objects_compare_.at(name).approach.at(index)));
+    xml_body.append(getXmlPositionString      ("leave_distance",        map_objects_compare_.at(name).leave.at(index)));
+    xml_body.append(getXmlDoubleStringWithName("pre_gripper_position",  map_objects_compare_.at(name).pre_gripper_position.at(index)));
+    xml_body.append(getXmlDoubleStringWithName("post_gripper_position", map_objects_compare_.at(name).post_gripper_position.at(index)));
+    xml_body.append(getXmlDoubleStringWithName("gripper_force",         map_objects_compare_.at(name).gripper_force.at(index)));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1507,7 +1350,7 @@ std::string QNode::getXmlObjectGraspString( const int &index, const int &index2 
     return xml_body;
 }
 
-std::string QNode::getXmlObjectGraspPosesString( const int &index )
+std::string QNode::getXmlObjectGraspPosesString( const std::string &name )
 {
     std::string xml_body;
 
@@ -1521,10 +1364,8 @@ std::string QNode::getXmlObjectGraspPosesString( const int &index )
     xml_body.append(init_array_);
     xml_body.append(init_data_);
 
-    for ( std::size_t i = 0; i < objects_compare_[index].grasp.size(); i++ )
-    {
-        xml_body.append( getXmlObjectGraspString(index, i) );
-    }
+    for ( std::size_t i = 0; i < map_objects_compare_.at(name).grasp.size(); i++ )
+        xml_body.append( getXmlObjectGraspString(name, i) );
 
     xml_body.append(end_data_);
     xml_body.append(end_array_);
@@ -1535,7 +1376,7 @@ std::string QNode::getXmlObjectGraspPosesString( const int &index )
     return xml_body;
 }
 
-XmlRpc::XmlRpcValue QNode::getGoToLocationParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getGoToLocationParam(const std::string &name)
 {
     //    /go_to_location
     std::string xml_body;
@@ -1543,10 +1384,10 @@ XmlRpc::XmlRpcValue QNode::getGoToLocationParam(const int &index)
     xml_body.append(init_value_);
     xml_body.append(init_struct_);
 
-    xml_body.append(getXmlStringParam("name", go_to_locations_compare_[index].name));
-    xml_body.append(getXmlStringParam("frame", go_to_locations_compare_[index].frame));
-    xml_body.append(getXmlPositionString("position", go_to_locations_compare_[index].location_.pos));
-    xml_body.append(getXmlQuaternionString(go_to_locations_compare_[index].location_.quat));
+    xml_body.append(getXmlStringParam     ("name",     name));
+    xml_body.append(getXmlStringParam     ("frame",    map_go_to_locations_compare_.at(name).frame));
+    xml_body.append(getXmlPositionString  ("position", map_go_to_locations_compare_.at(name).location_.pos));
+    xml_body.append(getXmlQuaternionString(            map_go_to_locations_compare_.at(name).location_.quat));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1559,7 +1400,7 @@ XmlRpc::XmlRpcValue QNode::getGoToLocationParam(const int &index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getBoxParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getBoxParam(const std::string &name)
 {
     //    /inbound/boxes
     std::string xml_body;
@@ -1567,12 +1408,12 @@ XmlRpc::XmlRpcValue QNode::getBoxParam(const int &index)
     xml_body.append(init_value_);
     xml_body.append(init_struct_);
 
-    xml_body.append(getXmlStringParam("name", boxes_compare_[index].name));
-    xml_body.append(getXmlStringParam("frame", boxes_compare_[index].frame));
-    xml_body.append(getXmlPositionString("position", boxes_compare_[index].location_.pos));
-    xml_body.append(getXmlPositionString("approach_distance", boxes_compare_[index].approach));
-    xml_body.append(getXmlPositionString("leave_distance", boxes_compare_[index].leave));
-    xml_body.append(getXmlQuaternionString(boxes_compare_[index].location_.quat));
+    xml_body.append(getXmlStringParam     ("name",              name));
+    xml_body.append(getXmlStringParam     ("frame",             map_boxes_compare_.at(name).frame));
+    xml_body.append(getXmlPositionString  ("position",          map_boxes_compare_.at(name).location_.pos));
+    xml_body.append(getXmlPositionString  ("approach_distance", map_boxes_compare_.at(name).approach));
+    xml_body.append(getXmlPositionString  ("leave_distance",    map_boxes_compare_.at(name).leave));
+    xml_body.append(getXmlQuaternionString(                     map_boxes_compare_.at(name).location_.quat));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1584,10 +1425,10 @@ XmlRpc::XmlRpcValue QNode::getBoxParam(const int &index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getObjectGraspParam(const int &index, const int &index2)
+XmlRpc::XmlRpcValue QNode::getObjectGraspParam(const std::string &name, const int &index)
 {
     //    /nameObj/grasp_poses
-    std::string xml_body = getXmlObjectGraspString( index, index2 );
+    std::string xml_body = getXmlObjectGraspString( name, index );
 
     int offset = 0;
     int* offset_ptr = &offset;
@@ -1596,15 +1437,15 @@ XmlRpc::XmlRpcValue QNode::getObjectGraspParam(const int &index, const int &inde
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getObjectParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getObjectParam(const std::string &name)
 {
     std::string xml_body;
 
     xml_body.append(init_value_);
     xml_body.append(init_struct_);
 
-    xml_body.append( getXmlStringParam("type", objects_compare_[index].type) );
-    xml_body.append( getXmlObjectGraspPosesString(index) );
+    xml_body.append( getXmlStringParam("type", map_objects_compare_.at(name).type) );
+    xml_body.append( getXmlObjectGraspPosesString(name) );
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1617,14 +1458,14 @@ XmlRpc::XmlRpcValue QNode::getObjectParam(const int &index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getGroupParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getGroupParam(const std::string &name)
 {
     std::string xml_body;
 
     xml_body.append(init_value_);
     xml_body.append(init_struct_);
 
-    xml_body.append(getXmlStringParam("name", groups_compare_[index]));
+    xml_body.append(getXmlStringParam("name", map_groups_compare_.at(name)));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1637,21 +1478,21 @@ XmlRpc::XmlRpcValue QNode::getGroupParam(const int &index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getSlotParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getSlotParam(const std::string &name)
 {
     std::string xml_body;
 
     xml_body.append(init_value_);
     xml_body.append(init_struct_);
 
-    xml_body.append(getXmlStringParam("name", slots_compare_[index].name));
-    xml_body.append(getXmlStringParam("frame", slots_compare_[index].frame));
-    xml_body.append(getXmlStringParam("slots_group", slots_compare_[index].group));
-    xml_body.append(getXmlMaxNumberString(slots_compare_[index].max_objects));
-    xml_body.append(getXmlPositionString("position", slots_compare_[index].location_.pos));
-    xml_body.append(getXmlQuaternionString( slots_compare_[index].location_.quat));
-    xml_body.append(getXmlPositionString("approach_distance", slots_compare_[index].approach));
-    xml_body.append(getXmlPositionString("leave_distance", slots_compare_[index].leave));
+    xml_body.append(getXmlStringParam     ("name",              name));
+    xml_body.append(getXmlStringParam     ("frame",             map_slots_compare_.at(name).frame));
+    xml_body.append(getXmlStringParam     ("slots_group",       map_slots_compare_.at(name).group));
+    xml_body.append(getXmlMaxNumberString (                     map_slots_compare_.at(name).max_objects));
+    xml_body.append(getXmlPositionString  ("position",          map_slots_compare_.at(name).location_.pos));
+    xml_body.append(getXmlQuaternionString(                     map_slots_compare_.at(name).location_.quat));
+    xml_body.append(getXmlPositionString  ("approach_distance", map_slots_compare_.at(name).approach));
+    xml_body.append(getXmlPositionString  ("leave_distance",    map_slots_compare_.at(name).leave));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1664,22 +1505,22 @@ XmlRpc::XmlRpcValue QNode::getSlotParam(const int &index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getGoToParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getGoToParam(const std::string &name)
 {
     std::string xml_body;
 
     xml_body.append(init_value_);
     xml_body.append(init_struct_);
 
-    xml_body.append(getXmlStringParam("name", go_to_actions_compare_[index].name));
-    xml_body.append(getXmlStringParam("description", go_to_actions_compare_[index].description));
+    xml_body.append(getXmlStringParam("name", name));
     xml_body.append(getXmlStringParam("type", "goto"));
-    xml_body.append(getXmlGroupString("agent", go_to_actions_compare_[index].agents));
-    xml_body.append(getXmlGroupString("goal", go_to_actions_compare_[index].locations));
-    xml_body.append(getXmlStringParam("job_exec_name", go_to_actions_compare_[index].job_exec_name));
-    xml_body.append(getXmlStringParam("property_pre_exec_id", go_to_actions_compare_[index].pre_exec_property_id));
-    xml_body.append(getXmlStringParam("property_exec_id", go_to_actions_compare_[index].exec_property_id));
-    xml_body.append(getXmlStringParam("property_post_exec_id", go_to_actions_compare_[index].post_exec_property_id));
+    xml_body.append(getXmlStringParam("description",           map_go_to_actions_compare_.at(name).description));
+    xml_body.append(getXmlGroupString("agent",                 map_go_to_actions_compare_.at(name).agents));
+    xml_body.append(getXmlGroupString("goal",                  map_go_to_actions_compare_.at(name).locations));
+    xml_body.append(getXmlStringParam("job_exec_name",         map_go_to_actions_compare_.at(name).job_exec_name));
+    xml_body.append(getXmlStringParam("property_pre_exec_id",  map_go_to_actions_compare_.at(name).pre_exec_property_id));
+    xml_body.append(getXmlStringParam("property_exec_id",      map_go_to_actions_compare_.at(name).exec_property_id));
+    xml_body.append(getXmlStringParam("property_post_exec_id", map_go_to_actions_compare_.at(name).post_exec_property_id));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1692,22 +1533,22 @@ XmlRpc::XmlRpcValue QNode::getGoToParam(const int &index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getPickParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getPickParam(const std::string &name)
 {
     std::string xml_body;
 
     xml_body.append(init_value_);
     xml_body.append(init_struct_);
 
-    xml_body.append(getXmlStringParam("name", pick_actions_compare_[index].name));
-    xml_body.append(getXmlStringParam("description", pick_actions_compare_[index].description));
+    xml_body.append(getXmlStringParam("name",name));
     xml_body.append(getXmlStringParam("type", "pick"));
-    xml_body.append(getXmlGroupString("agent", pick_actions_compare_[index].agents));
-    xml_body.append(getXmlGroupString("goal", pick_actions_compare_[index].objects));
-    xml_body.append(getXmlStringParam("job_exec_name", pick_actions_compare_[index].job_exec_name));
-    xml_body.append(getXmlStringParam("property_pre_exec_id", pick_actions_compare_[index].pre_exec_property_id));
-    xml_body.append(getXmlStringParam("property_exec_id", pick_actions_compare_[index].exec_property_id));
-    xml_body.append(getXmlStringParam("property_post_exec_id", pick_actions_compare_[index].post_exec_property_id));
+    xml_body.append(getXmlStringParam("description",           map_pick_actions_compare_.at(name).description));
+    xml_body.append(getXmlGroupString("agent",                 map_pick_actions_compare_.at(name).agents));
+    xml_body.append(getXmlGroupString("goal",                  map_pick_actions_compare_.at(name).objects));
+    xml_body.append(getXmlStringParam("job_exec_name",         map_pick_actions_compare_.at(name).job_exec_name));
+    xml_body.append(getXmlStringParam("property_pre_exec_id",  map_pick_actions_compare_.at(name).pre_exec_property_id));
+    xml_body.append(getXmlStringParam("property_exec_id",      map_pick_actions_compare_.at(name).exec_property_id));
+    xml_body.append(getXmlStringParam("property_post_exec_id", map_pick_actions_compare_.at(name).post_exec_property_id));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1720,22 +1561,22 @@ XmlRpc::XmlRpcValue QNode::getPickParam(const int &index)
     return param;
 }
 
-XmlRpc::XmlRpcValue QNode::getPlaceParam(const int &index)
+XmlRpc::XmlRpcValue QNode::getPlaceParam(const std::string &name)
 {
     std::string xml_body;
 
     xml_body.append(init_value_);
     xml_body.append(init_struct_);
 
-    xml_body.append(getXmlStringParam("name", place_actions_compare_[index].name));
-    xml_body.append(getXmlStringParam("description", place_actions_compare_[index].description));
+    xml_body.append(getXmlStringParam("name",name));
     xml_body.append(getXmlStringParam("type", "place"));
-    xml_body.append(getXmlGroupString("agent", place_actions_compare_[index].agents));
-    xml_body.append(getXmlGroupString("goal", place_actions_compare_[index].groups));
-    xml_body.append(getXmlStringParam("job_exec_name", place_actions_compare_[index].job_exec_name));
-    xml_body.append(getXmlStringParam("property_pre_exec_id", place_actions_compare_[index].pre_exec_property_id));
-    xml_body.append(getXmlStringParam("property_exec_id", place_actions_compare_[index].exec_property_id));
-    xml_body.append(getXmlStringParam("property_post_exec_id", place_actions_compare_[index].post_exec_property_id));
+    xml_body.append(getXmlStringParam("description",           map_place_actions_compare_.at(name).description));
+    xml_body.append(getXmlGroupString("agent",                 map_place_actions_compare_.at(name).agents));
+    xml_body.append(getXmlGroupString("goal",                  map_place_actions_compare_.at(name).groups));
+    xml_body.append(getXmlStringParam("job_exec_name",         map_place_actions_compare_.at(name).job_exec_name));
+    xml_body.append(getXmlStringParam("property_pre_exec_id",  map_place_actions_compare_.at(name).pre_exec_property_id));
+    xml_body.append(getXmlStringParam("property_exec_id",      map_place_actions_compare_.at(name).exec_property_id));
+    xml_body.append(getXmlStringParam("property_post_exec_id", map_place_actions_compare_.at(name).post_exec_property_id));
 
     xml_body.append(end_struct_);
     xml_body.append(end_value_);
@@ -1751,36 +1592,23 @@ XmlRpc::XmlRpcValue QNode::getPlaceParam(const int &index)
 void QNode::setTargetFrame( const int &ind )
 {
     if ( robot_name_params_.size() != 0 )
-    {
-        n_.getParam(robot_name_params_[ind],target_frame_);
-    }
+        n_.getParam(robot_name_params_.at(ind),target_frame_);
 }
 
 void QNode::checkObjectsParam()
 {
-
     bool presence;
 
-    for ( std::size_t i = 0; i < objects_.size(); i ++ )
+    for ( const std::pair<std::string,object_type> &single_obj: map_objects_ )
     {
         presence = false;
-        std::size_t index;
-        for ( std::size_t j = 0; j < objects_compare_.size(); j++ )
-        {
-            if ( objects_[i].type == objects_compare_[j].type )
-            {
+        for ( const std::pair<std::string,object_type> &single_obj_compare: map_objects_compare_ )
+            if (single_obj.first == single_obj_compare.first)
                 presence = true;
-                index = j;
-            }
-        }
         if ( presence )
-        {
-            objects_compare_[index] = objects_[i];
-        }
+            map_objects_compare_.at(single_obj.first) = single_obj.second;
         else
-        {
-            objects_compare_.push_back( objects_[i] );
-        }
+            map_objects_compare_.insert(single_obj);
     }
 
     return;
@@ -1790,224 +1618,104 @@ void QNode::checkOtherParam()
 {
     bool presence;
 
-    for ( std::size_t i = 0; i < changed_locations_.size(); i++ )
-    {
-        for ( std::size_t j = 0; j < go_to_locations_compare_.size(); j++ )
-        {
-            if ( !changed_locations_[i].name.compare( go_to_locations_compare_[j].name ) )
-            {
-                locations_to_remove_.push_back( go_to_locations_compare_[j] );
-            }
-        }
-    }
-
-    for ( std::size_t i = 0; i < go_to_locations_.size(); i ++ )
+    for ( const std::pair<std::string,go_to_location> single_location: map_go_to_locations_ )
     {
         presence = false;
-        std::size_t index;
-        for ( std::size_t j = 0; j < go_to_locations_compare_.size(); j++ )
-        {
-            if ( go_to_locations_[i].name == go_to_locations_compare_[j].name )
-            {
+        for ( const std::pair<std::string,go_to_location> single_location_compare: map_go_to_locations_compare_ )
+            if ( single_location.first == single_location_compare.first )
                 presence = true;
-                index = j;
-            }
-        }
-        if ( presence )
-        {
-            go_to_locations_compare_[index] = go_to_locations_[i];
-        }
+        if (presence)
+            map_go_to_locations_compare_.at(single_location.first) = single_location.second;
         else
-        {
-            go_to_locations_compare_.push_back( go_to_locations_[i] );
-        }
+            map_go_to_locations_compare_.insert(single_location);
     }
 
-    for ( std::size_t i = 0; i < changed_slots_.size(); i++ )
-    {
-        for ( std::size_t j = 0; j < slots_compare_.size(); j++ )
-        {
-            if ( !changed_slots_[i].name.compare( slots_compare_[j].name ) )
-            {
-                slots_to_remove_.push_back( slots_compare_[j] );
-            }
-        }
-    }
-
-    for ( std::size_t i = 0; i < manipulation_slots_.size(); i ++ )
+    for ( const std::pair<std::string,manipulation_slot> single_slot: map_manipulation_slots_ )
     {
         presence = false;
-        std::size_t index;
-        for ( std::size_t j = 0; j < slots_compare_.size(); j++ )
-        {
-            if ( manipulation_slots_[i].name == slots_compare_[j].name )
-            {
+        for ( const std::pair<std::string,manipulation_slot> single_slot_compare: map_slots_compare_ )
+            if ( single_slot.first == single_slot_compare.first )
                 presence = true;
-                index = j;
-            }
-        }
         if ( presence )
-        {
-            slots_compare_[index] = manipulation_slots_[i];
-        }
+            map_slots_compare_.at(single_slot.first) = single_slot.second;
         else
-        {
-            slots_compare_.push_back( manipulation_slots_[i] );
-        }
+            map_slots_compare_.insert(single_slot);
     }
 
-    for ( std::size_t i = 0; i < changed_groups_.size(); i++ )
-    {
-        for ( std::size_t j = 0; j < groups_compare_.size(); j++ )
-        {
-            if ( !changed_groups_.at(i).compare( groups_compare_.at(j) ) )
-            {
-                groups_to_remove_.push_back( groups_compare_.at(j) );
-            }
-        }
-    }
-
-    for ( std::size_t i = 0; i < groups_.size(); i ++ )
+    for ( const std::pair<std::string,std::string> &single_group: map_groups_ )
     {
         presence = false;
-        std::size_t index;
-        for ( std::size_t j = 0; j < groups_compare_.size(); j++ )
-        {
-            if ( groups_[i] == groups_compare_[j] )
-            {
+        for ( const std::pair<std::string,std::string> &single_group_compare: map_groups_compare_ )
+            if ( single_group.first == single_group_compare.first )
                 presence = true;
-                index = j;
-            }
-        }
         if ( presence )
-        {
-            groups_compare_[index] = groups_[i];
-        }
+            map_groups_compare_.at(single_group.first) = single_group.second;
         else
-        {
-            groups_compare_.push_back( groups_[i] );
-        }
+            map_groups_compare_.insert(single_group);
     }
 
-    for ( std::size_t i = 0; i < changed_boxes_.size(); i++ )
-    {
-        for ( std::size_t j = 0; j < boxes_compare_.size(); j++ )
-        {
-            if ( !changed_boxes_[i].name.compare( boxes_compare_[j].name ) )
-            {
-                boxes_to_remove_.push_back( boxes_compare_[j] );
-            }
-        }
-    }
-
-    for ( std::size_t i = 0; i < boxes_.size(); i ++ )
+    for ( const std::pair<std::string,box> &single_box: map_boxes_ )
     {
         presence = false;
-        std::size_t index;
-        for ( std::size_t j = 0; j < boxes_compare_.size(); j++ )
-        {
-            if ( boxes_[i].name == boxes_compare_[j].name )
-            {
+        for ( const std::pair<std::string,box> &single_box_compare: map_boxes_compare_ )
+            if ( single_box.first == single_box_compare.first )
                 presence = true;
-                index = j;
-            }
-        }
         if ( presence )
-        {
-            boxes_compare_[index] = boxes_[i];
-        }
+            map_boxes_compare_.at(single_box.first) = single_box.second;
         else
-        {
-            boxes_compare_.push_back( boxes_[i] );
-        }
+            map_boxes_compare_.insert(single_box);
     }
 
-    for ( std::size_t i = 0; i < go_to_actions_.size(); i ++ )
+    for ( const std::pair<std::string,go_to_action> &single_go_to: map_go_to_actions_ )
     {
         presence = false;
-        std::size_t index;
-        for ( std::size_t j = 0; j < go_to_actions_compare_.size(); j++ )
-        {
-            if ( go_to_actions_[i].name == go_to_actions_compare_[j].name )
-            {
+        for ( const std::pair<std::string,go_to_action> &single_go_to_compare: map_go_to_actions_compare_ )
+            if ( single_go_to.first == single_go_to_compare.first )
                 presence = true;
-                index = j;
-            }
-        }
         if ( presence )
-        {
-            go_to_actions_compare_[index] = go_to_actions_[i];
-        }
+            map_go_to_actions_compare_.at(single_go_to.first) = single_go_to.second;
         else
-        {
-            go_to_actions_compare_.push_back( go_to_actions_[i] );
-        }
+            map_go_to_actions_compare_.insert( single_go_to );
     }
 
-    for ( std::size_t i = 0; i < place_actions_.size(); i ++ )
+    for ( const std::pair<std::string,place> &single_place: map_place_actions_ )
     {
         presence = false;
-        std::size_t index;
-        for ( std::size_t j = 0; j < place_actions_compare_.size(); j++ )
-        {
-            if ( place_actions_[i].name == place_actions_compare_[j].name )
-            {
+        for ( const std::pair<std::string,place> &single_place_compare: map_place_actions_compare_ )
+            if ( single_place.first == single_place_compare.first )
                 presence = true;
-                index = j;
-            }
-        }
         if ( presence )
-        {
-            place_actions_compare_[index] = place_actions_[i];
-        }
+            map_place_actions_compare_.at(single_place.first) = single_place.second;
         else
-        {
-            place_actions_compare_.push_back( place_actions_[i] );
-        }
+            map_place_actions_compare_.insert( single_place );
     }
 
-    for ( std::size_t i = 0; i < pick_actions_.size(); i ++ )
+    for ( const std::pair<std::string,pick> &single_pick: map_pick_actions_ )
     {
         presence = false;
-        std::size_t index;
-        for ( std::size_t j = 0; j < pick_actions_compare_.size(); j++ )
-        {
-            if ( pick_actions_[i].name == pick_actions_compare_[j].name )
-            {
+        for ( const std::pair<std::string,pick> &single_pick_compare: map_pick_actions_compare_ )
+            if ( single_pick.first == single_pick_compare.first )
                 presence = true;
-                index = j;
-            }
-        }
         if ( presence )
-        {
-            pick_actions_compare_[index] = pick_actions_[i];
-        }
+            map_pick_actions_compare_.at(single_pick.first) = single_pick.second;
         else
-        {
-            pick_actions_compare_.push_back( pick_actions_[i] );
-        }
+            map_pick_actions_compare_.insert(single_pick);
     }
 }
 
 void QNode::checkRecipesParam()
 {
-    for ( std::size_t i = 0; i < recipes_compare_.size(); i++ )
+    for ( const std::pair<std::string,recipe> &single_recipe_compare: map_recipes_compare_ )
     {
         bool presence = false;
-        for ( std::size_t j = 0; j < recipes_.size(); j++)
-        {
-            if ( recipes_[j].name == recipes_compare_[i].name )
-            {
+        for ( const std::pair<std::string,recipe> &single_recipe: map_recipes_ )
+            if ( single_recipe.first == single_recipe_compare.first )
                 presence = true;
-            }
-        }
-        if ( presence == false )
-        {
-            recipes_.push_back( recipes_compare_[i] );
-        }
+        if ( !presence )
+            map_recipes_.insert( single_recipe_compare );
     }
 
-    recipes_compare_ = recipes_;
+    map_recipes_compare_ = map_recipes_;
 }
 
 bool QNode::saveComponents()
@@ -2017,38 +1725,33 @@ bool QNode::saveComponents()
     checkObjectsParam();
     checkOtherParam();
 
-    for ( std::size_t i = 0; i < go_to_locations_compare_.size(); i++)
-    {
-        param[i] = getGoToLocationParam(i);
-    }
+    int i = 0;
+    for ( const std::pair<std::string,go_to_location> &single_go_to: map_go_to_locations_compare_ )
+        param[i++] = getGoToLocationParam(single_go_to.first);
     n_.setParam("/go_to_location", param);
     param.clear();
 
-    for ( std::size_t i = 0; i < boxes_compare_.size(); i++)
-    {
-        param[i] = getBoxParam(i);
-    }
+    i = 0;
+    for ( const std::pair<std::string,box> &single_box: map_boxes_compare_ )
+        param[i++] = getBoxParam(single_box.first);
     n_.setParam("/inbound/boxes", param);
     param.clear();
 
-    for ( std::size_t i = 0; i < groups_compare_.size(); i++)
-    {
-        param[i] = getGroupParam(i);
-    }
+    i = 0;
+    for ( const std::pair<std::string,std::string> &single_group: map_groups_compare_ )
+        param[i++] = getGroupParam(single_group.first);
     n_.setParam("/outbound/slots_group", param);
     param.clear();
 
-    for ( std::size_t i = 0; i < slots_compare_.size(); i++)
-    {
-        param[i] = getSlotParam( i );
-    }
+    i = 0;
+    for ( const std::pair<std::string,manipulation_slot> &single_slot: map_slots_compare_)
+        param[i++] = getSlotParam(single_slot.first);
     n_.setParam("/outbound/slots", param);
     param.clear();
 
-    for ( std::size_t i = 0; i < objects_compare_.size(); i++ )
-    {
-        param [i] = getObjectParam(i);
-    }
+    i = 0;
+    for ( const std::pair<std::string,object_type> &single_obj: map_objects_compare_ )
+        param[i++] = getObjectParam(single_obj.first);
     n_.setParam("/manipulation_object_types", param);
     param.clear();
 
@@ -2091,9 +1794,7 @@ bool QNode::loadNewLocation(const go_to_location &location_to_add)
             return false;
         }
         else
-        {
             ROS_INFO("Location %s added to location manager", location_to_add.name.c_str() );
-        }
     }
     return true;
 }
@@ -2138,9 +1839,7 @@ bool QNode::loadNewBox( const box &box_to_add)
             return false;
         }
         else
-        {
             ROS_INFO("Box %s added to location manager", box_to_add.name.c_str() );
-        }
 
     }
     return true;
@@ -2153,12 +1852,8 @@ bool QNode::loadNewGroup( const std::string &group_to_add)
         ROS_INFO("Group to add: %s", group_to_add.c_str());
         bool presence = false;
         for ( int i = 0; i < logging_model_group_.rowCount(); i++ )
-        {
             if ( !group_to_add.compare(logging_model_group_.data( logging_model_group_.index( i ),0 ).toString().toStdString()) )
-            {
                 presence = true;
-            }
-        }
         if (!presence)
         {
             manipulation_msgs::AddSlotsGroup add_groups_srv;
@@ -2176,9 +1871,7 @@ bool QNode::loadNewGroup( const std::string &group_to_add)
                 return false;
             }
             else
-            {
                 ROS_INFO("Added group: %s", group_to_add.c_str());
-            }
         }
     }
     return true;
@@ -2227,9 +1920,7 @@ bool QNode::loadNewSlot( const manipulation_slot &slot_to_add)
             return false;
         }
         else
-        {
             ROS_INFO("Added slot: %s", slot_to_add.name.c_str());
-        }
     }
     return true;
 }
@@ -2242,18 +1933,13 @@ bool QNode::saveActions()
     checkObjectsParam();
     checkOtherParam();
 
-    for ( std::size_t i = 0; i < go_to_actions_compare_.size(); i++)
-    {
-        param[i] = getGoToParam(i);
-    }
-    for ( std::size_t i = 0; i < pick_actions_compare_.size(); i++)
-    {
-        param[ i + go_to_actions_compare_.size() ] = getPickParam(i);
-    }
-    for ( std::size_t i = 0; i < place_actions_compare_.size(); i++)
-    {
-        param[ i + go_to_actions_compare_.size() + pick_actions_compare_.size() ] = getPlaceParam(i);
-    }
+    int i = 0;
+    for ( const std::pair<std::string,go_to_action> &single_go_to: map_go_to_actions_compare_)
+        param[i++] = getGoToParam(single_go_to.first);
+    for ( const std::pair<std::string,pick> &single_pick: map_pick_actions_compare_)
+        param[i++] = getPickParam(single_pick.first);
+    for ( const std::pair<std::string,place> &single_place: map_place_actions_compare_)
+        param[i++] = getPlaceParam(single_place.first);
     n_.setParam("/multi_skills/tasks", param);
     param.clear();
 
@@ -2269,7 +1955,7 @@ void QNode::addObject( const object_type &object )
 {
     logObject(object.type);
     logObjectModify(object.type);
-    objects_.push_back(object);
+    map_objects_.insert(std::make_pair(object.type,object));
 }
 
 void QNode::addSlot( const manipulation_slot &slot )
@@ -2278,94 +1964,76 @@ void QNode::addSlot( const manipulation_slot &slot )
     {
         bool add = true;
         for ( int i=0; i<logging_model_group_.rowCount(); i++)
-        {
             if ( !slot.group.compare( logging_model_group_.data( logging_model_group_.index( i ),0 ).toString().toStdString() ) )
-            {
                 add = false;
-            }
-        }
         if ( add )
         {
             logGroup(slot.group);
-            groups_.push_back(slot.group);
-
-            changed_groups_.push_back(slot.group);
+            map_groups_.insert(std::make_pair(slot.group,slot.group));
         }
     }
     else
     {
         logGroup(slot.group);
-        groups_.push_back(slot.group);
-
-        changed_groups_.push_back(slot.group);
+        map_groups_.insert(std::make_pair(slot.group,slot.group));
     }
 
     logSlot(slot.name);
     logSlotModify(slot.name);
 
-    manipulation_slots_.push_back(slot);
-    changed_slots_.push_back(slot);
+    map_manipulation_slots_.insert(std::make_pair(slot.name,slot));
 }
 
 void QNode::addBox(const box &internal_box)
 {
     logBox(internal_box.name);
     logBoxModify(internal_box.name);
-    boxes_.push_back(internal_box);
-    changed_boxes_.push_back(internal_box);
+    map_boxes_.insert(std::make_pair(internal_box.name,internal_box));
 }
 
-void QNode::addLocationChanges(const int &ind, const go_to_location &new_location)
+void QNode::addLocationChanges(const go_to_location &new_location)
 {
-    if ( !go_to_locations_[ind].name.compare( new_location.name ) )
-    {
-        go_to_locations_[ind] = new_location;
-    }
+    if ( map_go_to_locations_.find(new_location.name) != map_go_to_locations_.end() )
+        map_go_to_locations_.at(new_location.name) = new_location;
     else
     {
-        go_to_locations_.push_back( new_location );
+        map_go_to_locations_.insert(std::make_pair(new_location.name, new_location));
         logLocation(new_location.name);
         logLocationModify(new_location.name);
     }
 }
 
-void QNode::addSlotChanges(const int &ind, const manipulation_slot &new_slot)
+void QNode::addSlotChanges(const manipulation_slot &new_slot)
 {
-    if ( !manipulation_slots_[ind].name.compare( new_slot.name ) )
-    {
-        manipulation_slots_[ind] = new_slot;
-    }
+    if ( map_manipulation_slots_.find(new_slot.name) != map_manipulation_slots_.end() )
+        map_manipulation_slots_.at(new_slot.name) = new_slot;
     else
     {
-        manipulation_slots_.push_back(new_slot);
+        map_manipulation_slots_.insert(std::make_pair(new_slot.name,new_slot));
         logSlot(new_slot.name);
         logSlotModify(new_slot.name);
     }
 }
 
-void QNode::addBoxChanges(const int &ind, const box &new_box)
+void QNode::addBoxChanges(const box &new_box)
 {
-    if ( !boxes_[ind].name.compare( new_box.name ) )
-    {
-        boxes_[ind] = new_box;
-    }
+    if ( map_boxes_.find(new_box.name) != map_boxes_.end() )
+        map_boxes_.at(new_box.name) = new_box;
     else
     {
-        boxes_.push_back( new_box );
+        map_boxes_.insert(std::make_pair(new_box.name,new_box));
         logBox(new_box.name);
         logBoxModify(new_box.name);
     }
 }
 
-void QNode::addObjectChanges(const int &ind, const object_type &new_object)
+void QNode::addObjectChanges(const object_type &new_object)
 {
-    if ( !objects_[ind].type.compare( new_object.type ) )
-    {
-        objects_[ind] = new_object;
-    }
+    if ( map_objects_.find(new_object.type) != map_objects_.end() )
+        map_objects_.at(new_object.type) = new_object;
     else
     {
-        objects_.push_back( new_object );
+        map_objects_.insert(std::make_pair(new_object.type,new_object));
         logObjectModify(new_object.type);
         logObject(new_object.type);
     }
@@ -2394,7 +2062,7 @@ void QNode::loadParam( const int &ind )
 
         XmlRpc::XmlRpcValue config;
         int i = 0;
-        while (i < 50)
+        while (i < 500)
         {
             if (!n_.getParam("/inbound/boxes",config))
             {
@@ -2403,12 +2071,10 @@ void QNode::loadParam( const int &ind )
                 i++;
             }
             else
-            {
-                i = 100;
-            }
+                i = 1000;
         }
 
-        if ( i == 50 )
+        if ( i == 500 )
         {
             ROS_ERROR("Mongo didn't load the params");
             ROS_ERROR("You probably need to change the Python version to mongo_connection");
@@ -2445,13 +2111,13 @@ void QNode::loadRobots()
     robot_name_params_.clear();
     for ( std::size_t i = 0; i < param_names_.size(); i++)
     {
-        std::size_t found  = param_names_[i].find("/go_to_location_server/groups/");
-        std::size_t found2 = param_names_[i].find("/", 26);
-        std::string str = param_names_[i];
+        std::size_t found  = param_names_.at(i).find("/go_to_location_server/groups/");
+        std::size_t found2 = param_names_.at(i).find("/", 26);
+        std::string str = param_names_.at(i);
         if ( found != std::string::npos && found2 != std::string::npos )
         {
             robots_.push_back( str.erase( 0, found2+1 ) );
-            robot_name_params_.push_back( param_names_[i] );
+            robot_name_params_.push_back( param_names_.at(i) );
         }
     }
 }
@@ -2462,233 +2128,150 @@ void QNode::writeParam(const int &ind)
 
     if ( ind == 1)
     {
-        for ( std::size_t i = 0; i < boxes_.size(); i++)
+        for ( const std::pair<std::string,box> &single_box: map_boxes_ )
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_box_.rowCount(); j++)
-            {
-                if ( !boxes_[i].name.compare(logging_model_box_.data( logging_model_box_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_box.first.compare(logging_model_box_.data( logging_model_box_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logBox(boxes_[i].name);
-            }
+                logBox(single_box.first);
         }
-        for ( std::size_t i = 0; i < boxes_.size(); i++)
+        for ( const std::pair<std::string,box> &single_box: map_boxes_ )
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_box_modify_.rowCount(); j++)
-            {
-                if ( !boxes_[i].name.compare(logging_model_box_modify_.data( logging_model_box_modify_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_box.first.compare(logging_model_box_modify_.data( logging_model_box_modify_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logBoxModify(boxes_[i].name);
-            }
+                logBoxModify(single_box.first);
         }
-        for ( std::size_t i = 0; i < objects_.size(); i++)
+        for ( const std::pair<std::string,object_type> &single_obj: map_objects_ )
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_object_.rowCount(); j++)
-            {
-                if ( !objects_[i].type.compare(logging_model_object_.data( logging_model_object_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_obj.first.compare(logging_model_object_.data( logging_model_object_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logObject(objects_[i].type);
-            }
+                logObject(single_obj.first);
         }
-        for ( std::size_t i = 0; i < objects_.size(); i++)
+
+        for ( const std::pair<std::string,object_type> &single_obj: map_objects_ )
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_object_modify_.rowCount(); j++)
-            {
-                if ( !objects_[i].type.compare(logging_model_object_modify_.data( logging_model_object_modify_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_obj.first.compare(logging_model_object_modify_.data( logging_model_object_modify_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logObjectModify(objects_[i].type);
-            }
+                logObjectModify(single_obj.first);
         }
-        for ( std::size_t i = 0; i < groups_.size(); i++)
+
+        for ( const std::pair<std::string,std::string> &single_group: map_groups_ )
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_group_.rowCount(); j++)
-            {
-                if ( !groups_[i].compare(logging_model_group_.data( logging_model_group_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_group.first.compare(logging_model_group_.data( logging_model_group_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logGroup( groups_[i] );
-            }
+                logGroup( single_group.first );
         }
-        for ( std::size_t i = 0; i < manipulation_slots_.size(); i++)
+        for ( const std::pair<std::string,manipulation_slot> &single_slot: map_manipulation_slots_ )
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_slot_.rowCount(); j++)
-            {
-                if ( !manipulation_slots_[i].name.compare(logging_model_slot_.data( logging_model_slot_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_slot.first.compare(logging_model_slot_.data( logging_model_slot_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logSlot(manipulation_slots_[i].name);
-            }
+                logSlot(single_slot.first);
         }
-        for ( std::size_t i = 0; i < manipulation_slots_.size(); i++)
+        for ( const std::pair<std::string,manipulation_slot> &single_slot: map_manipulation_slots_ )
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_slot_modify_.rowCount(); j++)
-            {
-                if ( !manipulation_slots_[i].name.compare(logging_model_slot_modify_.data( logging_model_slot_modify_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_slot.first.compare(logging_model_slot_modify_.data( logging_model_slot_modify_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logSlotModify(manipulation_slots_[i].name);
-            }
+                logSlotModify(single_slot.first);
         }
-        for ( std::size_t i = 0; i < go_to_locations_.size(); i++)
+        for ( const std::pair<std::string,go_to_location> &single_location: map_go_to_locations_)
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_location_.rowCount(); j++)
-            {
-                if ( !go_to_locations_[i].name.compare(logging_model_location_.data( logging_model_location_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_location.first.compare( logging_model_location_.data( logging_model_location_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logLocation(go_to_locations_[i].name);
-            }
+                logLocation(single_location.first);
         }
-        for ( std::size_t i = 0; i < go_to_locations_.size(); i++)
+        for ( const std::pair<std::string,go_to_location> &single_location: map_go_to_locations_)
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_location_modify_.rowCount(); j++)
-            {
-                if ( !go_to_locations_[i].name.compare(logging_model_location_modify_.data( logging_model_location_modify_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_location.first.compare( logging_model_location_modify_.data( logging_model_location_modify_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logLocationModify(go_to_locations_[i].name);
-            }
+                logLocationModify(single_location.first);
         }
     }
     else if ( ind == 2)
     {
-        for ( std::size_t i = 0; i < go_to_actions_.size(); i++)
+        for ( const std::pair<std::string,go_to_action> &single_go_to: map_go_to_actions_)
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_go_to_.rowCount(); j++)
-            {
-                if ( !go_to_actions_[i].name.compare(logging_model_go_to_.data( logging_model_go_to_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_go_to.first.compare( logging_model_go_to_.data( logging_model_go_to_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logGoTo(go_to_actions_[i].name);
-            }
+                logGoTo(single_go_to.first);
         }
-        for ( std::size_t i = 0; i < go_to_actions_.size(); i++)
+
+        for ( const std::pair<std::string,go_to_action> &single_go_to: map_go_to_actions_)
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_second_go_to_.rowCount(); j++)
-            {
-                if ( !go_to_actions_[i].name.compare(logging_model_second_go_to_.data( logging_model_second_go_to_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_go_to.first.compare( logging_model_second_go_to_.data( logging_model_second_go_to_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logSecondGoTo(go_to_actions_[i].name);
-            }
+                logSecondGoTo(single_go_to.first);
         }
-        for ( std::size_t i = 0; i < place_actions_.size(); i++)
+
+        for ( const std::pair<std::string,place> &single_place: map_place_actions_)
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_place_.rowCount(); j++)
-            {
-                if ( !place_actions_[i].name.compare(logging_model_place_.data( logging_model_place_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_place.first.compare( logging_model_place_.data( logging_model_place_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logPlace(place_actions_[i].name);
-            }
+                logPlace(single_place.first);
         }
-        for ( std::size_t i = 0; i < place_actions_.size(); i++)
+
+        for ( const std::pair<std::string,place> &single_place: map_place_actions_)
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_second_place_.rowCount(); j++)
-            {
-                if ( !place_actions_[i].name.compare(logging_model_second_place_.data( logging_model_second_place_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_place.first.compare(logging_model_second_place_.data( logging_model_second_place_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logSecondPlace(place_actions_[i].name);
-            }
+                logSecondPlace(single_place.first);
         }
-        for ( std::size_t i = 0; i < pick_actions_.size(); i++)
+
+        for ( const std::pair<std::string,pick> &single_pick: map_pick_actions_ )
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_pick_.rowCount(); j++)
-            {
-                if ( !pick_actions_[i].name.compare(logging_model_pick_.data( logging_model_pick_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_pick.first.compare(logging_model_pick_.data( logging_model_pick_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logPick(pick_actions_[i].name);
-            }
+                logPick(single_pick.first);
         }
-        for ( std::size_t i = 0; i < pick_actions_.size(); i++)
+
+        for ( const std::pair<std::string,pick> &single_pick: map_pick_actions_ )
         {
             bool presence = false;
             for ( int j = 0; j < logging_model_second_pick_.rowCount(); j++)
-            {
-                if ( !pick_actions_[i].name.compare(logging_model_second_pick_.data( logging_model_second_pick_.index( j ), 0 ).toString().toStdString() ) )
-                {
+                if ( !single_pick.first.compare(logging_model_second_pick_.data( logging_model_second_pick_.index( j ), 0 ).toString().toStdString() ) )
                     presence = true;
-                }
-            }
             if ( !presence )
-            {
-                logSecondPick(pick_actions_[i].name);
-            }
+                logSecondPick(single_pick.first);
         }
     }
 }
@@ -2696,37 +2279,25 @@ void QNode::writeParam(const int &ind)
 void QNode::writeLocations()
 {
     if ( logging_model_components_.rowCount() != 0 )
-    {
         logging_model_components_.removeRows( 0, logging_model_components_.rowCount() );
-    }
-    for ( std::size_t i = 0; i < go_to_locations_.size(); i++)
-    {
-        logComponents(go_to_locations_[i].name);
-    }
+    for ( const std::pair<std::string, go_to_location> &single_location: map_go_to_locations_)
+        logComponents(single_location.first);
 }
 
 void QNode::writeObjects()
 {
     if ( logging_model_components_.rowCount() != 0 )
-    {
         logging_model_components_.removeRows( 0, logging_model_components_.rowCount() );
-    }
-    for ( std::size_t i = 0; i < objects_.size(); i++)
-    {
-        logComponents(objects_[i].type);
-    }
+    for ( const std::pair<std::string,object_type> &single_obj: map_objects_ )
+        logComponents(single_obj.first);
 }
 
 void QNode::writeGroups()
 {
     if ( logging_model_components_.rowCount() != 0 )
-    {
         logging_model_components_.removeRows( 0, logging_model_components_.rowCount() );
-    }
-    for ( std::size_t i = 0; i < groups_.size(); i++)
-    {
-        logComponents(groups_[i]);
-    }
+    for ( const std::pair<std::string,std::string> &single_gropu: map_groups_ )
+        logComponents(single_gropu.first);
 }
 
 bool QNode::readBoxesFromParam()
@@ -2747,7 +2318,7 @@ bool QNode::readBoxesFromParam()
 
     ROS_INFO("There are %d boxes", config.size());
 
-    box box_;
+    box param_box;
 
     for(int i=0; i < config.size(); i++)
     {
@@ -2763,14 +2334,14 @@ bool QNode::readBoxesFromParam()
             ROS_WARN("The element #%d has not the field 'name'", i);
             continue;
         }
-        box_.name = rosparam_utilities::toString(param["name"]);
+        param_box.name = rosparam_utilities::toString(param["name"]);
 
         if( !param.hasMember("frame") )
         {
             ROS_WARN("The element #%d has not the field 'frame'", i);
             continue;
         }
-        box_.frame = rosparam_utilities::toString(param["frame"]);
+        param_box.frame = rosparam_utilities::toString(param["frame"]);
 
         std::string what;
         std::vector<double> pos;
@@ -2781,9 +2352,9 @@ bool QNode::readBoxesFromParam()
         }
         assert(pos.size()==3);
 
-        box_.location_.pos.origin_x = pos.at(0);
-        box_.location_.pos.origin_y = pos.at(1);
-        box_.location_.pos.origin_z = pos.at(2);
+        param_box.location_.pos.origin_x = pos.at(0);
+        param_box.location_.pos.origin_y = pos.at(1);
+        param_box.location_.pos.origin_z = pos.at(2);
 
         std::vector<double> quat;
         if( !rosparam_utilities::getParam(param,"quaternion",quat,what) )
@@ -2793,51 +2364,44 @@ bool QNode::readBoxesFromParam()
         }
         assert(quat.size()==4);
 
-        box_.location_.quat.rotation_x = quat.at(0);
-        box_.location_.quat.rotation_y = quat.at(1);
-        box_.location_.quat.rotation_z = quat.at(2);
-        box_.location_.quat.rotation_w = quat.at(3);
+        param_box.location_.quat.rotation_x = quat.at(0);
+        param_box.location_.quat.rotation_y = quat.at(1);
+        param_box.location_.quat.rotation_z = quat.at(2);
+        param_box.location_.quat.rotation_w = quat.at(3);
 
         std::vector<double> approach_distance_d;
         if( !rosparam_utilities::getParam(param,"approach_distance",approach_distance_d,what) )
         {
-            ROS_WARN("The box %s has not the field 'approach_distance'",box_.name.c_str());
+            ROS_WARN("The box %s has not the field 'approach_distance'",param_box.name.c_str());
             return false;
         }
         assert(approach_distance_d.size() == 3);
 
-        box_.approach.origin_x = approach_distance_d.at(0);
-        box_.approach.origin_y = approach_distance_d.at(1);
-        box_.approach.origin_z = approach_distance_d.at(2);
+        param_box.approach.origin_x = approach_distance_d.at(0);
+        param_box.approach.origin_y = approach_distance_d.at(1);
+        param_box.approach.origin_z = approach_distance_d.at(2);
 
         std::vector<double> leave_distance_d;
         if( !rosparam_utilities::getParam(param,"leave_distance",leave_distance_d,what) )
         {
-            ROS_WARN("The box %s has not the field 'leave_distance'",box_.name.c_str());
+            ROS_WARN("The box %s has not the field 'leave_distance'",param_box.name.c_str());
             return false;
         }
         assert(leave_distance_d.size() == 3);
 
-        box_.leave.origin_x = leave_distance_d.at(0);
-        box_.leave.origin_y = leave_distance_d.at(1);
-        box_.leave.origin_z = leave_distance_d.at(2);
+        param_box.leave.origin_x = leave_distance_d.at(0);
+        param_box.leave.origin_y = leave_distance_d.at(1);
+        param_box.leave.origin_z = leave_distance_d.at(2);
 
         bool presence = false;
-        for ( std::size_t j = 0; j < boxes_.size(); j++)
-        {
-            if ( !box_.name.compare(boxes_[j].name) )
-            {
+        for ( const std::pair<std::string,box> &single_box: map_boxes_ )
+            if ( !param_box.name.compare(single_box.first) )
                 presence = true;
-            }
-        }
-
         if ( !presence )
         {
-            if ( loadNewBox(box_) )
-            {
-                boxes_.push_back(box_);
-            }
-            boxes_compare_.push_back(box_);
+            if ( loadNewBox(param_box) )
+                map_boxes_.insert(std::make_pair(param_box.name,param_box));
+            map_boxes_compare_.insert(std::make_pair(param_box.name,param_box));
         }
     }
     return true;
@@ -2856,7 +2420,7 @@ bool QNode::readObjectFromParam()
 
     for ( int i = 0; i < param.size(); i++ )
     {
-        object_type object_;
+        object_type object;
         XmlRpc::XmlRpcValue single_object = param[i];
 
         if( single_object.getType() != XmlRpc::XmlRpcValue::TypeStruct)
@@ -2870,7 +2434,7 @@ bool QNode::readObjectFromParam()
             ROS_WARN("The object element #%d has not the field 'type'", i);
             continue;
         }
-        object_.type = rosparam_utilities::toString(single_object["type"]);
+        object.type = rosparam_utilities::toString(single_object["type"]);
 
         XmlRpc::XmlRpcValue grasp_poses_;
         if ( !single_object.hasMember("grasp_poses") )
@@ -2926,7 +2490,7 @@ bool QNode::readObjectFromParam()
             loc.quat.rotation_z = quat.at(2);
             loc.quat.rotation_w = quat.at(3);
 
-            object_.grasp.push_back( loc );
+            object.grasp.push_back( loc );
 
             std::vector<double> approach_distance_d;
             if( !rosparam_utilities::getParam(single_grasp,"approach_distance",approach_distance_d,what) )
@@ -2941,7 +2505,7 @@ bool QNode::readObjectFromParam()
             approach.origin_y = approach_distance_d.at(1);
             approach.origin_z = approach_distance_d.at(2);
 
-            object_.approach.push_back( approach );
+            object.approach.push_back( approach );
 
             std::vector<double> leave_distance_d;
             if( !rosparam_utilities::getParam(single_grasp,"leave_distance",leave_distance_d,what) )
@@ -2956,7 +2520,7 @@ bool QNode::readObjectFromParam()
             leave.origin_y = leave_distance_d.at(1);
             leave.origin_z = leave_distance_d.at(2);
 
-            object_.leave.push_back( leave );
+            object.leave.push_back( leave );
 
             if ( !single_grasp.hasMember("tool"))
             {
@@ -2964,7 +2528,7 @@ bool QNode::readObjectFromParam()
                 continue;
             }
 
-            object_.tool.push_back( rosparam_utilities::toString(single_grasp["tool"]) );
+            object.tool.push_back( rosparam_utilities::toString(single_grasp["tool"]) );
 
             if ( !single_grasp.hasMember("pre_gripper_position"))
             {
@@ -2972,7 +2536,7 @@ bool QNode::readObjectFromParam()
                 continue;
             }
 
-            object_.pre_gripper_position.push_back( rosparam_utilities::toDouble(single_grasp["pre_gripper_position"]) );
+            object.pre_gripper_position.push_back( rosparam_utilities::toDouble(single_grasp["pre_gripper_position"]) );
 
             if ( !single_grasp.hasMember("post_gripper_position"))
             {
@@ -2980,7 +2544,7 @@ bool QNode::readObjectFromParam()
                 continue;
             }
 
-            object_.post_gripper_position.push_back( rosparam_utilities::toDouble(single_grasp["post_gripper_position"]) );
+            object.post_gripper_position.push_back( rosparam_utilities::toDouble(single_grasp["post_gripper_position"]) );
 
             if ( !single_grasp.hasMember("gripper_force"))
             {
@@ -2988,23 +2552,19 @@ bool QNode::readObjectFromParam()
                 continue;
             }
 
-            object_.gripper_force.push_back( rosparam_utilities::toDouble(single_grasp["gripper_force"]) );
+            object.gripper_force.push_back( rosparam_utilities::toDouble(single_grasp["gripper_force"]) );
 
         }
         bool presence = false;
-        for ( std::size_t j = 0; j < objects_.size(); j++)
-        {
-            if ( !object_.type.compare(objects_[j].type) )
-            {
+        for ( const std::pair<std::string,object_type> single_obj: map_objects_ )
+            if ( !object.type.compare(single_obj.first) )
                 presence = true;
-            }
-        }
 
         if ( !presence )
         {
-            objects_.push_back( object_ );
+            map_objects_.insert(std::make_pair(object.type,object));
+            map_objects_compare_.insert(std::make_pair(object.type,object));
         }
-        objects_compare_.push_back( object_ );
     }
 
     return true;
@@ -3040,23 +2600,17 @@ bool QNode::readSlotsGroupFromParam()
             ROS_WARN("The element #%d has not the field 'name'", i);
             return false;
         }
-        std::string group_name_ = rosparam_utilities::toString(slot_group_["name"]);
+        std::string group_name = rosparam_utilities::toString(slot_group_["name"]);
         bool presence = false;
-        for ( std::size_t j = 0; j < groups_.size(); j++)
-        {
-            if ( !group_name_.compare( groups_[j] ) )
-            {
+        for ( const std::pair<std::string,std::string> &single_group: map_groups_ )
+            if ( !group_name.compare( single_group.first ) )
                 presence = true;
-            }
-        }
 
         if ( !presence )
         {
-            if ( loadNewGroup( group_name_ ) )
-            {
-                groups_.push_back( group_name_ );
-            }
-            groups_compare_.push_back( group_name_ );
+            if ( loadNewGroup( group_name ) )
+                map_groups_.insert(std::make_pair(group_name,group_name));
+            map_groups_compare_.insert(std::make_pair(group_name,group_name));
         }
     }
 
@@ -3083,7 +2637,7 @@ bool QNode::readSlotsFromParam()
     {
         XmlRpc::XmlRpcValue param = config[i];
 
-        manipulation_slot slot_;
+        manipulation_slot manip_slot;
 
         if( param.getType() != XmlRpc::XmlRpcValue::TypeStruct)
         {
@@ -3096,57 +2650,57 @@ bool QNode::readSlotsFromParam()
             ROS_WARN("The element #%d has not the field 'name'", i);
             return false;
         }
-        slot_.name = rosparam_utilities::toString(param["name"]);
+        manip_slot.name = rosparam_utilities::toString(param["name"]);
 
         if( !param.hasMember("slots_group") )
         {
             ROS_WARN("The element #%d has not the field 'slots_group'", i);
             return false;
         }
-        slot_.group = rosparam_utilities::toString(param["slots_group"]);
+        manip_slot.group = rosparam_utilities::toString(param["slots_group"]);
 
         if( !param.hasMember("frame") )
         {
             ROS_WARN("The element #%d has not the field 'frame'", i);
             return false;
         }
-        slot_.frame = rosparam_utilities::toString(param["frame"]);
+        manip_slot.frame = rosparam_utilities::toString(param["frame"]);
 
         if( !param.hasMember("max_objects") )
         {
             ROS_WARN("The element #%d has not the field 'max_objects'", i);
             return false;
         }
-        slot_.max_objects = rosparam_utilities::toInt(param["max_objects"]);
+        manip_slot.max_objects = rosparam_utilities::toInt(param["max_objects"]);
 
         std::string what;
         std::vector<double> approach_distance_d;
         if( !rosparam_utilities::getParam(param,"approach_distance",approach_distance_d,what) )
         {
-            ROS_WARN("Slot %s has not the field 'approach_distance'",slot_.name.c_str());
+            ROS_WARN("Slot %s has not the field 'approach_distance'",manip_slot.name.c_str());
             return false;
         }
         assert(approach_distance_d.size()==3);
-        slot_.approach.origin_x = approach_distance_d.at(0);
-        slot_.approach.origin_y = approach_distance_d.at(1);
-        slot_.approach.origin_z = approach_distance_d.at(2);
+        manip_slot.approach.origin_x = approach_distance_d.at(0);
+        manip_slot.approach.origin_y = approach_distance_d.at(1);
+        manip_slot.approach.origin_z = approach_distance_d.at(2);
 
         std::vector<double> leave_distance_d;
         if( !rosparam_utilities::getParam(param,"leave_distance",leave_distance_d,what) )
         {
-            ROS_WARN("Slot %s has not the field 'leave_distance'",slot_.name.c_str());
+            ROS_WARN("Slot %s has not the field 'leave_distance'",manip_slot.name.c_str());
             return false;
         }
         assert(leave_distance_d.size()==3);
-        slot_.leave.origin_x = leave_distance_d.at(0);
-        slot_.leave.origin_y = leave_distance_d.at(1);
-        slot_.leave.origin_z = leave_distance_d.at(2);
+        manip_slot.leave.origin_x = leave_distance_d.at(0);
+        manip_slot.leave.origin_y = leave_distance_d.at(1);
+        manip_slot.leave.origin_z = leave_distance_d.at(2);
 
         location loc;
         std::vector<double> position;
         if( !rosparam_utilities::getParam(param,"position",position,what) )
         {
-            ROS_WARN("Slot %s has not the field 'position'",slot_.name.c_str());
+            ROS_WARN("Slot %s has not the field 'position'",manip_slot.name.c_str());
             return false;
         }
         assert(position.size()==3);
@@ -3158,7 +2712,7 @@ bool QNode::readSlotsFromParam()
         std::vector<double> quaternion;
         if( !rosparam_utilities::getParam(param,"quaternion",quaternion,what) )
         {
-            ROS_WARN("Slot %s has not the field 'quaternion'",slot_.name.c_str());
+            ROS_WARN("Slot %s has not the field 'quaternion'",manip_slot.name.c_str());
             return false;
         }
         assert(quaternion.size()==4);
@@ -3168,24 +2722,17 @@ bool QNode::readSlotsFromParam()
         loc.quat.rotation_z = quaternion.at(2);
         loc.quat.rotation_w = quaternion.at(3);
 
-        slot_.location_ = loc;
+        manip_slot.location_ = loc;
 
         bool presence = false;
-        for ( std::size_t j = 0; j < manipulation_slots_.size(); j++)
-        {
-            if ( !slot_.name.compare(manipulation_slots_[j].name) )
-            {
+        for ( const std::pair<std::string,manipulation_slot> &single_slot: map_manipulation_slots_ )
+            if ( !manip_slot.name.compare(single_slot.first) )
                 presence = true;
-            }
-        }
-
         if ( !presence )
         {
-            if ( loadNewSlot(slot_) )
-            {
-                manipulation_slots_.push_back(slot_);
-            }
-            slots_compare_.push_back(slot_);
+            if ( loadNewSlot(manip_slot) )
+                map_manipulation_slots_.insert(std::make_pair(manip_slot.name,manip_slot));
+            map_slots_compare_.insert(std::make_pair(manip_slot.name,manip_slot));
         }
     }
 
@@ -3210,7 +2757,7 @@ bool QNode::readLocationsFromParam()
 
     for (int i=0; i < go_to_locations_param.size(); i++)
     {
-        go_to_location go_to_;
+        go_to_location go_to;
         XmlRpc::XmlRpcValue single_location = go_to_locations_param[i];
         if( single_location.getType() != XmlRpc::XmlRpcValue::TypeStruct)
         {
@@ -3223,57 +2770,51 @@ bool QNode::readLocationsFromParam()
             ROS_WARN("The element #%d has not the field 'name'", i);
             return false;
         }
-        go_to_.name = rosparam_utilities::toString(single_location["name"]);
+        go_to.name = rosparam_utilities::toString(single_location["name"]);
 
         if( !single_location.hasMember("frame") )
         {
             ROS_WARN("The element #%d has not the field 'frame'", i);
             return false;
         }
-        go_to_.frame = rosparam_utilities::toString(single_location["frame"]);
+        go_to.frame = rosparam_utilities::toString(single_location["frame"]);
 
         std::string what;
         std::vector<double> pos;
         if( !rosparam_utilities::getParam(single_location,"position",pos,what) )
         {
-            ROS_WARN("Slot %s has not the field 'position'",go_to_.name.c_str());
+            ROS_WARN("Slot %s has not the field 'position'",go_to.name.c_str());
             return false;
         }
         assert(pos.size()==3);
 
-        go_to_.location_.pos.origin_x = pos.at(0);
-        go_to_.location_.pos.origin_y = pos.at(1);
-        go_to_.location_.pos.origin_z = pos.at(2);
+        go_to.location_.pos.origin_x = pos.at(0);
+        go_to.location_.pos.origin_y = pos.at(1);
+        go_to.location_.pos.origin_z = pos.at(2);
 
         std::vector<double> quat;
         if( !rosparam_utilities::getParam(single_location,"quaternion",quat,what) )
         {
-            ROS_WARN("Slot %s has not the field 'quaternion'",go_to_.name.c_str());
+            ROS_WARN("Slot %s has not the field 'quaternion'",go_to.name.c_str());
             return false;
         }
         assert(quat.size()==4);
 
-        go_to_.location_.quat.rotation_x = quat.at(0);
-        go_to_.location_.quat.rotation_y = quat.at(1);
-        go_to_.location_.quat.rotation_z = quat.at(2);
-        go_to_.location_.quat.rotation_w = quat.at(3);
+        go_to.location_.quat.rotation_x = quat.at(0);
+        go_to.location_.quat.rotation_y = quat.at(1);
+        go_to.location_.quat.rotation_z = quat.at(2);
+        go_to.location_.quat.rotation_w = quat.at(3);
 
         bool presence = false;
-        for ( std::size_t j = 0; j < go_to_locations_.size(); j++)
-        {
-            if ( !go_to_.name.compare(go_to_locations_[j].name) )
-            {
+        for (const std::pair<std::string,go_to_location>& single_go_to: map_go_to_locations_)
+            if ( go_to.name.compare(single_go_to.first) )
                 presence = true;
-            }
-        }
 
         if ( !presence )
         {
-            if ( loadNewLocation(go_to_) )
-            {
-                go_to_locations_.push_back(go_to_);
-            }
-            go_to_locations_compare_.push_back(go_to_);
+            if ( loadNewLocation(go_to) )
+                map_go_to_locations_.insert(std::make_pair(go_to.name, go_to));
+            map_go_to_locations_compare_.insert(std::make_pair(go_to.name,go_to));
         }
     }
     return true;
@@ -3304,9 +2845,9 @@ bool QNode::readGotoPickAndPlaceFromParam()
             ROS_WARN("The action #%d has not the field 'type'", i);
             return false;
         }
-        std::string type_ = rosparam_utilities::toString(param["type"]);
+        std::string param_type = rosparam_utilities::toString(param["type"]);
 
-        if ( !type_.compare("goto") )
+        if ( !param_type.compare("goto") )
         {
             go_to_action go_to_to_read;
 
@@ -3340,9 +2881,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 go_to_to_read.description = " ";
             }
             else
-            {
                 go_to_to_read.description = rosparam_utilities::toString(param["description"]);
-            }
 
             if( !param.hasMember("job_exec_name") )
             {
@@ -3350,9 +2889,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 go_to_to_read.job_exec_name = " ";
             }
             else
-            {
                 go_to_to_read.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
-            }
 
             if( !param.hasMember("property_pre_exec_id") )
             {
@@ -3360,9 +2897,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 go_to_to_read.pre_exec_property_id = " ";
             }
             else
-            {
                 go_to_to_read.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
-            }
 
             if( !param.hasMember("property_exec_id") )
             {
@@ -3370,9 +2905,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 go_to_to_read.exec_property_id = " ";
             }
             else
-            {
                 go_to_to_read.exec_property_id = rosparam_utilities::toString(param["property_exec_id"]);
-            }
 
             if( !param.hasMember("property_post_exec_id") )
             {
@@ -3380,28 +2913,22 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 go_to_to_read.post_exec_property_id = " ";
             }
             else
-            {
                 go_to_to_read.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
-            }
 
 
             bool presence = false;
-            for ( std::size_t j = 0; j < go_to_actions_.size(); j++)
-            {
-                if ( !go_to_to_read.name.compare(go_to_actions_[j].name) )
-                {
+            for ( const std::pair<std::string,go_to_action> &single_go_to: map_go_to_actions_)
+                if ( !go_to_to_read.name.compare(single_go_to.first) )
                     presence = true;
-                }
-            }
 
             if ( !presence )
             {
-                go_to_actions_.push_back(go_to_to_read);
-                go_to_actions_compare_.push_back(go_to_to_read);
+                map_go_to_actions_.insert(std::make_pair(go_to_to_read.name,go_to_to_read));
+                map_go_to_actions_compare_.insert(std::make_pair(go_to_to_read.name,go_to_to_read));
             }
         }
 
-        if ( !type_.compare("place") )
+        if ( !param_type.compare("place") )
         {
             place place_to_read;
 
@@ -3435,9 +2962,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 place_to_read.description = " ";
             }
             else
-            {
                 place_to_read.description = rosparam_utilities::toString(param["description"]);
-            }
 
             if( !param.hasMember("job_exec_name") )
             {
@@ -3445,9 +2970,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 place_to_read.job_exec_name = " ";
             }
             else
-            {
                 place_to_read.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
-            }
 
             if( !param.hasMember("property_pre_exec_id") )
             {
@@ -3455,9 +2978,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 place_to_read.pre_exec_property_id = " ";
             }
             else
-            {
                 place_to_read.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
-            }
 
             if( !param.hasMember("property_exec_id") )
             {
@@ -3465,9 +2986,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 place_to_read.exec_property_id = " ";
             }
             else
-            {
                 place_to_read.exec_property_id = rosparam_utilities::toString(param["property_exec_id"]);
-            }
 
             if( !param.hasMember("property_post_exec_id") )
             {
@@ -3475,27 +2994,20 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 place_to_read.post_exec_property_id = " ";
             }
             else
-            {
                 place_to_read.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
-            }
 
             bool presence = false;
-            for ( std::size_t j = 0; j < place_actions_.size(); j++)
-            {
-                if ( !place_to_read.name.compare(place_actions_[j].name) )
-                {
+            for ( const std::pair<std::string,place> &single_place: map_place_actions_)
+                if ( !place_to_read.name.compare(single_place.first) )
                     presence = true;
-                }
-            }
-
             if ( !presence )
             {
-                place_actions_.push_back(place_to_read);
-                place_actions_compare_.push_back(place_to_read);
+                map_place_actions_.insert(std::make_pair(place_to_read.name,place_to_read));
+                map_place_actions_compare_.insert(std::make_pair(place_to_read.name,place_to_read));
             }
         }
 
-        if ( !type_.compare("pick") )
+        if ( !param_type.compare("pick") )
         {
             pick pick_to_read;
 
@@ -3529,9 +3041,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 pick_to_read.description = " ";
             }
             else
-            {
                 pick_to_read.description = rosparam_utilities::toString(param["description"]);
-            }
 
             if( !param.hasMember("job_exec_name") )
             {
@@ -3539,9 +3049,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 pick_to_read.job_exec_name = " ";
             }
             else
-            {
                 pick_to_read.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
-            }
 
             if( !param.hasMember("property_pre_exec_id") )
             {
@@ -3549,9 +3057,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 pick_to_read.pre_exec_property_id = " ";
             }
             else
-            {
                 pick_to_read.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
-            }
 
             if( !param.hasMember("property_exec_id") )
             {
@@ -3559,9 +3065,7 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 pick_to_read.exec_property_id = " ";
             }
             else
-            {
                 pick_to_read.exec_property_id = rosparam_utilities::toString(param["property_exec_id"]);
-            }
 
             if( !param.hasMember("property_post_exec_id") )
             {
@@ -3569,23 +3073,17 @@ bool QNode::readGotoPickAndPlaceFromParam()
                 pick_to_read.post_exec_property_id = " ";
             }
             else
-            {
                 pick_to_read.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
-            }
 
             bool presence = false;
-            for ( std::size_t j = 0; j < pick_actions_.size(); j++)
-            {
-                if ( !pick_to_read.name.compare(pick_actions_[j].name) )
-                {
+            for ( const std::pair<std::string,pick> &single_pick: map_pick_actions_ )
+                if ( !pick_to_read.name.compare(single_pick.first) )
                     presence = true;
-                }
-            }
 
             if ( !presence )
             {
-                pick_actions_.push_back(pick_to_read);
-                pick_actions_compare_.push_back(pick_to_read);
+                map_pick_actions_.insert(std::make_pair(pick_to_read.name,pick_to_read));
+                map_pick_actions_compare_.insert(std::make_pair(pick_to_read.name,pick_to_read));
             }
         }
     }
