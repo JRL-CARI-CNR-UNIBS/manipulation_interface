@@ -320,13 +320,13 @@ public:
     void logSecondSlots      (const std::string &msg);
     void logSecondLocations  (const std::string &msg);
 
-    void removeGoTo     (const std::string &name);
-    void removePlace    (const std::string &name);
-    void removePick     (const std::string &name);
-    void removeLocation (const std::string &name);
-    void removeObject   (const std::string &name);
-    void removeSlot     (const std::string &name);
-    void removeBox      (const std::string &name);
+    void removeGoTo         (const std::string &name);
+    void removePlace        (const std::string &name);
+    void removePick         (const std::string &name);
+    void removeLocation     (const std::string &name);
+    void removeObject       (const std::string &name);
+    void removeSlot         (const std::string &name);
+    void removeBox          (const std::string &name);
     void activeConfiguration(const std::string &config);
     void moveGripper        (const std::string &str);
     std::vector<std::string> removeGroup(const std::string &name);
@@ -404,32 +404,25 @@ private:
     QStringListModel logging_model_recipe_;
     QStringListModel logging_model_job_properties_;
 
-    std::vector<go_to_action>      go_to_actions_;
-    std::vector<place>             place_actions_;
-    std::vector<pick>              pick_actions_;
-    std::vector<go_to_action>      go_to_actions_compare_;
-    std::vector<place>             place_actions_compare_;
-    std::vector<pick>              pick_actions_compare_;
+    std::map<std::string, go_to_action>      go_to_actions_;
+    std::map<std::string, place>             place_actions_;
+    std::map<std::string, pick>              pick_actions_;
+    std::map<std::string, go_to_action>      go_to_actions_compare_;
+    std::map<std::string, place>             place_actions_compare_;
+    std::map<std::string, pick>              pick_actions_compare_;
 
-    std::map<std::string, go_to_action>      map_go_to_actions_;
-    std::map<std::string, place>             map_place_actions_;
-    std::map<std::string, pick>              map_pick_actions_;
-    std::map<std::string, go_to_action>      map_go_to_actions_compare_;
-    std::map<std::string, place>             map_place_actions_compare_;
-    std::map<std::string, pick>              map_pick_actions_compare_;
-
-    std::map<std::string, go_to_location>    map_go_to_locations_;
-    std::map<std::string, object_type>       map_objects_;
-    std::map<std::string, manipulation_slot> map_manipulation_slots_;
-    std::map<std::string, std::string>       map_groups_;
-    std::map<std::string, box>               map_boxes_;
-    std::map<std::string, recipe>            map_recipes_;
-    std::map<std::string, go_to_location>    map_go_to_locations_compare_;
-    std::map<std::string, object_type>       map_objects_compare_;
-    std::map<std::string, manipulation_slot> map_slots_compare_;
-    std::map<std::string, std::string>       map_groups_compare_;
-    std::map<std::string, box>               map_boxes_compare_;
-    std::map<std::string, recipe>            map_recipes_compare_;
+    std::map<std::string, go_to_location>    go_to_locations_;
+    std::map<std::string, object_type>       objects_;
+    std::map<std::string, manipulation_slot> manipulation_slots_;
+    std::map<std::string, std::string>       groups_;
+    std::map<std::string, box>               boxes_;
+    std::map<std::string, recipe>            recipes_;
+    std::map<std::string, go_to_location>    go_to_locations_compare_;
+    std::map<std::string, object_type>       objects_compare_;
+    std::map<std::string, manipulation_slot> slots_compare_;
+    std::map<std::string, std::string>       groups_compare_;
+    std::map<std::string, box>               boxes_compare_;
+    std::map<std::string, recipe>            recipes_compare_;
 
     std::vector<std::string>       param_names_;
     std::vector<std::string>       robot_name_params_;

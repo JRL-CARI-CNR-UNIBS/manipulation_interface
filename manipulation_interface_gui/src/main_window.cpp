@@ -29,19 +29,19 @@ using namespace Qt;
 *****************************************************************************/
 
 MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent)
-	: QMainWindow(parent)
+    : QMainWindow(parent)
     , qnode_(argc,argv,n)
 {
     ui_.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
     QObject::connect(ui_.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt())); // qApp is a global variable for the application
 
-	setWindowIcon(QIcon(":/images/icon.png"));
+    setWindowIcon(QIcon(":/images/icon.png"));
     ui_.tab_manager->setCurrentIndex(0); // ensure the first tab is showing - qt-designer should have this already hardwired, but often loses it (settings?).
     QObject::connect(&qnode_, SIGNAL(rosShutdown()), this, SLOT(close()));
 
     /*********************
-	** Logging
-	**********************/
+    ** Logging
+    **********************/
     ui_.goToList              ->setModel(qnode_.loggingModelGoTo());
     ui_.placeList             ->setModel(qnode_.loggingModelPlace());
     ui_.pickList              ->setModel(qnode_.loggingModelPick());
@@ -73,7 +73,7 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
     ui_.componentList ->setSelectionMode(QAbstractItemView::MultiSelection);
 
     ui_.listRecipe ->setDragDropMode(QAbstractItemView::DragDrop);
-//    ui_.list_recipe->model()->doSetSupportedDragActions(Qt::MoveAction);
+    //    ui_.list_recipe->model()->doSetSupportedDragActions(Qt::MoveAction);
 
     ui_.listGoTo->setDragEnabled(true);
     ui_.listPlace->setDragEnabled(true);
@@ -167,13 +167,13 @@ MainWindow::~MainWindow() {}
 *****************************************************************************/
 
 void MainWindow::showNoMasterMessage() {
-	QMessageBox msgBox;
-	msgBox.setText("Couldn't find the ros master.");
-	msgBox.exec();
-//    close();
+    QMessageBox msgBox;
+    msgBox.setText("Couldn't find the ros master.");
+    msgBox.exec();
+    //    close();
 }
 
-void MainWindow::addGoTo( int state )
+void MainWindow::addGoTo(int state)
 {
     std::string go_to_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
@@ -217,7 +217,7 @@ void MainWindow::addGoTo( int state )
             if ( ! go_to_name.empty() )
             {
                 for ( int i = 0; i < indexes.size(); i++)
-                    locations.push_back( ui_.locationsList->model()->data(indexes.at(i)).toString().toStdString() );
+                    locations.push_back( ui_.componentList->model()->data(indexes.at(i)).toString().toStdString() );
                 go_to_action gt_action;
                 gt_action.name                  = go_to_name;
                 gt_action.locations             = locations;
@@ -249,7 +249,7 @@ void MainWindow::addGoTo( int state )
         plotMsg("Empty agent");
 }
 
-void MainWindow::addPlace( int state )
+void MainWindow::addPlace(int state)
 {
     std::string place_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
@@ -293,7 +293,7 @@ void MainWindow::addPlace( int state )
             if ( !place_name.empty())
             {
                 for ( int i = 0; i < indexes.size(); i++)
-                    groups.push_back( ui_.groupList->model()->data(indexes.at(i)).toString().toStdString() );
+                    groups.push_back( ui_.componentList->model()->data(indexes.at(i)).toString().toStdString() );
                 place pl_action;
                 pl_action.name                  = place_name;
                 pl_action.groups                = groups;
@@ -326,7 +326,7 @@ void MainWindow::addPlace( int state )
         plotMsg("Empty agent");
 }
 
-void MainWindow::addPick( int state )
+void MainWindow::addPick(int state)
 {
     std::string pick_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
@@ -370,7 +370,7 @@ void MainWindow::addPick( int state )
             if ( !indexes.empty())
             {
                 for ( int i = 0; i < indexes.size(); i++)
-                    objects.push_back( ui_.objectList->model()->data(indexes.at(i)).toString().toStdString() );
+                    objects.push_back( ui_.componentList->model()->data(indexes.at(i)).toString().toStdString() );
                 pick pk_action;
                 pk_action.name                  = pick_name;
                 pk_action.objects               = objects;
@@ -426,9 +426,9 @@ void MainWindow::on_buttonAddAction_clicked(bool check)
 
 void MainWindow::on_buttonAddGrasp_clicked(bool check)
 {
-  std::string actual_base_frame = tf_name_space_+"/";
-  actual_base_frame.append(ui_.TfList->currentText().toStdString());
-  actual_object_grasp_.push_back(qnode_.returnPosition(actual_base_frame, qnode_.target_frame_));
+    std::string actual_base_frame = tf_name_space_+"/";
+    actual_base_frame.append(ui_.TfList->currentText().toStdString());
+    actual_object_grasp_.push_back(qnode_.returnPosition(actual_base_frame, qnode_.target_frame_));
     actual_tool_grasp_.push_back(qnode_.target_frame_);
     num_grasp_++;
     std::string str = "grasp";
@@ -473,6 +473,8 @@ void MainWindow::on_buttonSetApproach_clicked(bool check)
     actual_approach_gripper_position_.at(index) = qnode_.returnGripperPosition();
     actual_pre_gripper_position_.at(index) = actual_approach_gripper_position_.at(index);
     actual_tool_approach_.at(index) = qnode_.target_frame_;
+    if ( actual_object_leave_.at(index).origin_x == 0.0 & actual_object_leave_.at(index).origin_y == 0.0 & actual_object_leave_.at(index).origin_z == -10.0 )
+        actual_object_leave_ = actual_object_approach_;
 }
 
 void MainWindow::on_buttonSetLeave_clicked(bool check)
@@ -897,7 +899,7 @@ void MainWindow::on_buttonRunRecipe_clicked(bool check)
     loadObjects();
     std::string risp = qnode_.runRecipe();
     plotMsg(risp);
-
+    ui_.comboConfiguration->setCurrentIndex(0);
 }
 
 void MainWindow::on_buttonGripper_clicked(bool check)
@@ -922,97 +924,97 @@ void MainWindow::on_buttonGripper2_clicked(bool check)
 
 void MainWindow::on_buttonAddObject_clicked(bool check)
 { 
-  QString object_name = ui_.editObjectName->text();
-  std::string obj_name = object_name.toStdString();
+    QString object_name = ui_.editObjectName->text();
+    std::string obj_name = object_name.toStdString();
 
-  if ( !obj_name.empty() )
-  {
-    if ( !actual_object_grasp_.empty() )
+    if ( !obj_name.empty() )
     {
-      if ( actual_object_grasp_.size() == actual_object_approach_.size() )
-      {
-        if ( actual_object_approach_.size() == actual_pre_gripper_position_.size() )
+        if ( !actual_object_grasp_.empty() )
         {
-          if ( actual_tool_approach_ == actual_tool_grasp_ )
-          {
-            if ( actual_tool_leave_ == actual_tool_grasp_ )
+            if ( actual_object_grasp_.size() == actual_object_approach_.size() )
             {
-              for ( int i = 0; i < ui_.objectList->model()->rowCount(); i++ )
-              {
-                if ( !obj_name.compare( ui_.objectList->model()->data( ui_.objectList->model()->index( i, 0), 0).toString().toStdString() ) )
+                if ( actual_object_approach_.size() == actual_pre_gripper_position_.size() )
                 {
-                  ROS_ERROR("Object just set");
-                  plotMsg("There is another object with the same name.");
-                  return;
-                }
-              }
-              object_type obj;
-              obj.type     = obj_name;
-              obj.tool     = actual_tool_grasp_;
-              obj.approach = actual_object_approach_;
-              obj.grasp    = actual_object_grasp_;
-              obj.leave    = actual_object_leave_;
-              obj.pre_gripper_position  = actual_pre_gripper_position_;
-              obj.post_gripper_position = actual_post_gripper_position_;
-              obj.gripper_force         = actual_gripper_grasp_force_;
-              qnode_.addObject( obj );
-              num_grasp_ = 0;
-              ui_.graspList->clear();
-              actual_object_grasp_.clear();
-              actual_object_approach_.clear();
-              actual_object_leave_.clear();
-              actual_pre_gripper_position_.clear();
-              actual_post_gripper_position_.clear();
-              actual_approach_gripper_position_.clear();
-              actual_gripper_grasp_force_.clear();
-              actual_tool_approach_.clear();
-              actual_tool_leave_.clear();
-              actual_tool_grasp_.clear();
-              if ( ui_.comboActionType->currentIndex() == 1 )
-                qnode_.writeObjects();
-              plotMsg("Added object description");
-            }
-            else
-            {
-              plotMsg("Leave and grasp have different tool");
-              for ( std::size_t i = 0; i < actual_tool_grasp_.size(); i++)
-              {
-                ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_.at(i).c_str());
-                ROS_ERROR("Leave_tool: %s",actual_tool_leave_.at(i).c_str());
-              }
+                    if ( actual_tool_approach_ == actual_tool_grasp_ )
+                    {
+                        if ( actual_tool_leave_ == actual_tool_grasp_ )
+                        {
+                            for ( int i = 0; i < ui_.objectList->model()->rowCount(); i++ )
+                            {
+                                if ( !obj_name.compare( ui_.objectList->model()->data( ui_.objectList->model()->index( i, 0), 0).toString().toStdString() ) )
+                                {
+                                    ROS_ERROR("Object just set");
+                                    plotMsg("There is another object with the same name.");
+                                    return;
+                                }
+                            }
+                            object_type obj;
+                            obj.type     = obj_name;
+                            obj.tool     = actual_tool_grasp_;
+                            obj.approach = actual_object_approach_;
+                            obj.grasp    = actual_object_grasp_;
+                            obj.leave    = actual_object_leave_;
+                            obj.pre_gripper_position  = actual_pre_gripper_position_;
+                            obj.post_gripper_position = actual_post_gripper_position_;
+                            obj.gripper_force         = actual_gripper_grasp_force_;
+                            qnode_.addObject( obj );
+                            num_grasp_ = 0;
+                            ui_.graspList->clear();
+                            actual_object_grasp_.clear();
+                            actual_object_approach_.clear();
+                            actual_object_leave_.clear();
+                            actual_pre_gripper_position_.clear();
+                            actual_post_gripper_position_.clear();
+                            actual_approach_gripper_position_.clear();
+                            actual_gripper_grasp_force_.clear();
+                            actual_tool_approach_.clear();
+                            actual_tool_leave_.clear();
+                            actual_tool_grasp_.clear();
+                            if ( ui_.comboActionType->currentIndex() == 1 )
+                                qnode_.writeObjects();
+                            plotMsg("Added object description");
+                        }
+                        else
+                        {
+                            plotMsg("Leave and grasp have different tool");
+                            for ( std::size_t i = 0; i < actual_tool_grasp_.size(); i++)
+                            {
+                                ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_.at(i).c_str());
+                                ROS_ERROR("Leave_tool: %s",actual_tool_leave_.at(i).c_str());
+                            }
 
+                        }
+                    }
+                    else
+                    {
+                        plotMsg("Apporach and grasp have different tool");
+                        for ( std::size_t i = 0; i < actual_tool_grasp_.size(); i++)
+                        {
+                            ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_.at(i).c_str());
+                            ROS_ERROR("Approach_tool: %s",actual_tool_approach_.at(i).c_str());
+                        }
+                    }
+                }
+                else {
+                    ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach_.size(), actual_pre_gripper_position_.size() );
+                    plotMsg("Apporach and gripper have different sizes");
+                }
             }
-          }
-          else
-          {
-            plotMsg("Apporach and grasp have different tool");
-            for ( std::size_t i = 0; i < actual_tool_grasp_.size(); i++)
-            {
-              ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_.at(i).c_str());
-              ROS_ERROR("Approach_tool: %s",actual_tool_approach_.at(i).c_str());
+            else {
+                ROS_ERROR("Apporach and grasp have different sizes: %zu, %zu", actual_object_grasp_.size(), actual_object_approach_.size() );
+                plotMsg("Apporach and grasp have different sizes");
             }
-          }
         }
         else {
-          ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach_.size(), actual_pre_gripper_position_.size() );
-          plotMsg("Apporach and gripper have different sizes");
+            ROS_ERROR("Empty grasp");
+            plotMsg("Empty grasp");
         }
-      }
-      else {
-        ROS_ERROR("Apporach and grasp have different sizes: %zu, %zu", actual_object_grasp_.size(), actual_object_approach_.size() );
-        plotMsg("Apporach and grasp have different sizes");
-      }
     }
     else {
-      ROS_ERROR("Empty grasp");
-      plotMsg("Empty grasp");
+        ROS_ERROR("Empty name");
+        plotMsg("Empty name");
     }
-  }
-  else {
-    ROS_ERROR("Empty name");
-    plotMsg("Empty name");
-  }
-  qnode_.saveComponents();
+    qnode_.saveComponents();
 }
 
 void MainWindow::on_buttonAddSlot_clicked(bool check)
@@ -1436,7 +1438,7 @@ void MainWindow::on_buttonResetBoxInfo_clicked(bool chack)
         resetBox( ui_.listBoxModify->model()->data(ui_.listBoxModify->currentIndex()).toString().toStdString() );
 }
 
-void MainWindow::on_buttonUp_pressed      ()
+void MainWindow::on_buttonUp_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1445,7 +1447,7 @@ void MainWindow::on_buttonUp_pressed      ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonDown_pressed    ()
+void MainWindow::on_buttonDown_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1454,7 +1456,7 @@ void MainWindow::on_buttonDown_pressed    ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonLeft_pressed    ()
+void MainWindow::on_buttonLeft_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1463,7 +1465,7 @@ void MainWindow::on_buttonLeft_pressed    ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonRight_pressed   ()
+void MainWindow::on_buttonRight_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1472,7 +1474,7 @@ void MainWindow::on_buttonRight_pressed   ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonFront_pressed   ()
+void MainWindow::on_buttonFront_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1481,7 +1483,7 @@ void MainWindow::on_buttonFront_pressed   ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonBack_pressed    ()
+void MainWindow::on_buttonBack_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1490,7 +1492,7 @@ void MainWindow::on_buttonBack_pressed    ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockX_pressed ()
+void MainWindow::on_buttonClockX_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1499,7 +1501,7 @@ void MainWindow::on_buttonClockX_pressed ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockY_pressed ()
+void MainWindow::on_buttonClockY_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1508,7 +1510,7 @@ void MainWindow::on_buttonClockY_pressed ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockZ_pressed ()
+void MainWindow::on_buttonClockZ_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1517,7 +1519,7 @@ void MainWindow::on_buttonClockZ_pressed ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiX_pressed  ()
+void MainWindow::on_buttonAntiX_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1526,7 +1528,7 @@ void MainWindow::on_buttonAntiX_pressed  ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiY_pressed  ()
+void MainWindow::on_buttonAntiY_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1535,7 +1537,7 @@ void MainWindow::on_buttonAntiY_pressed  ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiZ_pressed  ()
+void MainWindow::on_buttonAntiZ_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1544,84 +1546,84 @@ void MainWindow::on_buttonAntiZ_pressed  ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonUp_released      ()
+void MainWindow::on_buttonUp_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonDown_released    ()
+void MainWindow::on_buttonDown_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonLeft_released    ()
+void MainWindow::on_buttonLeft_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonRight_released   ()
+void MainWindow::on_buttonRight_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonFront_released   ()
+void MainWindow::on_buttonFront_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonBack_released    ()
+void MainWindow::on_buttonBack_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockX_released ()
+void MainWindow::on_buttonClockX_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockY_released ()
+void MainWindow::on_buttonClockY_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockZ_released ()
+void MainWindow::on_buttonClockZ_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiX_released  ()
+void MainWindow::on_buttonAntiX_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiY_released  ()
+void MainWindow::on_buttonAntiY_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiZ_released  ()
+void MainWindow::on_buttonAntiZ_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
@@ -1654,16 +1656,17 @@ void MainWindow::on_buttonRunSelectedAction_clicked(bool check)
     QModelIndexList indexes =  ui_.listRecipe->selectionModel()->selectedIndexes();
     if ( !indexes.empty() )
     {
-      loadObjects();
-      int index = indexes.at(0).row();
-      std::string risp = qnode_.runSelectedAction(index);
-      plotMsg(risp);
+        loadObjects();
+        int index = indexes.at(0).row();
+        std::string risp = qnode_.runSelectedAction(index);
+        plotMsg(risp);
     }
     else
     {
         plotMsg("No selected action");
         ui_.editActionName->clear();
     }
+    ui_.comboConfiguration->setCurrentIndex(0);
 }
 
 void MainWindow::on_buttonCopyLocation_clicked(bool chack)
@@ -2024,11 +2027,11 @@ void MainWindow::on_comboRefFrame_currentIndexChanged(int index)
 
 void MainWindow::on_TfList_currentIndexChanged(int index)
 {
-  std::string name = ui_.TfList->currentText().toStdString();
-  std::size_t found  = name.find( "/" );
-  if ( found != std::string::npos)
-    name.erase( found, name.size() );
-  ui_.editObjectName->setText(QString::fromStdString(name));
+    std::string name = ui_.TfList->currentText().toStdString();
+    std::size_t found  = name.find( "/" );
+    if ( found != std::string::npos)
+        name.erase( found, name.size() );
+    ui_.editObjectName->setText(QString::fromStdString(name));
 }
 
 void MainWindow::on_listLocationModify_pressed(const QModelIndex &index)
@@ -2055,17 +2058,17 @@ void MainWindow::on_listObjectModify_pressed(const QModelIndex &index)
     resetObject( name );
 }
 
-void MainWindow::on_gripperPercentage_valueChanged (int value)
+void MainWindow::on_gripperPercentage_valueChanged(int value)
 {
-  ui_.gripperPercentage->setValue(value);
-  ui_.gripperPercentage2->setValue(value);
-  std::string str = std::to_string(value);
-  QString qstr = QString::fromStdString(str);
-  ui_.openGripperLabel->setText(qstr);
-  ui_.openGripperLabel2->setText(qstr);
+    ui_.gripperPercentage->setValue(value);
+    ui_.gripperPercentage2->setValue(value);
+    std::string str = std::to_string(value);
+    QString qstr = QString::fromStdString(str);
+    ui_.openGripperLabel->setText(qstr);
+    ui_.openGripperLabel2->setText(qstr);
 }
 
-void MainWindow::on_gripperForcePercentage_valueChanged (int value)
+void MainWindow::on_gripperForcePercentage_valueChanged(int value)
 {
     ui_.gripperForcePercentage->setValue(value);
     ui_.gripperForcePercentage2->setValue(value);
@@ -2075,12 +2078,12 @@ void MainWindow::on_gripperForcePercentage_valueChanged (int value)
     ui_.gripperForceLabel2->setText(qstr);
 }
 
-void MainWindow::on_gripperPercentage2_valueChanged (int value)
+void MainWindow::on_gripperPercentage2_valueChanged(int value)
 {
     ui_.gripperPercentage->setValue(value);
 }
 
-void MainWindow::on_gripperForcePercentage2_valueChanged (int value)
+void MainWindow::on_gripperForcePercentage2_valueChanged(int value)
 {
     ui_.gripperForcePercentage->setValue(value);
 }
@@ -2096,6 +2099,11 @@ void MainWindow::on_velocitySlider_valueChanged(int value)
 void MainWindow::on_lateralTab_currentChanged(int index)
 {
     on_buttonLoadTF_clicked(false);
+}
+
+void MainWindow::on_tab_manager_currentChanged(int index)
+{
+    on_comboActionType_currentIndexChanged(ui_.comboActionType->currentIndex());
 }
 
 void MainWindow::on_buttonRemoveElement_clicked(bool check )
@@ -2138,7 +2146,7 @@ void MainWindow::on_buttonWriteRecipe_clicked(bool check)
         qnode_.writeRecipe( name );
 }
 
-void MainWindow::on_buttonLoadActions_clicked  ( bool check )
+void MainWindow::on_buttonLoadActions_clicked( bool check)
 {
     qnode_.writeParam(2);
 }
@@ -2588,12 +2596,12 @@ void MainWindow::writeJobProperty()
  * the user can always see the latest log message.
  */
 void MainWindow::updateLoggingView() {
-        ui_.goToList -> scrollToBottom();
-        ui_.placeList -> scrollToBottom();
-        ui_.pickList  -> scrollToBottom();
-        ui_.listGoTo -> scrollToBottom();
-        ui_.listPlace -> scrollToBottom();
-        ui_.listPick  -> scrollToBottom();
+    ui_.goToList -> scrollToBottom();
+    ui_.placeList -> scrollToBottom();
+    ui_.pickList  -> scrollToBottom();
+    ui_.listGoTo -> scrollToBottom();
+    ui_.listPlace -> scrollToBottom();
+    ui_.listPick  -> scrollToBottom();
 }
 
 /*****************************************************************************
