@@ -2062,11 +2062,11 @@ void QNode::loadParam(const int &ind)
 
         XmlRpc::XmlRpcValue config;
         int i = 0;
-        while (i < 500)
+        while (i < 50)
         {
             if (!n_.getParam("/inbound/boxes",config))
             {
-                if ( i = 0 )
+                if ( i == 0 )
                     ROS_WARN("Waiting the param publication");
                 ros::Duration(0.1).sleep();
                 i++;
@@ -2075,10 +2075,10 @@ void QNode::loadParam(const int &ind)
                 i = 1000;
         }
 
-        if ( i == 500 )
+        if ( i == 50 )
         {
             ROS_ERROR("Mongo didn't load the params");
-            ROS_ERROR("You probably need to change the Python version to mongo_connection");
+            ROS_ERROR("You probably need to change the Python version to mongo_connection or start mongo");
             return;
         }
         else
