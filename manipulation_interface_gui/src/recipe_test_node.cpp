@@ -8,7 +8,7 @@
 #include <manipulation_msgs/RemoveObjectFromSlot.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <rosparam_utilities/rosparam_utilities.h>
-#include <manipulation_interface_gui/recipe_test_msg.h>
+#include <manipulation_interface_gui/RunRecipeTest.h>
 
 struct go_to_action
 {
@@ -60,8 +60,8 @@ struct action_to_run
     std::string post_exec_id;      // property_post_exec_id
 };
 
-bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
-                manipulation_interface_gui::recipe_test_msg::Response& res)
+bool runRecipe( manipulation_interface_gui::RunRecipeTest::Request& req,
+                manipulation_interface_gui::RunRecipeTest::Response& res)
 {
     ros::NodeHandle nh_;
 
@@ -107,9 +107,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
     std::vector<std::string> recipe;
 
     for ( int i = 0; i < params.size(); i++ )
-    {
         recipe.push_back(static_cast<std::string>(params[i]));
-    }
 
     if ( !nh_.getParam("/multi_skills/tasks",params) )
     {
@@ -171,9 +169,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 go_to.description = " ";
             }
             else
-            {
                 go_to.description = rosparam_utilities::toString(param["description"]);
-            }
 
             if( !param.hasMember("job_exec_name") )
             {
@@ -181,9 +177,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 go_to.job_exec_name = " ";
             }
             else
-            {
                 go_to.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
-            }
 
             if( !param.hasMember("property_pre_exec_id") )
             {
@@ -191,9 +185,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 go_to.pre_exec_property_id = " ";
             }
             else
-            {
                 go_to.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
-            }
 
             if( !param.hasMember("property_exec_id") )
             {
@@ -201,9 +193,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 go_to.exec_property_id = " ";
             }
             else
-            {
                 go_to.job_exec_name = rosparam_utilities::toString(param["property_exec_id"]);
-            }
 
             if( !param.hasMember("property_post_exec_id") )
             {
@@ -211,23 +201,15 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 go_to.post_exec_property_id = " ";
             }
             else
-            {
                 go_to.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
-            }
 
             bool presence = false;
             for ( int j = 0; j < go_to_actions.size(); j++)
-            {
                 if ( !go_to.name.compare(go_to_actions[j].name) )
-                {
                     presence = true;
-                }
-            }
 
             if ( !presence )
-            {
                 go_to_actions.push_back(go_to);
-            }
         }
 
         if ( !type_.compare("place") )
@@ -264,9 +246,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 place.description = " ";
             }
             else
-            {
                 place.description = rosparam_utilities::toString(param["description"]);
-            }
 
             if( !param.hasMember("job_exec_name") )
             {
@@ -274,9 +254,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 place.job_exec_name = " ";
             }
             else
-            {
                 place.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
-            }
 
             if( !param.hasMember("property_pre_exec_id") )
             {
@@ -284,9 +262,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 place.pre_exec_property_id = " ";
             }
             else
-            {
                 place.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
-            }
 
             if( !param.hasMember("property_exec_id") )
             {
@@ -294,9 +270,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 place.exec_property_id = " ";
             }
             else
-            {
                 place.exec_property_id = rosparam_utilities::toString(param["property_exec_id"]);
-            }
 
             if( !param.hasMember("property_post_exec_id") )
             {
@@ -304,23 +278,15 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 place.post_exec_property_id = " ";
             }
             else
-            {
                 place.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
-            }
 
             bool presence = false;
             for ( int j = 0; j < place_actions.size(); j++)
-            {
                 if ( !place.name.compare(place_actions[j].name) )
-                {
                     presence = true;
-                }
-            }
 
             if ( !presence )
-            {
                 place_actions.push_back(place);
-            }
         }
 
         if ( !type_.compare("pick") )
@@ -357,9 +323,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 pick.description = " ";
             }
             else
-            {
                 pick.description = rosparam_utilities::toString(param["description"]);
-            }
 
             if( !param.hasMember("job_exec_name") )
             {
@@ -367,9 +331,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 pick.job_exec_name = " ";
             }
             else
-            {
                 pick.job_exec_name = rosparam_utilities::toString(param["job_exec_name"]);
-            }
 
             if( !param.hasMember("property_pre_exec_id") )
             {
@@ -377,9 +339,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 pick.pre_exec_property_id = " ";
             }
             else
-            {
                 pick.pre_exec_property_id = rosparam_utilities::toString(param["property_pre_exec_id"]);
-            }
 
             if( !param.hasMember("property_exec_id") )
             {
@@ -387,9 +347,7 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 pick.exec_property_id = " ";
             }
             else
-            {
                 pick.exec_property_id = rosparam_utilities::toString(param["property_exec_id"]);
-            }
 
             if( !param.hasMember("property_post_exec_id") )
             {
@@ -397,23 +355,15 @@ bool runRecipe( manipulation_interface_gui::recipe_test_msg::Request& req,
                 pick.post_exec_property_id = " ";
             }
             else
-            {
                 pick.post_exec_property_id = rosparam_utilities::toString(param["property_post_exec_id"]);
-            }
 
             bool presence = false;
             for ( int j = 0; j < pick_actions.size(); j++)
-            {
                 if ( !pick.name.compare(pick_actions[j].name) )
-                {
                     presence = true;
-                }
-            }
 
             if ( !presence )
-            {
                 pick_actions.push_back(pick);
-            }
         }
     }
 

@@ -15,6 +15,7 @@
 #include "main_window.hpp"
 #include <geometry_msgs/TwistStamped.h>
 #include <Eigen/Geometry>
+#include <csignal>
 
 /*****************************************************************************
 ** Namespaces
@@ -38,6 +39,8 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
     setWindowIcon(QIcon(":/images/icon.png"));
     ui_.tab_manager->setCurrentIndex(0); // ensure the first tab is showing - qt-designer should have this already hardwired, but often loses it (settings?).
     QObject::connect(&qnode_, SIGNAL(rosShutdown()), this, SLOT(close()));
+
+    std::signal(SIGINT, SIG_DFL);
 
     /*********************
     ** Logging
@@ -2584,7 +2587,6 @@ void MainWindow::writeJobProperty()
         }
     }
 }
-
 
 /*****************************************************************************
 ** Implemenation [Slots][manually connected]
