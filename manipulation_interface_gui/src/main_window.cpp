@@ -1056,6 +1056,7 @@ void MainWindow::on_buttonAddSlot_clicked(bool check)
 
                         init_slot_approach_ = false;
                         init_slot_final_ = false;
+                        init_slot_leave_ = false;
                         ui_.buttonAddApproachSlot->setEnabled(true);
                         ui_.buttonRemoveApproachSlot->setEnabled(false);
                         ui_.buttonAddFinalPositionSlot->setEnabled(true);
@@ -1152,6 +1153,7 @@ void MainWindow::on_buttonAddBox_clicked(bool check)
 
             init_box_approach_ = false;
             init_box_final_ = false;
+            init_box_leave_ = false;
             ui_.buttonAddApproachBox->setEnabled(true);
             ui_.buttonRemoveApproachBox->setEnabled(false);
             ui_.buttonAddFinalBox->setEnabled(true);
@@ -1215,7 +1217,7 @@ void MainWindow::on_buttonAddSlotChanges_clicked(bool check)
 
     QModelIndex index = ui_.listSlotModify->currentIndex();
 
-    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10;
+    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13;
     slt.location_.pos.origin_x    = ui_.editSlotPositionX   ->text().toDouble(&ok0);
     slt.location_.pos.origin_y    = ui_.editSlotPositionY   ->text().toDouble(&ok1);
     slt.location_.pos.origin_z    = ui_.editSlotPositionZ   ->text().toDouble(&ok2);
@@ -1226,12 +1228,16 @@ void MainWindow::on_buttonAddSlotChanges_clicked(bool check)
     slt.approach.origin_x         = ui_.editSlotApproachX   ->text().toDouble(&ok7);
     slt.approach.origin_y         = ui_.editSlotApproachY   ->text().toDouble(&ok8);
     slt.approach.origin_z         = ui_.editSlotApproachZ   ->text().toDouble(&ok9);
-    slt.max_objects               = ui_.editSlotMaxObjects  ->text().toInt(&ok10);
+    slt.leave.origin_x            = ui_.editSlotLeaveX      ->text().toDouble(&ok10);
+    slt.leave.origin_y            = ui_.editSlotLeaveY      ->text().toDouble(&ok11);
+    slt.leave.origin_z            = ui_.editSlotLeaveZ      ->text().toDouble(&ok12);
+
+    slt.max_objects               = ui_.editSlotMaxObjects  ->text().toInt(&ok13);
     slt.frame                     = ui_.editSlotFrame       ->text().toStdString();
     slt.group                     = ui_.editSlotGroup       ->text().toStdString();
     slt.name                      = ui_.listSlotModify      ->model()->data(index).toString().toStdString();
 
-    if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 )
+    if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 || !ok11 || !ok12 || !ok13 )
         plotMsg("One or more number aren't numers");
     else
         qnode_.addSlotChanges(slt);
@@ -1244,7 +1250,7 @@ void MainWindow::on_buttonAddBoxChanges_clicked(bool check)
 
     QModelIndex index = ui_.listBoxModify->currentIndex();
 
-    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9;
+    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12;
     bx.location_.pos.origin_x    = ui_.editBoxPositionX   ->text().toDouble(&ok0);
     bx.location_.pos.origin_y    = ui_.editBoxPositionY   ->text().toDouble(&ok1);
     bx.location_.pos.origin_z    = ui_.editBoxPositionZ   ->text().toDouble(&ok2);
@@ -1255,10 +1261,13 @@ void MainWindow::on_buttonAddBoxChanges_clicked(bool check)
     bx.approach.origin_x         = ui_.editBoxApproachX   ->text().toDouble(&ok7);
     bx.approach.origin_y         = ui_.editBoxApproachY   ->text().toDouble(&ok8);
     bx.approach.origin_z         = ui_.editBoxApproachZ   ->text().toDouble(&ok9);
+    bx.leave.origin_x            = ui_.editBoxLeaveX      ->text().toDouble(&ok10);
+    bx.leave.origin_y            = ui_.editBoxLeaveY      ->text().toDouble(&ok11);
+    bx.leave.origin_z            = ui_.editBoxLeaveZ      ->text().toDouble(&ok12);
     bx.frame                     = ui_.editBoxFrame        ->text().toStdString();
     bx.name                      = ui_.listBoxModify       ->model()->data(index).toString().toStdString();
 
-    if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 )
+    if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 || !ok11 || !ok12 )
         plotMsg("One or more number aren't numers");
     else
         qnode_.addBoxChanges(bx);
@@ -1272,11 +1281,14 @@ void MainWindow::on_buttonAddObjectChanges_clicked(bool check)
 
     object_type obj = qnode_.returnObjectInfo( ui_.listObjectModify->model()->data( index ).toString().toStdString() );
 
-    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9;
+    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12;
 
     obj.approach.at(index2).origin_x     = ui_.editObjectApproachX   ->text().toDouble(&ok7);
     obj.approach.at(index2).origin_y     = ui_.editObjectApproachY   ->text().toDouble(&ok8);
     obj.approach.at(index2).origin_z     = ui_.editObjectApproachZ   ->text().toDouble(&ok9);
+    obj.leave.at(index2).origin_x        = ui_.editObjectLeaveX      ->text().toDouble(&ok10);
+    obj.leave.at(index2).origin_y        = ui_.editObjectLeaveY      ->text().toDouble(&ok11);
+    obj.leave.at(index2).origin_z        = ui_.editObjectLeaveZ      ->text().toDouble(&ok12);
     obj.grasp.at(index2).pos.origin_x    = ui_.editObjectPositionX   ->text().toDouble(&ok0);
     obj.grasp.at(index2).pos.origin_y    = ui_.editObjectPositionY   ->text().toDouble(&ok1);
     obj.grasp.at(index2).pos.origin_z    = ui_.editObjectPositionZ   ->text().toDouble(&ok2);
