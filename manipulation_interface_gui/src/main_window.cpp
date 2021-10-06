@@ -15,6 +15,7 @@
 #include "main_window.hpp"
 #include <geometry_msgs/TwistStamped.h>
 #include <Eigen/Geometry>
+#include <csignal>
 
 /*****************************************************************************
 ** Namespaces
@@ -29,19 +30,21 @@ using namespace Qt;
 *****************************************************************************/
 
 MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent)
-	: QMainWindow(parent)
+    : QMainWindow(parent)
     , qnode_(argc,argv,n)
 {
     ui_.setupUi(this); // Calling this incidentally connects all ui's triggers to on_...() callbacks in this class.
     QObject::connect(ui_.actionAbout_Qt, SIGNAL(triggered(bool)), qApp, SLOT(aboutQt())); // qApp is a global variable for the application
 
-	setWindowIcon(QIcon(":/images/icon.png"));
+    setWindowIcon(QIcon(":/images/icon.png"));
     ui_.tab_manager->setCurrentIndex(0); // ensure the first tab is showing - qt-designer should have this already hardwired, but often loses it (settings?).
     QObject::connect(&qnode_, SIGNAL(rosShutdown()), this, SLOT(close()));
 
+    std::signal(SIGINT, SIG_DFL);
+
     /*********************
-	** Logging
-	**********************/
+    ** Logging
+    **********************/
     ui_.goToList              ->setModel(qnode_.loggingModelGoTo());
     ui_.placeList             ->setModel(qnode_.loggingModelPlace());
     ui_.pickList              ->setModel(qnode_.loggingModelPick());
@@ -73,7 +76,7 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
     ui_.componentList ->setSelectionMode(QAbstractItemView::MultiSelection);
 
     ui_.listRecipe ->setDragDropMode(QAbstractItemView::DragDrop);
-//    ui_.list_recipe->model()->doSetSupportedDragActions(Qt::MoveAction);
+    //    ui_.list_recipe->model()->doSetSupportedDragActions(Qt::MoveAction);
 
     ui_.listGoTo->setDragEnabled(true);
     ui_.listPlace->setDragEnabled(true);
@@ -136,14 +139,14 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
     QString tf;
     for ( std::size_t i = 0; i < qnode_.TFs_.size(); i++ )
     {
-        tf = QString::fromStdString(qnode_.TFs_[i]);
+        tf = QString::fromStdString(qnode_.TFs_.at(i));
         ui_.worldTfList->addItem(tf);
         ui_.comboRefFrame->addItem(tf);
     }
     on_buttonLoadTF_clicked(false);
     for ( std::size_t i = 0; i < qnode_.robots_.size(); i++)
     {
-        tf = QString::fromStdString(qnode_.robots_[i]);
+        tf = QString::fromStdString(qnode_.robots_.at(i));
         ui_.robotList->addItem(tf);
     }
 
@@ -155,12 +158,8 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
     qnode_.writeLocations();
     std::vector<std::string> recipes_names =qnode_.loadRecipesParam();
     if ( !recipes_names.empty() )
-    {
         for ( std::size_t i = 0; i < recipes_names.size(); i++)
-        {
-            ui_.recipeBox->addItem( QString::fromStdString(recipes_names[i]) );
-        }
-    }
+            ui_.recipeBox->addItem( QString::fromStdString(recipes_names.at(i)) );
     writeJobType();
 }
 
@@ -171,13 +170,13 @@ MainWindow::~MainWindow() {}
 *****************************************************************************/
 
 void MainWindow::showNoMasterMessage() {
-	QMessageBox msgBox;
-	msgBox.setText("Couldn't find the ros master.");
-	msgBox.exec();
-//    close();
+    QMessageBox msgBox;
+    msgBox.setText("Couldn't find the ros master.");
+    msgBox.exec();
+    //    close();
 }
 
-void MainWindow::addGoTo( int state )
+void MainWindow::addGoTo(int state)
 {
     std::string go_to_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
@@ -208,13 +207,9 @@ void MainWindow::addGoTo( int state )
     if ( state != 0 )
     {
         if ( state == 1 )
-        {
             agents.push_back("robot");
-           }
         else if ( state == 2 )
-        {
             agents.push_back("human");
-        }
         else if ( state == 3 )
         {
             agents.push_back("robot");
@@ -225,9 +220,7 @@ void MainWindow::addGoTo( int state )
             if ( ! go_to_name.empty() )
             {
                 for ( int i = 0; i < indexes.size(); i++)
-                {
-                    locations.push_back( qnode_.returnLocationListText( indexes.at(i).row() ) );
-                }
+                    locations.push_back( ui_.componentList->model()->data(indexes.at(i)).toString().toStdString() );
                 go_to_action gt_action;
                 gt_action.name                  = go_to_name;
                 gt_action.locations             = locations;
@@ -250,22 +243,16 @@ void MainWindow::addGoTo( int state )
                 }
             }
             else
-            {
                 plotMsg("Empty name");
-            }
         }
         else
-        {
             plotMsg("There isn't any location selected.");
-        }
     }
     else
-    {
         plotMsg("Empty agent");
-    }
 }
 
-void MainWindow::addPlace( int state )
+void MainWindow::addPlace(int state)
 {
     std::string place_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
@@ -296,13 +283,9 @@ void MainWindow::addPlace( int state )
     if ( state != 0 )
     {
         if ( state == 1 )
-        {
             agents.push_back("robot");
-        }
         else if ( state == 2 )
-        {
             agents.push_back("human");
-        }
         else if ( state == 3 )
         {
             agents.push_back("robot");
@@ -313,9 +296,7 @@ void MainWindow::addPlace( int state )
             if ( !place_name.empty())
             {
                 for ( int i = 0; i < indexes.size(); i++)
-                {
-                    groups.push_back( qnode_.returnGroupListText( indexes.at(i).row() ) );
-                }
+                    groups.push_back( ui_.componentList->model()->data(indexes.at(i)).toString().toStdString() );
                 place pl_action;
                 pl_action.name                  = place_name;
                 pl_action.groups                = groups;
@@ -339,22 +320,16 @@ void MainWindow::addPlace( int state )
                 }
             }
             else
-            {
                 plotMsg("Empty name");
-            }
         }
         else
-        {
             plotMsg("There isn't any slot group selected.");
-        }
     }
     else
-    {
         plotMsg("Empty agent");
-    }
 }
 
-void MainWindow::addPick( int state )
+void MainWindow::addPick(int state)
 {
     std::string pick_name = ui_.editActionName->text().toStdString();
     std::string description = ui_.editDescription->toPlainText().toStdString();
@@ -385,13 +360,9 @@ void MainWindow::addPick( int state )
     if ( state != 0 )
     {
         if ( state == 1 )
-        {
             agents.push_back("robot");
-        }
         else if ( state == 2 )
-        {
             agents.push_back("human");
-        }
         else if ( state == 3 )
         {
             agents.push_back("robot");
@@ -402,9 +373,7 @@ void MainWindow::addPick( int state )
             if ( !indexes.empty())
             {
                 for ( int i = 0; i < indexes.size(); i++)
-                {
-                    objects.push_back(qnode_.returnObjectListText( indexes.at(i).row() ) );
-                }
+                    objects.push_back( ui_.componentList->model()->data(indexes.at(i)).toString().toStdString() );
                 pick pk_action;
                 pk_action.name                  = pick_name;
                 pk_action.objects               = objects;
@@ -428,19 +397,13 @@ void MainWindow::addPick( int state )
                 }
             }
             else
-            {
                 plotMsg("There isn't any selected object type");
-            }
         }
         else
-        {
             plotMsg("Empty name");
-        }
     }
     else
-    {
         plotMsg("Empty agent");
-    }
 }
 
 void MainWindow::on_buttonAddAction_clicked(bool check)
@@ -448,41 +411,27 @@ void MainWindow::on_buttonAddAction_clicked(bool check)
     std::string type = ui_.comboActionType->currentText().toStdString();
     int state = 0;
     if ( ui_.checkRobot->checkState() == Qt::Checked && ui_.checkHuman->checkState() == Qt::Checked )
-    {
         state = 3;
-    }
     else if ( ui_.checkRobot->checkState() == Qt::Checked )
-    {
         state = 1;
-    }
     else if ( ui_.checkHuman->checkState() == Qt::Checked )
-    {
         state = 2;
-    }
     else
-    {
         state = 0;
-    }
     if ( !type.compare("Go to"))
-    {
         addGoTo( state );
-    }
     else if ( !type.compare("Pick"))
-    {
         addPick( state );
-    }
     else if ( !type.compare("Place") )
-    {
         addPlace( state );
-    }
     saveActions();
 }
 
 void MainWindow::on_buttonAddGrasp_clicked(bool check)
 {
-  std::string actual_base_frame = tf_name_space_+"/";
-  actual_base_frame.append(ui_.TfList->currentText().toStdString());
-  actual_object_grasp_.push_back(qnode_.returnPosition(actual_base_frame, qnode_.target_frame_));
+    std::string actual_base_frame = tf_name_space_+"/";
+    actual_base_frame.append(ui_.TfList->currentText().toStdString());
+    actual_object_grasp_.push_back(qnode_.returnPosition(actual_base_frame, qnode_.target_frame_));
     actual_tool_grasp_.push_back(qnode_.target_frame_);
     num_grasp_++;
     std::string str = "grasp";
@@ -504,63 +453,59 @@ void MainWindow::on_buttonAddGrasp_clicked(bool check)
 void MainWindow::on_buttonSetApproach_clicked(bool check)
 {
     if ( ui_.graspList->count() == 0 )
-    {
         return;
-    }
     int index = ui_.graspList->currentIndex();
     std::string actual_base_frame = tf_name_space_+"/";
     actual_base_frame.append( ui_.TfList->currentText().toStdString() );
     location actual_approach = qnode_.returnPosition(actual_base_frame, qnode_.target_frame_);
-    double dist_x = actual_approach.pos.origin_x - actual_object_grasp_[index].pos.origin_x;
-    double dist_y = actual_approach.pos.origin_y - actual_object_grasp_[index].pos.origin_y;
-    double dist_z = actual_approach.pos.origin_z - actual_object_grasp_[index].pos.origin_z;
+    double dist_x = actual_approach.pos.origin_x - actual_object_grasp_.at(index).pos.origin_x;
+    double dist_y = actual_approach.pos.origin_y - actual_object_grasp_.at(index).pos.origin_y;
+    double dist_z = actual_approach.pos.origin_z - actual_object_grasp_.at(index).pos.origin_z;
     Eigen::Vector3d dist_obj(dist_x,dist_y,dist_z);
-    double w = actual_object_grasp_[index].quat.rotation_w;
-    double x = actual_object_grasp_[index].quat.rotation_x;
-    double y = actual_object_grasp_[index].quat.rotation_y;
-    double z = actual_object_grasp_[index].quat.rotation_z;
+    double w = actual_object_grasp_.at(index).quat.rotation_w;
+    double x = actual_object_grasp_.at(index).quat.rotation_x;
+    double y = actual_object_grasp_.at(index).quat.rotation_y;
+    double z = actual_object_grasp_.at(index).quat.rotation_z;
     Eigen::Quaterniond quat_grasp( w, x, y, z);
     Eigen::MatrixXd matrix(quat_grasp.toRotationMatrix());
     Eigen::Vector3d dist_tool;
     dist_tool = matrix.inverse() * dist_obj;
-    actual_object_approach_[index].origin_x = dist_tool[0];
-    actual_object_approach_[index].origin_y = dist_tool[1];
-    actual_object_approach_[index].origin_z = dist_tool[2];
-    actual_approach_gripper_position_[index] = qnode_.returnGripperPosition();
-    actual_pre_gripper_position_[index] = actual_approach_gripper_position_[index];
-    actual_tool_approach_[index] = qnode_.target_frame_;
+    actual_object_approach_.at(index).origin_x = dist_tool[0];
+    actual_object_approach_.at(index).origin_y = dist_tool[1];
+    actual_object_approach_.at(index).origin_z = dist_tool[2];
+    actual_approach_gripper_position_.at(index) = qnode_.returnGripperPosition();
+    actual_pre_gripper_position_.at(index) = actual_approach_gripper_position_.at(index);
+    actual_tool_approach_.at(index) = qnode_.target_frame_;
+    if ( actual_object_leave_.at(index).origin_x == 0.0 & actual_object_leave_.at(index).origin_y == 0.0 & actual_object_leave_.at(index).origin_z == -10.0 )
+        actual_object_leave_ = actual_object_approach_;
 }
 
 void MainWindow::on_buttonSetLeave_clicked(bool check)
 {
     if ( ui_.graspList->count() == 0 )
-    {
         return;
-    }
     int index = ui_.graspList->currentIndex();
     std::string actual_base_frame = tf_name_space_+"/";
     actual_base_frame.append( ui_.TfList->currentText().toStdString() );
     location actual_leave = qnode_.returnPosition(actual_base_frame, qnode_.target_frame_);
-    double dist_x = actual_leave.pos.origin_x - actual_object_grasp_[index].pos.origin_x;
-    double dist_y = actual_leave.pos.origin_y - actual_object_grasp_[index].pos.origin_y;
-    double dist_z = actual_leave.pos.origin_z - actual_object_grasp_[index].pos.origin_z;
+    double dist_x = actual_leave.pos.origin_x - actual_object_grasp_.at(index).pos.origin_x;
+    double dist_y = actual_leave.pos.origin_y - actual_object_grasp_.at(index).pos.origin_y;
+    double dist_z = actual_leave.pos.origin_z - actual_object_grasp_.at(index).pos.origin_z;
     Eigen::Vector3d dist_obj(dist_x,dist_y,dist_z);
-    double w = actual_object_grasp_[index].quat.rotation_w;
-    double x = actual_object_grasp_[index].quat.rotation_x;
-    double y = actual_object_grasp_[index].quat.rotation_y;
-    double z = actual_object_grasp_[index].quat.rotation_z;
+    double w = actual_object_grasp_.at(index).quat.rotation_w;
+    double x = actual_object_grasp_.at(index).quat.rotation_x;
+    double y = actual_object_grasp_.at(index).quat.rotation_y;
+    double z = actual_object_grasp_.at(index).quat.rotation_z;
     Eigen::Quaterniond quat_grasp( w, x, y, z);
     Eigen::MatrixXd matrix(quat_grasp.toRotationMatrix());
     Eigen::Vector3d dist_tool;
     dist_tool = matrix.inverse() * dist_obj;
-    actual_object_leave_[index].origin_x = dist_tool[0];
-    actual_object_leave_[index].origin_y = dist_tool[1];
-    actual_object_leave_[index].origin_z = dist_tool[2];
-    if ( std::isnan(actual_approach_gripper_position_[index]) )
-    {
-      actual_pre_gripper_position_[index] = qnode_.returnGripperPosition();
-    }
-    actual_tool_leave_[index] = qnode_.target_frame_;
+    actual_object_leave_.at(index).origin_x = dist_tool[0];
+    actual_object_leave_.at(index).origin_y = dist_tool[1];
+    actual_object_leave_.at(index).origin_z = dist_tool[2];
+    if ( std::isnan(actual_approach_gripper_position_.at(index)) )
+        actual_pre_gripper_position_.at(index) = qnode_.returnGripperPosition();
+    actual_tool_leave_.at(index) = qnode_.target_frame_;
 }
 
 void MainWindow::on_buttonAddApproachSlot_clicked(bool check)
@@ -588,9 +533,7 @@ void MainWindow::on_buttonAddApproachSlot_clicked(bool check)
         ui_.buttonRemoveApproachSlot->setEnabled(true);
     }
     else
-    {
         plotMsg("Final position is not set.");
-    }
 }
 
 void MainWindow::on_buttonAddFinalPositionSlot_clicked(bool check)
@@ -632,15 +575,11 @@ void MainWindow::on_buttonAddLocation_clicked(bool check)
             qnode_.addLocation( gt );
             ui_.editLocationName->clear();
             if ( ui_.comboActionType->currentIndex() == 0)
-            {
                 qnode_.writeLocations();
-            }
         }
     }
     else
-    {
         plotMsg("Empty name.");
-    }
     qnode_.saveComponents();
 }
 
@@ -702,9 +641,7 @@ void MainWindow::on_buttonAddApproachBox_clicked(bool check)
         ui_.buttonRemoveApproachBox->setEnabled(true);
     }
     else
-    {
         plotMsg("Final position is not set.");
-    }
 }
 
 void MainWindow::on_buttonAddFinalBox_clicked(bool check)
@@ -722,14 +659,14 @@ void MainWindow::on_buttonRemoveGoTo_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model  = ui_.goToList->model();
-        QAbstractItemModel* model_ = ui_.listGoTo->model();
+        QAbstractItemModel* model   = ui_.goToList->model();
+        QAbstractItemModel* model_2 = ui_.listGoTo->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.at(i);
-            qnode_.removeGoTo(index.row());
-            model ->removeRow(index.row());
-            model_->removeRow(index.row());
+            qnode_.removeGoTo(model->data(index).toString().toStdString());
+            model  ->removeRow(index.row());
+            model_2->removeRow(index.row());
             indexes =  ui_.goToList->selectionModel()->selectedIndexes();
         }
         ui_.editActionDescription->clear();
@@ -749,14 +686,14 @@ void MainWindow::on_buttonRemoveLocation_clicked(bool check)
     {
         QModelIndex index;
 
-        QAbstractItemModel* model  = ui_.locationsList->model();
-        QAbstractItemModel* model_ = ui_.listLocationModify->model();
+        QAbstractItemModel* model   = ui_.locationsList->model();
+        QAbstractItemModel* model_2 = ui_.listLocationModify->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.at(i);
-            qnode_.removeLocation(index.row());
-            model ->removeRow(index.row());
-            model_->removeRow(index.row());
+            qnode_.removeLocation(model->data(index).toString().toStdString());
+            model  ->removeRow(index.row());
+            model_2->removeRow(index.row());
             indexes =  ui_.locationsList->selectionModel()->selectedIndexes();
         }
         return;
@@ -770,14 +707,14 @@ void MainWindow::on_buttonRemovePlace_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model  = ui_.placeList->model();;
-        QAbstractItemModel* model_ = ui_.listPlace->model();;
+        QAbstractItemModel* model   = ui_.placeList->model();;
+        QAbstractItemModel* model_2 = ui_.listPlace->model();;
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
-            qnode_.removePlace(index.row());
-            model ->removeRow(index.row());
-            model_->removeRow(index.row());
+            qnode_.removePlace(model->data(index).toString().toStdString());
+            model  ->removeRow(index.row());
+            model_2->removeRow(index.row());
             indexes =  ui_.placeList->selectionModel()->selectedIndexes();
         }
         ui_.editActionDescription->clear();
@@ -795,14 +732,14 @@ void MainWindow::on_buttonRemovePick_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model  = ui_.pickList->model();
-        QAbstractItemModel* model_ = ui_.listPick->model();
+        QAbstractItemModel* model   = ui_.pickList->model();
+        QAbstractItemModel* model_2 = ui_.listPick->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
-            qnode_.removePick(index.row());
-            model ->removeRow(index.row());
-            model_->removeRow(index.row());
+            qnode_.removePick(model->data(index).toString().toStdString());
+            model  ->removeRow(index.row());
+            model_2->removeRow(index.row());
             indexes =  ui_.pickList->selectionModel()->selectedIndexes();
         }
         ui_.editActionDescription->clear();
@@ -820,14 +757,14 @@ void MainWindow::on_buttonRemoveObject_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model  = ui_.objectList->model();
-        QAbstractItemModel* model_ = ui_.listObjectModify->model();
+        QAbstractItemModel* model   = ui_.objectList->model();
+        QAbstractItemModel* model_2 = ui_.listObjectModify->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
-            qnode_.removeObject(index.row());
-            model ->removeRow(index.row());
-            model_->removeRow(index.row());
+            qnode_.removeObject(model->data(index).toString().toStdString());
+            model  ->removeRow(index.row());
+            model_2->removeRow(index.row());
             indexes =  ui_.objectList->selectionModel()->selectedIndexes();
         }
         return;
@@ -841,14 +778,14 @@ void MainWindow::on_buttonRemoveBox_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model  = ui_.boxList->model();
-        QAbstractItemModel* model_ = ui_.listBoxModify->model();
+        QAbstractItemModel* model   = ui_.boxList->model();
+        QAbstractItemModel* model_2 = ui_.listBoxModify->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
-            qnode_.removeBox(index.row());
-            model ->removeRow(index.row());
-            model_->removeRow(index.row());
+            qnode_.removeBox(model->data(index).toString().toStdString());
+            model  ->removeRow(index.row());
+            model_2->removeRow(index.row());
             indexes =  ui_.boxList->selectionModel()->selectedIndexes();
         }
         return;
@@ -863,15 +800,15 @@ void MainWindow::on_buttonRemoveGroup_clicked(bool check)
     {
         QModelIndex index;
         QAbstractItemModel* model  = ui_.groupList->model();
-        QAbstractItemModel* model2 = ui_.slotList->model();
+        QAbstractItemModel* model_2 = ui_.slotList->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
-            std::vector<int> indexes2 = qnode_.removeGroup(index.row());
-            for ( int i = indexes2.size()-1; i >= 0; i--)
-            {
-                model2->removeRow(indexes2[i]);
-            }
+            std::vector<std::string> slot_names = qnode_.removeGroup(model->data(index).toString().toStdString());
+            for ( std::size_t j = 0; j < slot_names.size(); j++ )
+                for ( int k = 0; k < model_2->rowCount(); k++)
+                    if ( !slot_names.at(j).compare(model_2->data(model_2->index(k,0)).toString().toStdString()) )
+                        model_2->removeRow(model_2->index(k,0).row());
             model->removeRow(index.row());
             indexes =  ui_.groupList->selectionModel()->selectedIndexes();
         }
@@ -886,14 +823,14 @@ void MainWindow::on_buttonRemoveSlot_clicked(bool check)
     if (!indexes.empty())
     {
         QModelIndex index;
-        QAbstractItemModel* model  = ui_.slotList->model();
-        QAbstractItemModel* model_ = ui_.listSlotModify->model();
+        QAbstractItemModel* model   = ui_.slotList->model();
+        QAbstractItemModel* model_2 = ui_.listSlotModify->model();
         for ( int i = indexes.size()-1 ; i >= 0; i--)
         {
             index = indexes.first();
-            qnode_.removeSlot(index.row());
-            model ->removeRow(index.row());
-            model_->removeRow(index.row());
+            qnode_.removeSlot(model->data(index).toString().toStdString());
+            model  ->removeRow(index.row());
+            model_2->removeRow(index.row());
             indexes =  ui_.slotList->selectionModel()->selectedIndexes();
         }
         return;
@@ -950,7 +887,8 @@ void MainWindow::on_buttonRemoveFinalBox_clicked(bool check)
 void MainWindow::on_buttonRemoveRecipe_clicked(bool check)
 {
     int index = ui_.recipeBox->currentIndex();
-    qnode_.removeRecipe( index );
+    std::string name = ui_.recipeBox->currentText().toStdString();
+    qnode_.removeRecipe( name );
     ui_.recipeBox->removeItem( index );
 }
 
@@ -962,9 +900,11 @@ void MainWindow::on_buttonRunRecipe_clicked(bool check)
         return;
     }
     loadObjects();
+    qnode_.activeConfiguration("watch");
     std::string risp = qnode_.runRecipe();
+    qnode_.activeConfiguration("watch");
     plotMsg(risp);
-
+    ui_.comboConfiguration->setCurrentIndex(0);
 }
 
 void MainWindow::on_buttonGripper_clicked(bool check)
@@ -989,99 +929,97 @@ void MainWindow::on_buttonGripper2_clicked(bool check)
 
 void MainWindow::on_buttonAddObject_clicked(bool check)
 { 
-  QString object_name = ui_.editObjectName->text();
-  std::string obj_name = object_name.toStdString();
+    QString object_name = ui_.editObjectName->text();
+    std::string obj_name = object_name.toStdString();
 
-  if ( !obj_name.empty() )
-  {
-    if ( !actual_object_grasp_.empty() )
+    if ( !obj_name.empty() )
     {
-      if ( actual_object_grasp_.size() == actual_object_approach_.size() )
-      {
-        if ( actual_object_approach_.size() == actual_pre_gripper_position_.size() )
+        if ( !actual_object_grasp_.empty() )
         {
-          if ( actual_tool_approach_ == actual_tool_grasp_ )
-          {
-            if ( actual_tool_leave_ == actual_tool_grasp_ )
+            if ( actual_object_grasp_.size() == actual_object_approach_.size() )
             {
-              for ( int i = 0; i < ui_.objectList->model()->rowCount(); i++ )
-              {
-                if ( !obj_name.compare( ui_.objectList->model()->data( ui_.objectList->model()->index( i, 0), 0).toString().toStdString() ) )
+                if ( actual_object_approach_.size() == actual_pre_gripper_position_.size() )
                 {
-                  ROS_ERROR("Object just set");
-                  plotMsg("There is another object with the same name.");
-                  return;
-                }
-              }
-              object_type obj;
-              obj.type     = obj_name;
-              obj.tool     = actual_tool_grasp_;
-              obj.approach = actual_object_approach_;
-              obj.grasp    = actual_object_grasp_;
-              obj.leave    = actual_object_leave_;
-              obj.pre_gripper_position  = actual_pre_gripper_position_;
-              obj.post_gripper_position = actual_post_gripper_position_;
-              obj.gripper_force         = actual_gripper_grasp_force_;
-              qnode_.addObject( obj );
-              num_grasp_ = 0;
-              ui_.graspList->clear();
-              actual_object_grasp_.clear();
-              actual_object_approach_.clear();
-              actual_object_leave_.clear();
-              actual_pre_gripper_position_.clear();
-              actual_post_gripper_position_.clear();
-              actual_approach_gripper_position_.clear();
-              actual_gripper_grasp_force_.clear();
-              actual_tool_approach_.clear();
-              actual_tool_leave_.clear();
-              actual_tool_grasp_.clear();
-              if ( ui_.comboActionType->currentIndex() == 1 )
-              {
-                qnode_.writeObjects();
-              }
-              plotMsg("Added object description");
-            }
-            else
-            {
-              plotMsg("Leave and grasp have different tool");
-              for ( std::size_t i = 0; i < actual_tool_grasp_.size(); i++)
-              {
-                ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_[i].c_str());
-                ROS_ERROR("Leave_tool: %s",actual_tool_leave_[i].c_str());
-              }
+                    if ( actual_tool_approach_ == actual_tool_grasp_ )
+                    {
+                        if ( actual_tool_leave_ == actual_tool_grasp_ )
+                        {
+                            for ( int i = 0; i < ui_.objectList->model()->rowCount(); i++ )
+                            {
+                                if ( !obj_name.compare( ui_.objectList->model()->data( ui_.objectList->model()->index( i, 0), 0).toString().toStdString() ) )
+                                {
+                                    ROS_ERROR("Object just set");
+                                    plotMsg("There is another object with the same name.");
+                                    return;
+                                }
+                            }
+                            object_type obj;
+                            obj.type     = obj_name;
+                            obj.tool     = actual_tool_grasp_;
+                            obj.approach = actual_object_approach_;
+                            obj.grasp    = actual_object_grasp_;
+                            obj.leave    = actual_object_leave_;
+                            obj.pre_gripper_position  = actual_pre_gripper_position_;
+                            obj.post_gripper_position = actual_post_gripper_position_;
+                            obj.gripper_force         = actual_gripper_grasp_force_;
+                            qnode_.addObject( obj );
+                            num_grasp_ = 0;
+                            ui_.graspList->clear();
+                            actual_object_grasp_.clear();
+                            actual_object_approach_.clear();
+                            actual_object_leave_.clear();
+                            actual_pre_gripper_position_.clear();
+                            actual_post_gripper_position_.clear();
+                            actual_approach_gripper_position_.clear();
+                            actual_gripper_grasp_force_.clear();
+                            actual_tool_approach_.clear();
+                            actual_tool_leave_.clear();
+                            actual_tool_grasp_.clear();
+                            if ( ui_.comboActionType->currentIndex() == 1 )
+                                qnode_.writeObjects();
+                            plotMsg("Added object description");
+                        }
+                        else
+                        {
+                            plotMsg("Leave and grasp have different tool");
+                            for ( std::size_t i = 0; i < actual_tool_grasp_.size(); i++)
+                            {
+                                ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_.at(i).c_str());
+                                ROS_ERROR("Leave_tool: %s",actual_tool_leave_.at(i).c_str());
+                            }
 
+                        }
+                    }
+                    else
+                    {
+                        plotMsg("Apporach and grasp have different tool");
+                        for ( std::size_t i = 0; i < actual_tool_grasp_.size(); i++)
+                        {
+                            ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_.at(i).c_str());
+                            ROS_ERROR("Approach_tool: %s",actual_tool_approach_.at(i).c_str());
+                        }
+                    }
+                }
+                else {
+                    ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach_.size(), actual_pre_gripper_position_.size() );
+                    plotMsg("Apporach and gripper have different sizes");
+                }
             }
-          }
-          else
-          {
-            plotMsg("Apporach and grasp have different tool");
-            for ( std::size_t i = 0; i < actual_tool_grasp_.size(); i++)
-            {
-              ROS_ERROR("Grasp_tool: %s",actual_tool_grasp_[i].c_str());
-              ROS_ERROR("Approach_tool: %s",actual_tool_approach_[i].c_str());
+            else {
+                ROS_ERROR("Apporach and grasp have different sizes: %zu, %zu", actual_object_grasp_.size(), actual_object_approach_.size() );
+                plotMsg("Apporach and grasp have different sizes");
             }
-          }
         }
         else {
-          ROS_ERROR("Apporach and gripper state have different sizes: %zu, %zu", actual_object_approach_.size(), actual_pre_gripper_position_.size() );
-          plotMsg("Apporach and gripper have different sizes");
+            ROS_ERROR("Empty grasp");
+            plotMsg("Empty grasp");
         }
-      }
-      else {
-        ROS_ERROR("Apporach and grasp have different sizes: %zu, %zu", actual_object_grasp_.size(), actual_object_approach_.size() );
-        plotMsg("Apporach and grasp have different sizes");
-      }
     }
     else {
-      ROS_ERROR("Empty grasp");
-      plotMsg("Empty grasp");
+        ROS_ERROR("Empty name");
+        plotMsg("Empty name");
     }
-  }
-  else {
-    ROS_ERROR("Empty name");
-    plotMsg("Empty name");
-  }
-  qnode_.saveComponents();
+    qnode_.saveComponents();
 }
 
 void MainWindow::on_buttonAddSlot_clicked(bool check)
@@ -1104,9 +1042,7 @@ void MainWindow::on_buttonAddSlot_clicked(bool check)
                     if ( ok )
                     {
                         if ( !init_slot_leave_ )
-                        {
                             actual_slot_leave_ = actual_slot_approach_;
-                        }
                         for ( int i = 0; i < ui_.slotList->model()->rowCount(); i++ )
                         {
                             if ( !slot_name.compare( ui_.slotList->model()->data( ui_.slotList->model()->index( i, 0 ), 0).toString().toStdString() ) )
@@ -1120,6 +1056,7 @@ void MainWindow::on_buttonAddSlot_clicked(bool check)
 
                         init_slot_approach_ = false;
                         init_slot_final_ = false;
+                        init_slot_leave_ = false;
                         ui_.buttonAddApproachSlot->setEnabled(true);
                         ui_.buttonRemoveApproachSlot->setEnabled(false);
                         ui_.buttonAddFinalPositionSlot->setEnabled(true);
@@ -1152,9 +1089,8 @@ void MainWindow::on_buttonAddSlot_clicked(bool check)
                             ui_.editMaxObject->clear();
                             ui_.editGroupName->clear();
                             if ( ui_.comboActionType->currentIndex() == 2 )
-                            {
                                 qnode_.writeGroups();
-                            }
+
                             plotMsg("Added slot and group to location manager");
                         }
                     }
@@ -1197,9 +1133,7 @@ void MainWindow::on_buttonAddBox_clicked(bool check)
         if ( !box_name.empty() )
         {
             if ( !init_box_leave_ )
-            {
                 actual_box_leave_ = actual_box_approach_;
-            }
             for ( int i = 0; i < ui_.boxList->model()->rowCount(); i++ )
             {
                 if ( !box_name.compare( ui_.boxList->model()->data( ui_.boxList->model()->index( i, 0 ),0).toString().toStdString() ) )
@@ -1219,6 +1153,7 @@ void MainWindow::on_buttonAddBox_clicked(bool check)
 
             init_box_approach_ = false;
             init_box_final_ = false;
+            init_box_leave_ = false;
             ui_.buttonAddApproachBox->setEnabled(true);
             ui_.buttonRemoveApproachBox->setEnabled(false);
             ui_.buttonAddFinalBox->setEnabled(true);
@@ -1270,13 +1205,9 @@ void MainWindow::on_buttonAddLocationChanges_clicked(bool check)
     loc.name                      = ui_.listLocationModify      ->model()->data(index).toString().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6)
-    {
         plotMsg("One or more number aren't double");
-    }
     else
-    {
-        qnode_.addLocationChanges( index.row(), loc);
-    }
+        qnode_.addLocationChanges(loc);
     qnode_.saveComponents();
 }
 
@@ -1286,7 +1217,7 @@ void MainWindow::on_buttonAddSlotChanges_clicked(bool check)
 
     QModelIndex index = ui_.listSlotModify->currentIndex();
 
-    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10;
+    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13;
     slt.location_.pos.origin_x    = ui_.editSlotPositionX   ->text().toDouble(&ok0);
     slt.location_.pos.origin_y    = ui_.editSlotPositionY   ->text().toDouble(&ok1);
     slt.location_.pos.origin_z    = ui_.editSlotPositionZ   ->text().toDouble(&ok2);
@@ -1297,19 +1228,19 @@ void MainWindow::on_buttonAddSlotChanges_clicked(bool check)
     slt.approach.origin_x         = ui_.editSlotApproachX   ->text().toDouble(&ok7);
     slt.approach.origin_y         = ui_.editSlotApproachY   ->text().toDouble(&ok8);
     slt.approach.origin_z         = ui_.editSlotApproachZ   ->text().toDouble(&ok9);
-    slt.max_objects               = ui_.editSlotMaxObjects  ->text().toInt(&ok10);
+    slt.leave.origin_x            = ui_.editSlotLeaveX      ->text().toDouble(&ok10);
+    slt.leave.origin_y            = ui_.editSlotLeaveY      ->text().toDouble(&ok11);
+    slt.leave.origin_z            = ui_.editSlotLeaveZ      ->text().toDouble(&ok12);
+
+    slt.max_objects               = ui_.editSlotMaxObjects  ->text().toInt(&ok13);
     slt.frame                     = ui_.editSlotFrame       ->text().toStdString();
     slt.group                     = ui_.editSlotGroup       ->text().toStdString();
     slt.name                      = ui_.listSlotModify      ->model()->data(index).toString().toStdString();
 
-    if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 )
-    {
+    if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 || !ok11 || !ok12 || !ok13 )
         plotMsg("One or more number aren't numers");
-    }
     else
-    {
-        qnode_.addSlotChanges( index.row(), slt);
-    }
+        qnode_.addSlotChanges(slt);
     qnode_.saveComponents();
 }
 
@@ -1319,7 +1250,7 @@ void MainWindow::on_buttonAddBoxChanges_clicked(bool check)
 
     QModelIndex index = ui_.listBoxModify->currentIndex();
 
-    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9;
+    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12;
     bx.location_.pos.origin_x    = ui_.editBoxPositionX   ->text().toDouble(&ok0);
     bx.location_.pos.origin_y    = ui_.editBoxPositionY   ->text().toDouble(&ok1);
     bx.location_.pos.origin_z    = ui_.editBoxPositionZ   ->text().toDouble(&ok2);
@@ -1330,17 +1261,16 @@ void MainWindow::on_buttonAddBoxChanges_clicked(bool check)
     bx.approach.origin_x         = ui_.editBoxApproachX   ->text().toDouble(&ok7);
     bx.approach.origin_y         = ui_.editBoxApproachY   ->text().toDouble(&ok8);
     bx.approach.origin_z         = ui_.editBoxApproachZ   ->text().toDouble(&ok9);
+    bx.leave.origin_x            = ui_.editBoxLeaveX      ->text().toDouble(&ok10);
+    bx.leave.origin_y            = ui_.editBoxLeaveY      ->text().toDouble(&ok11);
+    bx.leave.origin_z            = ui_.editBoxLeaveZ      ->text().toDouble(&ok12);
     bx.frame                     = ui_.editBoxFrame        ->text().toStdString();
     bx.name                      = ui_.listBoxModify       ->model()->data(index).toString().toStdString();
 
-    if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 )
-    {
+    if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 || !ok11 || !ok12 )
         plotMsg("One or more number aren't numers");
-    }
     else
-    {
-        qnode_.addBoxChanges( index.row(), bx);
-    }
+        qnode_.addBoxChanges(bx);
     qnode_.saveComponents();
 }
 
@@ -1349,40 +1279,37 @@ void MainWindow::on_buttonAddObjectChanges_clicked(bool check)
     QModelIndex index = ui_.listObjectModify->currentIndex();
     int index2 = ui_.comboGraspNumber->currentIndex();
 
-    object_type obj = qnode_.returnObjectInfo( index.row() );
+    object_type obj = qnode_.returnObjectInfo( ui_.listObjectModify->model()->data( index ).toString().toStdString() );
 
-    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9;
+    bool ok0, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12;
 
-    obj.approach[index2].origin_x     = ui_.editObjectApproachX   ->text().toDouble(&ok7);
-    obj.approach[index2].origin_y     = ui_.editObjectApproachY   ->text().toDouble(&ok8);
-    obj.approach[index2].origin_z     = ui_.editObjectApproachZ   ->text().toDouble(&ok9);
-    obj.grasp[index2].pos.origin_x    = ui_.editObjectPositionX   ->text().toDouble(&ok0);
-    obj.grasp[index2].pos.origin_y    = ui_.editObjectPositionY   ->text().toDouble(&ok1);
-    obj.grasp[index2].pos.origin_z    = ui_.editObjectPositionZ   ->text().toDouble(&ok2);
-    obj.grasp[index2].quat.rotation_x = ui_.editObjectQuaternionX ->text().toDouble(&ok3);
-    obj.grasp[index2].quat.rotation_y = ui_.editObjectQuaternionY ->text().toDouble(&ok4);
-    obj.grasp[index2].quat.rotation_z = ui_.editObjectQuaternionZ ->text().toDouble(&ok5);
-    obj.grasp[index2].quat.rotation_w = ui_.editObjectQuaternionW ->text().toDouble(&ok6);
-    obj.tool[index2]                  = ui_.editObjectTool         ->text().toStdString();
-    obj.type                          = ui_.listObjectModify       ->model()->data( index ).toString().toStdString();
+    obj.approach.at(index2).origin_x     = ui_.editObjectApproachX   ->text().toDouble(&ok7);
+    obj.approach.at(index2).origin_y     = ui_.editObjectApproachY   ->text().toDouble(&ok8);
+    obj.approach.at(index2).origin_z     = ui_.editObjectApproachZ   ->text().toDouble(&ok9);
+    obj.leave.at(index2).origin_x        = ui_.editObjectLeaveX      ->text().toDouble(&ok10);
+    obj.leave.at(index2).origin_y        = ui_.editObjectLeaveY      ->text().toDouble(&ok11);
+    obj.leave.at(index2).origin_z        = ui_.editObjectLeaveZ      ->text().toDouble(&ok12);
+    obj.grasp.at(index2).pos.origin_x    = ui_.editObjectPositionX   ->text().toDouble(&ok0);
+    obj.grasp.at(index2).pos.origin_y    = ui_.editObjectPositionY   ->text().toDouble(&ok1);
+    obj.grasp.at(index2).pos.origin_z    = ui_.editObjectPositionZ   ->text().toDouble(&ok2);
+    obj.grasp.at(index2).quat.rotation_x = ui_.editObjectQuaternionX ->text().toDouble(&ok3);
+    obj.grasp.at(index2).quat.rotation_y = ui_.editObjectQuaternionY ->text().toDouble(&ok4);
+    obj.grasp.at(index2).quat.rotation_z = ui_.editObjectQuaternionZ ->text().toDouble(&ok5);
+    obj.grasp.at(index2).quat.rotation_w = ui_.editObjectQuaternionW ->text().toDouble(&ok6);
+    obj.tool.at(index2)                  = ui_.editObjectTool        ->text().toStdString();
+    obj.type                             = ui_.listObjectModify      ->model()->data( index ).toString().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 )
-    {
         plotMsg("One or more number aren't double");
-    }
     else
-    {
-        qnode_.addObjectChanges( index.row(), obj);
-    }
+        qnode_.addObjectChanges(obj);
     qnode_.saveComponents();
 }
 
 void MainWindow::saveActions()
 {
     if ( !qnode_.saveActions() )
-    {
         plotMsg("There is some problem with the save");
-    }
 }
 
 void MainWindow::on_buttonLoadTF_clicked(bool chack)
@@ -1394,10 +1321,10 @@ void MainWindow::on_buttonLoadTF_clicked(bool chack)
     std::string tf_name;
     for ( std::size_t i = 0; i < qnode_.TFs_.size(); i++ )
     {
-        std::size_t found = qnode_.TFs_[i].find( tf_name_space_.c_str() );
+        std::size_t found = qnode_.TFs_.at(i).find( tf_name_space_.c_str() );
         if ( found != std::string::npos )
         {
-            tf_name = qnode_.TFs_[i];
+            tf_name = qnode_.TFs_.at(i);
             found = tf_name.find("/",2);
             tf_name.erase( 0, found+1 );
             tf = QString::fromStdString(tf_name);
@@ -1413,24 +1340,23 @@ void MainWindow::on_buttonLoad_clicked(bool chack)
 
 void MainWindow::on_buttonCopyGrasp_clicked(bool chack)
 {
-    int index  = ui_.listObjectModify->currentIndex().row();
+    QModelIndex index  = ui_.listObjectModify->currentIndex();
+    std::string name = ui_.listObjectModify->model()->data(index).toString().toStdString();
     int index2 = ui_.comboGraspNumber->currentIndex();
 
-    qnode_.addObjectCopyGrasp( index, index2);
+    qnode_.addObjectCopyGrasp( name, index2);
     QString qstr = QString::fromStdString( std::to_string( ui_.comboGraspNumber->count() ) );
     ui_.comboGraspNumber->addItem( qstr );
-    actual_object_to_modify_ = qnode_.returnObjectInfo(index);
+    actual_object_to_modify_ = qnode_.returnObjectInfo(name);
 }
 
 void MainWindow::on_buttonResetLocationInfo_clicked(bool chack)
 {
     if ( !ui_.listLocationModify->selectionModel()->selectedIndexes().empty() )
-    {
-        resetLocation( ui_.listLocationModify->currentIndex().row() );
-    }
+        resetLocation( ui_.listLocationModify->model()->data(ui_.listLocationModify->currentIndex()).toString().toStdString() );
 }
 
-void MainWindow::resetLocation(int index)
+void MainWindow::resetLocation(const std::string &name)
 {
     ui_.editLocationFrame       ->clear();
     ui_.editLocationPositionX   ->clear();
@@ -1441,7 +1367,7 @@ void MainWindow::resetLocation(int index)
     ui_.editLocationQuaternionY ->clear();
     ui_.editLocationQuaternionZ ->clear();
 
-    go_to_location loc = qnode_.returnLocationInfo(index);
+    go_to_location loc = qnode_.returnLocationInfo(name);
     QString frame_ = QString::fromStdString( loc.frame);
     QString pos_x  = QString::fromStdString( std::to_string(loc.location_.pos.origin_x) );
     QString pos_y  = QString::fromStdString( std::to_string(loc.location_.pos.origin_y) );
@@ -1450,7 +1376,6 @@ void MainWindow::resetLocation(int index)
     QString quat_y = QString::fromStdString( std::to_string(loc.location_.quat.rotation_y) );
     QString quat_z = QString::fromStdString( std::to_string(loc.location_.quat.rotation_z) );
     QString quat_w = QString::fromStdString( std::to_string(loc.location_.quat.rotation_w) );
-    QString name_  = QString::fromStdString( loc.name );
 
     ui_.editLocationFrame       ->insert(frame_);
     ui_.editLocationPositionX   ->insert(pos_x);
@@ -1465,12 +1390,10 @@ void MainWindow::resetLocation(int index)
 void MainWindow::on_buttonResetSlotInfo_clicked(bool chack)
 {
     if ( !ui_.listSlotModify->selectionModel()->selectedIndexes().empty() )
-    {
-        resetSlot( ui_.listSlotModify->currentIndex().row() );
-    }
+        resetSlot( ui_.listSlotModify->model()->data(ui_.listSlotModify->currentIndex()).toString().toStdString() );
 }
 
-void MainWindow::resetSlot(int index)
+void MainWindow::resetSlot(const std::string &name)
 {
     ui_.editSlotFrame       ->clear();
     ui_.editSlotGroup       ->clear();
@@ -1489,7 +1412,7 @@ void MainWindow::resetSlot(int index)
     ui_.editSlotLeaveY      ->clear();
     ui_.editSlotLeaveZ      ->clear();
 
-    manipulation_slot sl = qnode_.returnSlotInfo(index);
+    manipulation_slot sl = qnode_.returnSlotInfo(name);
     QString frame_ = QString::fromStdString( sl.frame);
     QString group_ = QString::fromStdString( sl.group);
     QString pos_x  = QString::fromStdString( std::to_string(sl.location_.pos.origin_x) );
@@ -1503,7 +1426,6 @@ void MainWindow::resetSlot(int index)
     QString appr_y = QString::fromStdString( std::to_string(sl.approach.origin_y) );
     QString appr_z = QString::fromStdString( std::to_string(sl.approach.origin_z) );
     QString max_ob = QString::fromStdString( std::to_string(sl.max_objects) );
-    QString name_  = QString::fromStdString( sl.name );
     QString leav_x = QString::fromStdString( std::to_string(sl.leave.origin_x) );
     QString leav_y = QString::fromStdString( std::to_string(sl.leave.origin_y) );
     QString leav_z = QString::fromStdString( std::to_string(sl.leave.origin_z) );
@@ -1530,12 +1452,10 @@ void MainWindow::resetSlot(int index)
 void MainWindow::on_buttonResetBoxInfo_clicked(bool chack)
 {
     if ( !ui_.listBoxModify->selectionModel()->selectedIndexes().empty() )
-    {
-        resetBox( ui_.listBoxModify->currentIndex().row() );
-    }
+        resetBox( ui_.listBoxModify->model()->data(ui_.listBoxModify->currentIndex()).toString().toStdString() );
 }
 
-void MainWindow::on_buttonUp_pressed      ()
+void MainWindow::on_buttonUp_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1544,7 +1464,7 @@ void MainWindow::on_buttonUp_pressed      ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonDown_pressed    ()
+void MainWindow::on_buttonDown_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1553,7 +1473,7 @@ void MainWindow::on_buttonDown_pressed    ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonLeft_pressed    ()
+void MainWindow::on_buttonLeft_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1562,7 +1482,7 @@ void MainWindow::on_buttonLeft_pressed    ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonRight_pressed   ()
+void MainWindow::on_buttonRight_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1571,7 +1491,7 @@ void MainWindow::on_buttonRight_pressed   ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonFront_pressed   ()
+void MainWindow::on_buttonFront_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1580,7 +1500,7 @@ void MainWindow::on_buttonFront_pressed   ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonBack_pressed    ()
+void MainWindow::on_buttonBack_pressed()
 {
     std::vector<float> twist_move;
     float vel = max_vel_*perc_vel_/100;
@@ -1589,7 +1509,7 @@ void MainWindow::on_buttonBack_pressed    ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockX_pressed ()
+void MainWindow::on_buttonClockX_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1598,7 +1518,7 @@ void MainWindow::on_buttonClockX_pressed ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockY_pressed ()
+void MainWindow::on_buttonClockY_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1607,7 +1527,7 @@ void MainWindow::on_buttonClockY_pressed ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockZ_pressed ()
+void MainWindow::on_buttonClockZ_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1616,7 +1536,7 @@ void MainWindow::on_buttonClockZ_pressed ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiX_pressed  ()
+void MainWindow::on_buttonAntiX_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1625,7 +1545,7 @@ void MainWindow::on_buttonAntiX_pressed  ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiY_pressed  ()
+void MainWindow::on_buttonAntiY_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1634,7 +1554,7 @@ void MainWindow::on_buttonAntiY_pressed  ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiZ_pressed  ()
+void MainWindow::on_buttonAntiZ_pressed()
 {
     std::vector<float> twist_move;
     float rot = max_rot_*perc_vel_/100;
@@ -1643,84 +1563,84 @@ void MainWindow::on_buttonAntiZ_pressed  ()
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonUp_released      ()
+void MainWindow::on_buttonUp_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonDown_released    ()
+void MainWindow::on_buttonDown_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonLeft_released    ()
+void MainWindow::on_buttonLeft_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonRight_released   ()
+void MainWindow::on_buttonRight_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonFront_released   ()
+void MainWindow::on_buttonFront_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonBack_released    ()
+void MainWindow::on_buttonBack_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockX_released ()
+void MainWindow::on_buttonClockX_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockY_released ()
+void MainWindow::on_buttonClockY_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonClockZ_released ()
+void MainWindow::on_buttonClockZ_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiX_released  ()
+void MainWindow::on_buttonAntiX_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiY_released  ()
+void MainWindow::on_buttonAntiY_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
     qnode_.cartMove ( twist_move );
 }
 
-void MainWindow::on_buttonAntiZ_released  ()
+void MainWindow::on_buttonAntiZ_released()
 {
     std::vector<float> twist_move;
     twist_move = { 0, 0, 0, 0, 0, 0 };
@@ -1731,24 +1651,18 @@ void MainWindow::loadObjects()
 {
     std::vector<std::string> object_list = qnode_.loadObjectsInManipulation();
     if ( object_list.empty() )
-    {
         plotMsg("No objects have been added ");
-    }
     else
     {
         std::string str = "Added the objects:\n";
         for ( std::size_t i = 0; i < object_list.size(); i++)
         {
-            std::string object_name = object_list[i].erase( 0, object_list[i].find("/")+1 );
+            std::string object_name = object_list.at(i).erase( 0, object_list.at(i).find("/")+1 );
             str.append( object_name.c_str() );
             if ( i != object_list.size()-1 )
-            {
                 str.append(",\n");
-            }
             else
-            {
                 str.append(".");
-            }
         }
         plotMsg(str);
     }
@@ -1759,24 +1673,25 @@ void MainWindow::on_buttonRunSelectedAction_clicked(bool check)
     QModelIndexList indexes =  ui_.listRecipe->selectionModel()->selectedIndexes();
     if ( !indexes.empty() )
     {
-      loadObjects();
-      int index = indexes.at(0).row();
-      std::string risp = qnode_.runSelectedAction(index);
-      plotMsg(risp);
+        loadObjects();
+        int index = indexes.at(0).row();
+        std::string risp = qnode_.runSelectedAction(index);
+        plotMsg(risp);
     }
     else
     {
         plotMsg("No selected action");
         ui_.editActionName->clear();
     }
+    ui_.comboConfiguration->setCurrentIndex(0);
 }
 
 void MainWindow::on_buttonCopyLocation_clicked(bool chack)
 {
     if ( !ui_.listLocationModify->selectionModel()->selectedIndexes().empty() )
     {
-        int index = ui_.listLocationModify->currentIndex().row();
-        go_to_location loc = qnode_.returnLocationInfo( index );
+        std::string name = ui_.listLocationModify->model()->data(ui_.listLocationModify->currentIndex()).toString().toStdString();
+        go_to_location loc = qnode_.returnLocationInfo( name );
         loc.name = ui_.editNewLocation->text().toStdString();
 
         if ( !loc.name.empty() )
@@ -1790,28 +1705,22 @@ void MainWindow::on_buttonCopyLocation_clicked(bool chack)
             {
                 ui_.editNewLocation->clear();
                 if ( ui_.comboActionType->currentIndex() == 0)
-                {
                     qnode_.writeLocations();
-                }
             }
         }
         else
-        {
             plotMsg("Empty name.");
-        }
     }
     else
-    {
         plotMsg("No selected location.");
-    }
 }
 
 void MainWindow::on_buttonCopyObject_clicked(bool chack)
 {
     if ( !ui_.listObjectModify->selectionModel()->selectedIndexes().empty() )
     {
-        int index = ui_.listObjectModify->currentIndex().row();
-        object_type obj = qnode_.returnObjectInfo( index );
+        std::string name = ui_.listObjectModify->model()->data(ui_.listObjectModify->currentIndex()).toString().toStdString();
+        object_type obj = qnode_.returnObjectInfo( name );
         obj.type = ui_.editNewObject->text().toStdString();
 
         if ( !obj.type.empty() )
@@ -1825,28 +1734,22 @@ void MainWindow::on_buttonCopyObject_clicked(bool chack)
             {
                 ui_.editNewObject->clear();
                 if ( ui_.comboActionType->currentIndex() == 1 )
-                {
                     qnode_.writeObjects();
-                }
             }
         }
         else
-        {
             plotMsg("Empty name.");
-        }
     }
     else
-    {
         plotMsg("No selected object.");
-    }
 }
 
 void MainWindow::on_buttonCopySlot_clicked(bool chack)
 {
     if ( !ui_.listSlotModify->selectionModel()->selectedIndexes().empty() )
     {
-        int index = ui_.listSlotModify->currentIndex().row();
-        manipulation_slot slt = qnode_.returnSlotInfo( index );
+        std::string name  = ui_.listSlotModify->model()->data(ui_.listSlotModify->currentIndex()).toString().toStdString();
+        manipulation_slot slt = qnode_.returnSlotInfo( name );
         slt.name = ui_.editNewSlot->text().toStdString();
 
         if ( !slt.name.empty() )
@@ -1860,28 +1763,22 @@ void MainWindow::on_buttonCopySlot_clicked(bool chack)
             {
                 ui_.editNewSlot->clear();
                 if ( ui_.comboActionType->currentIndex() == 2 )
-                {
                     qnode_.writeGroups();
-                }
             }
         }
         else
-        {
             plotMsg("Empty name.");
-        }
     }
     else
-    {
         plotMsg("No selected slot.");
-    }
 }
 
 void MainWindow::on_buttonCopyBox_clicked(bool chack)
 {
     if ( !ui_.listBoxModify->selectionModel()->selectedIndexes().empty() )
     {
-        int index = ui_.listBoxModify->currentIndex().row();
-        box bx = qnode_.returnBoxInfo( index );
+        std::string name = ui_.listBoxModify->model()->data(ui_.listBoxModify->currentIndex()).toString().toStdString();
+        box bx = qnode_.returnBoxInfo( name );
         bx.name = ui_.editNewBox->text().toStdString();
 
         if ( !bx.name.empty() )
@@ -1892,22 +1789,16 @@ void MainWindow::on_buttonCopyBox_clicked(bool chack)
                 ui_.editNewBox->clear();
             }
             else
-            {
                 ui_.editNewBox->clear();
-            }
         }
         else
-        {
             plotMsg("Empty name.");
-        }
     }
     else
-    {
         plotMsg("No selected box.");
-    }
 }
 
-void MainWindow::resetBox(int index)
+void MainWindow::resetBox(const std::string &name)
 {
     ui_.editBoxFrame       ->clear();
     ui_.editBoxPositionX   ->clear();
@@ -1924,7 +1815,7 @@ void MainWindow::resetBox(int index)
     ui_.editBoxLeaveY      ->clear();
     ui_.editBoxLeaveZ      ->clear();
 
-    box bx = qnode_.returnBoxInfo(index);
+    box bx = qnode_.returnBoxInfo(name);
     QString frame_ = QString::fromStdString( bx.frame);
     QString pos_x  = QString::fromStdString( std::to_string(bx.location_.pos.origin_x) );
     QString pos_y  = QString::fromStdString( std::to_string(bx.location_.pos.origin_y) );
@@ -1939,7 +1830,6 @@ void MainWindow::resetBox(int index)
     QString leav_x = QString::fromStdString( std::to_string(bx.leave.origin_x) );
     QString leav_y = QString::fromStdString( std::to_string(bx.leave.origin_y) );
     QString leav_z = QString::fromStdString( std::to_string(bx.leave.origin_z) );
-    QString name_  = QString::fromStdString( bx.name );
 
     ui_.editBoxFrame       ->insert(frame_);
     ui_.editBoxPositionX   ->insert(pos_x);
@@ -1961,12 +1851,10 @@ void MainWindow::resetBox(int index)
 void MainWindow::on_buttonResetObjectInfo_clicked(bool chack)
 {
     if ( !ui_.listObjectModify->selectionModel()->selectedIndexes().empty() )
-    {
-        resetObject( ui_.listObjectModify->currentIndex().row() );
-    }
+        resetObject( ui_.listObjectModify->model()->data(ui_.listObjectModify->currentIndex()).toString().toStdString() );
 }
 
-void MainWindow::resetObject(int index)
+void MainWindow::resetObject(const std::string &name)
 {
     init_objects_ = false;
     ui_.comboGraspNumber->clear();
@@ -1989,33 +1877,30 @@ void MainWindow::resetObject(int index)
     ui_.editPreGripperState   ->clear();
     ui_.editPostGripperState  ->clear();
 
-    actual_object_to_modify_ = qnode_.returnObjectInfo(index);
+    actual_object_to_modify_ = qnode_.returnObjectInfo(name);
 
     for ( std::size_t i = 0; i < actual_object_to_modify_.grasp.size(); i++ )
-    {
         ui_.comboGraspNumber->addItem( QString::fromStdString( std::to_string(i) ) );
-    }
     init_objects_ = true;
 
     int i = ui_.comboGraspNumber->currentIndex();
-    QString pos_x  = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[i].pos.origin_x) );
-    QString pos_y  = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[i].pos.origin_y) );
-    QString pos_z  = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[i].pos.origin_z) );
-    QString quat_x = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[i].quat.rotation_x) );
-    QString quat_y = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[i].quat.rotation_y) );
-    QString quat_z = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[i].quat.rotation_z) );
-    QString quat_w = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[i].quat.rotation_w) );
-    QString appr_x = QString::fromStdString( std::to_string(actual_object_to_modify_.approach[i].origin_x) );
-    QString appr_y = QString::fromStdString( std::to_string(actual_object_to_modify_.approach[i].origin_y) );
-    QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify_.approach[i].origin_z) );
-    QString leav_x = QString::fromStdString( std::to_string(actual_object_to_modify_.leave[i].origin_x) );
-    QString leav_y = QString::fromStdString( std::to_string(actual_object_to_modify_.leave[i].origin_y) );
-    QString leav_z = QString::fromStdString( std::to_string(actual_object_to_modify_.leave[i].origin_z) );
-    QString tool   = QString::fromStdString( actual_object_to_modify_.tool[i] );
-    QString type_  = QString::fromStdString( actual_object_to_modify_.type );
-    QString gripper_force  = QString::fromStdString( std::to_string( actual_object_to_modify_.gripper_force[i] ) );
-    QString pre_position   = QString::fromStdString( std::to_string( actual_object_to_modify_.pre_gripper_position[i] ) );
-    QString post_position  = QString::fromStdString( std::to_string( actual_object_to_modify_.post_gripper_position[i] ) );
+    QString pos_x  = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(i).pos.origin_x) );
+    QString pos_y  = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(i).pos.origin_y) );
+    QString pos_z  = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(i).pos.origin_z) );
+    QString quat_x = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(i).quat.rotation_x) );
+    QString quat_y = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(i).quat.rotation_y) );
+    QString quat_z = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(i).quat.rotation_z) );
+    QString quat_w = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(i).quat.rotation_w) );
+    QString appr_x = QString::fromStdString( std::to_string(actual_object_to_modify_.approach.at(i).origin_x) );
+    QString appr_y = QString::fromStdString( std::to_string(actual_object_to_modify_.approach.at(i).origin_y) );
+    QString appr_z = QString::fromStdString( std::to_string(actual_object_to_modify_.approach.at(i).origin_z) );
+    QString leav_x = QString::fromStdString( std::to_string(actual_object_to_modify_.leave.at(i).origin_x) );
+    QString leav_y = QString::fromStdString( std::to_string(actual_object_to_modify_.leave.at(i).origin_y) );
+    QString leav_z = QString::fromStdString( std::to_string(actual_object_to_modify_.leave.at(i).origin_z) );
+    QString tool   = QString::fromStdString( actual_object_to_modify_.tool.at(i) );
+    QString gripper_force  = QString::fromStdString( std::to_string( actual_object_to_modify_.gripper_force.at(i) ) );
+    QString pre_position   = QString::fromStdString( std::to_string( actual_object_to_modify_.pre_gripper_position.at(i) ) );
+    QString post_position  = QString::fromStdString( std::to_string( actual_object_to_modify_.post_gripper_position.at(i) ) );
 
     ui_.editObjectPositionX   ->insert(pos_x);
     ui_.editObjectPositionY   ->insert(pos_y);
@@ -2076,23 +1961,23 @@ void MainWindow::on_comboGraspNumber_currentIndexChanged(int index)
 
     if ( init_objects_)
     {
-        QString pos_x          = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[index].pos.origin_x) );
-        QString pos_y          = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[index].pos.origin_y) );
-        QString pos_z          = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[index].pos.origin_z) );
-        QString quat_x         = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[index].quat.rotation_x) );
-        QString quat_y         = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[index].quat.rotation_y) );
-        QString quat_z         = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[index].quat.rotation_z) );
-        QString quat_w         = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp[index].quat.rotation_w) );
-        QString appr_x         = QString::fromStdString( std::to_string(actual_object_to_modify_.approach[index].origin_x) );
-        QString appr_y         = QString::fromStdString( std::to_string(actual_object_to_modify_.approach[index].origin_y) );
-        QString appr_z         = QString::fromStdString( std::to_string(actual_object_to_modify_.approach[index].origin_z) );
-        QString tool           = QString::fromStdString( actual_object_to_modify_.tool[index] );
-        QString gripper_force  = QString::fromStdString( std::to_string( actual_object_to_modify_.gripper_force[index] ) );
-        QString pre_position   = QString::fromStdString( std::to_string( actual_object_to_modify_.pre_gripper_position[index] ) );
-        QString post_position  = QString::fromStdString( std::to_string( actual_object_to_modify_.post_gripper_position[index] ) );
-        QString leav_x         = QString::fromStdString( std::to_string(actual_object_to_modify_.leave[index].origin_x) );
-        QString leav_y         = QString::fromStdString( std::to_string(actual_object_to_modify_.leave[index].origin_y) );
-        QString leav_z         = QString::fromStdString( std::to_string(actual_object_to_modify_.leave[index].origin_z) );
+        QString pos_x          = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(index).pos.origin_x) );
+        QString pos_y          = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(index).pos.origin_y) );
+        QString pos_z          = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(index).pos.origin_z) );
+        QString quat_x         = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(index).quat.rotation_x) );
+        QString quat_y         = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(index).quat.rotation_y) );
+        QString quat_z         = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(index).quat.rotation_z) );
+        QString quat_w         = QString::fromStdString( std::to_string(actual_object_to_modify_.grasp.at(index).quat.rotation_w) );
+        QString appr_x         = QString::fromStdString( std::to_string(actual_object_to_modify_.approach.at(index).origin_x) );
+        QString appr_y         = QString::fromStdString( std::to_string(actual_object_to_modify_.approach.at(index).origin_y) );
+        QString appr_z         = QString::fromStdString( std::to_string(actual_object_to_modify_.approach.at(index).origin_z) );
+        QString tool           = QString::fromStdString( actual_object_to_modify_.tool.at(index) );
+        QString gripper_force  = QString::fromStdString( std::to_string( actual_object_to_modify_.gripper_force.at(index) ) );
+        QString pre_position   = QString::fromStdString( std::to_string( actual_object_to_modify_.pre_gripper_position.at(index) ) );
+        QString post_position  = QString::fromStdString( std::to_string( actual_object_to_modify_.post_gripper_position.at(index) ) );
+        QString leav_x         = QString::fromStdString( std::to_string(actual_object_to_modify_.leave.at(index).origin_x) );
+        QString leav_y         = QString::fromStdString( std::to_string(actual_object_to_modify_.leave.at(index).origin_y) );
+        QString leav_z         = QString::fromStdString( std::to_string(actual_object_to_modify_.leave.at(index).origin_z) );
 
         ui_.editObjectPositionX   ->insert(pos_x);
         ui_.editObjectPositionY   ->insert(pos_y);
@@ -2117,17 +2002,11 @@ void MainWindow::on_comboGraspNumber_currentIndexChanged(int index)
 void MainWindow::on_comboActionType_currentIndexChanged(int index)
 {
     if ( index == 0 )
-    {
         qnode_.writeLocations();
-    }
     else if ( index == 1)
-    {
         qnode_.writeObjects();
-    }
     else if ( index == 2 )
-    {
         qnode_.writeGroups();
-    }
     writeJobType();
     writePreExecProp();
     writeJobProperty();
@@ -2136,30 +2015,19 @@ void MainWindow::on_comboActionType_currentIndexChanged(int index)
 
 void MainWindow::on_comboConfiguration_currentIndexChanged(int index)
 {
+    qnode_.activeConfiguration("watch");
     if ( index == 0 )
-    {
         qnode_.activeConfiguration("watch");
-    }
     else if ( index == 1 )
-    {
         qnode_.activeConfiguration("manual_guidance");
-    }
     else if ( index == 2 )
-    {
         qnode_.activeConfiguration("lin_xyz_manual_guidance");
-    }
     else if ( index == 3 )
-    {
         qnode_.activeConfiguration("rot_xyz_manual_guidance");
-    }
     else if ( index == 4 )
-    {
         qnode_.activeConfiguration("cart_teleop");
-    }
     else
-    {
         plotMsg("There is a problem with configuration");
-    }
     ui_.comboConfiguration2->setCurrentIndex( index );
 }
 
@@ -2177,46 +2045,48 @@ void MainWindow::on_comboRefFrame_currentIndexChanged(int index)
 
 void MainWindow::on_TfList_currentIndexChanged(int index)
 {
-  std::string name = ui_.TfList->currentText().toStdString();
-  std::size_t found  = name.find( "/" );
-  if ( found != std::string::npos)
-  {
-    name.erase( found, name.size() );
-  }
-  ui_.editObjectName->setText(QString::fromStdString(name));
+    std::string name = ui_.TfList->currentText().toStdString();
+    std::size_t found  = name.find( "/" );
+    if ( found != std::string::npos)
+        name.erase( found, name.size() );
+    ui_.editObjectName->setText(QString::fromStdString(name));
 }
 
 void MainWindow::on_listLocationModify_pressed(const QModelIndex &index)
 {
-    resetLocation( index.row() );
+    std::string name = ui_.listLocationModify->model()->data(index).toString().toStdString();
+    resetLocation( name );
 }
 
 void MainWindow::on_listBoxModify_pressed(const QModelIndex &index)
 {
-    resetBox( index.row() );
+    std::string name = ui_.listBoxModify->model()->data(index).toString().toStdString();
+    resetBox( name );
 }
 
 void MainWindow::on_listSlotModify_pressed(const QModelIndex &index)
 {
-    resetSlot( index.row() );
+    std::string name = ui_.listSlotModify->model()->data(index).toString().toStdString();
+    resetSlot( name );
 }
 
 void MainWindow::on_listObjectModify_pressed(const QModelIndex &index)
 {
-    resetObject( index.row() );
+    std::string name = ui_.listObjectModify->model()->data(index).toString().toStdString();
+    resetObject( name );
 }
 
-void MainWindow::on_gripperPercentage_valueChanged (int value)
+void MainWindow::on_gripperPercentage_valueChanged(int value)
 {
-  ui_.gripperPercentage->setValue(value);
-  ui_.gripperPercentage2->setValue(value);
-  std::string str = std::to_string(value);
-  QString qstr = QString::fromStdString(str);
-  ui_.openGripperLabel->setText(qstr);
-  ui_.openGripperLabel2->setText(qstr);
+    ui_.gripperPercentage->setValue(value);
+    ui_.gripperPercentage2->setValue(value);
+    std::string str = std::to_string(value);
+    QString qstr = QString::fromStdString(str);
+    ui_.openGripperLabel->setText(qstr);
+    ui_.openGripperLabel2->setText(qstr);
 }
 
-void MainWindow::on_gripperForcePercentage_valueChanged (int value)
+void MainWindow::on_gripperForcePercentage_valueChanged(int value)
 {
     ui_.gripperForcePercentage->setValue(value);
     ui_.gripperForcePercentage2->setValue(value);
@@ -2226,12 +2096,12 @@ void MainWindow::on_gripperForcePercentage_valueChanged (int value)
     ui_.gripperForceLabel2->setText(qstr);
 }
 
-void MainWindow::on_gripperPercentage2_valueChanged (int value)
+void MainWindow::on_gripperPercentage2_valueChanged(int value)
 {
     ui_.gripperPercentage->setValue(value);
 }
 
-void MainWindow::on_gripperForcePercentage2_valueChanged (int value)
+void MainWindow::on_gripperForcePercentage2_valueChanged(int value)
 {
     ui_.gripperForcePercentage->setValue(value);
 }
@@ -2247,6 +2117,11 @@ void MainWindow::on_velocitySlider_valueChanged(int value)
 void MainWindow::on_lateralTab_currentChanged(int index)
 {
     on_buttonLoadTF_clicked(false);
+}
+
+void MainWindow::on_tab_manager_currentChanged(int index)
+{
+    on_comboActionType_currentIndexChanged(ui_.comboActionType->currentIndex());
 }
 
 void MainWindow::on_buttonRemoveElement_clicked(bool check )
@@ -2275,29 +2150,21 @@ void MainWindow::on_buttonLoadRecipe_clicked(bool check)
     {
         bool presence = false;
         for ( int j = 0; j < ui_.recipeBox->count(); j++)
-        {
-            if ( !recipes_names[i].compare( ui_.recipeBox->itemText(j).toStdString() ))
-            {
+            if ( !recipes_names.at(i).compare( ui_.recipeBox->itemText(j).toStdString() ))
                 presence = true;
-            }
-        }
         if ( !presence )
-        {
-            ui_.recipeBox->addItem( QString::fromStdString( recipes_names[i] ));
-        }
+            ui_.recipeBox->addItem( QString::fromStdString( recipes_names.at(i) ));
     }
 }
 
 void MainWindow::on_buttonWriteRecipe_clicked(bool check)
 {
-    int ind = ui_.recipeBox->currentIndex();
+    std::string name = ui_.recipeBox->currentText().toStdString();
     if ( ui_.recipeBox->count() != 0 )
-    {
-        qnode_.writeRecipe( ind );
-    }
+        qnode_.writeRecipe( name );
 }
 
-void MainWindow::on_buttonLoadActions_clicked  ( bool check )
+void MainWindow::on_buttonLoadActions_clicked( bool check)
 {
     qnode_.writeParam(2);
 }
@@ -2319,8 +2186,8 @@ void MainWindow::saveRecipe()
 
 void MainWindow::on_listPlace_pressed(const QModelIndex &index)
 {
-    qnode_.addSlotGroups( index.row() );
-    place pl = qnode_.returnPlaceInfo( index.row() );
+    qnode_.addSlotGroups( ui_.listPlace->model()->data(index).toString().toStdString() );
+    place pl = qnode_.returnPlaceInfo( ui_.listPlace->model()->data(index).toString().toStdString() );
     ui_.editActionDescription2->setText( QString::fromStdString( pl.description ) );
     ui_.labelJobType2->setText( QString::fromStdString( pl.job_exec_name ) );
     ui_.labelPreExec2->setText( QString::fromStdString( pl.pre_exec_property_id ) );
@@ -2338,12 +2205,12 @@ void MainWindow::on_listPlace_pressed(const QModelIndex &index)
         ui_.checkHumanInfo2->setChecked(false);
         ui_.checkRobotInfo2->setChecked(false);
     }
-    else if ( pl.agents[0] == "robot" )
+    else if ( pl.agents.at(0) == "robot" )
     {
         ui_.checkHumanInfo2->setChecked(false);
         ui_.checkRobotInfo2->setChecked(true);
     }
-    else if ( pl.agents[0] == "human" )
+    else if ( pl.agents.at(0) == "human" )
     {
         ui_.checkHumanInfo2->setChecked(true);
         ui_.checkRobotInfo2->setChecked(false);
@@ -2357,8 +2224,8 @@ void MainWindow::on_listPlace_pressed(const QModelIndex &index)
 
 void MainWindow::on_listPick_pressed(const QModelIndex &index)
 {
-    qnode_.addObjectType( index.row() );
-    pick pk = qnode_.returnPickInfo( index.row() );
+    qnode_.addObjectType( ui_.listPick->model()->data(index).toString().toStdString() );
+    pick pk = qnode_.returnPickInfo( ui_.listPick->model()->data(index).toString().toStdString() );
     ui_.editActionDescription2->setText( QString::fromStdString( pk.description ) );
     ui_.labelJobType2->setText( QString::fromStdString( pk.job_exec_name ) );
     ui_.labelPreExec2->setText( QString::fromStdString( pk.pre_exec_property_id ) );
@@ -2376,12 +2243,12 @@ void MainWindow::on_listPick_pressed(const QModelIndex &index)
         ui_.checkHumanInfo2->setChecked(false);
         ui_.checkRobotInfo2->setChecked(false);
     }
-    else if ( pk.agents[0] == "robot" )
+    else if ( pk.agents.at(0) == "robot" )
     {
         ui_.checkHumanInfo2->setChecked(false);
         ui_.checkRobotInfo2->setChecked(true);
     }
-    else if ( pk.agents[0] == "human" )
+    else if ( pk.agents.at(0) == "human" )
     {
         ui_.checkHumanInfo2->setChecked(true);
         ui_.checkRobotInfo2->setChecked(false);
@@ -2395,8 +2262,8 @@ void MainWindow::on_listPick_pressed(const QModelIndex &index)
 
 void MainWindow::on_listGoTo_pressed(const QModelIndex &index)
 {
-    qnode_.addLocationInfo( index.row() );
-    go_to_action gt = qnode_.returnGoToInfo( index.row() );
+    qnode_.addLocationInfo( ui_.listGoTo->model()->data(index).toString().toStdString() );
+    go_to_action gt = qnode_.returnGoToInfo( ui_.listGoTo->model()->data(index).toString().toStdString() );
     ui_.editActionDescription2->setText( QString::fromStdString( gt.description ) );
     ui_.labelJobType2->setText( QString::fromStdString( gt.job_exec_name ) );
     ui_.labelPreExec2->setText( QString::fromStdString( gt.pre_exec_property_id ) );
@@ -2414,12 +2281,12 @@ void MainWindow::on_listGoTo_pressed(const QModelIndex &index)
         ui_.checkHumanInfo2->setChecked(false);
         ui_.checkRobotInfo2->setChecked(false);
     }
-    else if ( gt.agents[0] == "robot" )
+    else if ( gt.agents.at(0) == "robot" )
     {
         ui_.checkHumanInfo2->setChecked(false);
         ui_.checkRobotInfo2->setChecked(true);
     }
-    else if ( gt.agents[0] == "human" )
+    else if ( gt.agents.at(0) == "human" )
     {
         ui_.checkHumanInfo2->setChecked(true);
         ui_.checkRobotInfo2->setChecked(false);
@@ -2433,8 +2300,8 @@ void MainWindow::on_listGoTo_pressed(const QModelIndex &index)
 
 void MainWindow::on_goToList_pressed(const QModelIndex &index)
 {
-    qnode_.addSecondLocationInfo( index.row() );
-    go_to_action gt = qnode_.returnGoToInfo( index.row() );
+    qnode_.addSecondLocationInfo( ui_.goToList->model()->data(index).toString().toStdString() );
+    go_to_action gt = qnode_.returnGoToInfo( ui_.goToList->model()->data(index).toString().toStdString() );
     ui_.editActionDescription->setText( QString::fromStdString( gt.description ) );
     ui_.labelJobType->setText( QString::fromStdString( gt.job_exec_name ) );
     ui_.labelPreExec->setText( QString::fromStdString( gt.pre_exec_property_id ) );
@@ -2452,12 +2319,12 @@ void MainWindow::on_goToList_pressed(const QModelIndex &index)
         ui_.checkHumanInfo->setChecked(false);
         ui_.checkRobotInfo->setChecked(false);
     }
-    else if ( gt.agents[0] == "robot" )
+    else if ( gt.agents.at(0) == "robot" )
     {
         ui_.checkHumanInfo->setChecked(false);
         ui_.checkRobotInfo->setChecked(true);
     }
-    else if ( gt.agents[0] == "human" )
+    else if ( gt.agents.at(0) == "human" )
     {
         ui_.checkHumanInfo->setChecked(true);
         ui_.checkRobotInfo->setChecked(false);
@@ -2471,8 +2338,8 @@ void MainWindow::on_goToList_pressed(const QModelIndex &index)
 
 void MainWindow::on_placeList_pressed(const QModelIndex &index)
 {
-    qnode_.addSecondSlotGroups( index.row() );
-    place pl = qnode_.returnPlaceInfo( index.row() );
+    qnode_.addSecondSlotGroups( ui_.placeList->model()->data(index).toString().toStdString() );
+    place pl = qnode_.returnPlaceInfo( ui_.placeList->model()->data(index).toString().toStdString() );
     ui_.editActionDescription->setText( QString::fromStdString( pl.description ) );
     ui_.labelJobType->setText( QString::fromStdString( pl.job_exec_name ) );
     ui_.labelPreExec->setText( QString::fromStdString( pl.pre_exec_property_id ) );
@@ -2490,12 +2357,12 @@ void MainWindow::on_placeList_pressed(const QModelIndex &index)
         ui_.checkHumanInfo->setChecked(false);
         ui_.checkRobotInfo->setChecked(false);
     }
-    else if ( pl.agents[0] == "robot" )
+    else if ( pl.agents.at(0) == "robot" )
     {
         ui_.checkHumanInfo->setChecked(false);
         ui_.checkRobotInfo->setChecked(true);
     }
-    else if ( pl.agents[0] == "human" )
+    else if ( pl.agents.at(0) == "human" )
     {
         ui_.checkHumanInfo->setChecked(true);
         ui_.checkRobotInfo->setChecked(false);
@@ -2509,8 +2376,8 @@ void MainWindow::on_placeList_pressed(const QModelIndex &index)
 
 void MainWindow::on_pickList_pressed (const QModelIndex &index)
 {
-    qnode_.addSecondObjectType( index.row() );
-    pick pk = qnode_.returnPickInfo( index.row() );
+    qnode_.addSecondObjectType( ui_.pickList->model()->data(index).toString().toStdString() );
+    pick pk = qnode_.returnPickInfo( ui_.pickList->model()->data(index).toString().toStdString() );
     ui_.editActionDescription->setText( QString::fromStdString( pk.description ) );
     ui_.labelJobType->setText( QString::fromStdString( pk.job_exec_name ) );
     ui_.labelPreExec->setText( QString::fromStdString( pk.pre_exec_property_id ) );
@@ -2528,12 +2395,12 @@ void MainWindow::on_pickList_pressed (const QModelIndex &index)
         ui_.checkHumanInfo->setChecked(false);
         ui_.checkRobotInfo->setChecked(false);
     }
-    else if ( pk.agents[0] == "robot" )
+    else if ( pk.agents.at(0) == "robot" )
     {
         ui_.checkHumanInfo->setChecked(false);
         ui_.checkRobotInfo->setChecked(true);
     }
-    else if ( pk.agents[0] == "human" )
+    else if ( pk.agents.at(0) == "human" )
     {
         ui_.checkHumanInfo->setChecked(true);
         ui_.checkRobotInfo->setChecked(false);
@@ -2570,9 +2437,7 @@ void MainWindow::on_buttonAddLeavePositionSlot_clicked(bool check)
         ui_.buttonRemoveLeavePositionSlot->setEnabled(true);
     }
     else
-    {
         plotMsg("Final position is not set.");
-    }
 }
 
 void MainWindow::on_buttonAddLeavePositionBox_clicked(bool check)
@@ -2600,9 +2465,7 @@ void MainWindow::on_buttonAddLeavePositionBox_clicked(bool check)
         ui_.buttonRemoveLeavePositionBox->setEnabled(true);
     }
     else
-    {
         plotMsg("Final position is not set.");
-    }
 }
 
 void MainWindow::on_buttonRemoveLeavePositionSlot_clicked(bool check)
@@ -2651,9 +2514,7 @@ void MainWindow::writeJobType()
                 ROS_WARN("Job list is empty");
 
             for ( std::size_t i = 0; i < job_list.size(); i++ )
-            {
-                ui_.comboJobType->addItem( QString::fromStdString( job_list[i] ) );
-            }
+                ui_.comboJobType->addItem( QString::fromStdString( job_list.at(i) ) );
         }
     }
     else if ( action_index == 1 )
@@ -2669,9 +2530,7 @@ void MainWindow::writeJobType()
                 ROS_WARN("Job list is empty");
 
             for ( std::size_t i = 0; i < job_list.size(); i++ )
-            {
-                ui_.comboJobType->addItem( QString::fromStdString( job_list[i] ) );
-            }
+                ui_.comboJobType->addItem( QString::fromStdString( job_list.at(i) ) );
         }
     }
     else if ( action_index == 2 )
@@ -2687,9 +2546,7 @@ void MainWindow::writeJobType()
                 ROS_WARN("Job list is empty");
 
             for ( std::size_t i = 0; i < job_list.size(); i++ )
-            {
-                ui_.comboJobType->addItem( QString::fromStdString( job_list[i] ) );
-            }
+                ui_.comboJobType->addItem( QString::fromStdString( job_list.at(i) ) );
         }
     }
 }
@@ -2705,12 +2562,8 @@ void MainWindow::writePreExecProp()
         return;
     }
     else
-    {
         for ( std::size_t i = 0; i < pre_exec_prop_list.size(); i++ )
-        {
-            ui_.comboPreExecProp->addItem( QString::fromStdString( pre_exec_prop_list[i] ) );
-        }
-    }
+            ui_.comboPreExecProp->addItem( QString::fromStdString( pre_exec_prop_list.at(i) ) );
 }
 
 void MainWindow::writePostExecProp()
@@ -2724,20 +2577,14 @@ void MainWindow::writePostExecProp()
         return;
     }
     else
-    {
         for ( std::size_t i = 0; i < post_exec_prop_list.size(); i++ )
-        {
-            ui_.comboPostExecProp->addItem( QString::fromStdString( post_exec_prop_list[i] ) );
-        }
-    }
+            ui_.comboPostExecProp->addItem( QString::fromStdString( post_exec_prop_list.at(i) ) );
 }
 
 void MainWindow::writeJobProperty()
 {
     if ( ui_.jobPropertyList->model()->rowCount() > 0 )
-    {
         ui_.jobPropertyList->model()->removeRows( 0, ui_.jobPropertyList->model()->rowCount()-1 );
-    }
     std::string job_type = ui_.comboJobType->currentText().toStdString();
     std::vector<std::string> exec_prop_list;
     if ( !qnode_.getExecProp( job_type, exec_prop_list ) )
@@ -2750,12 +2597,11 @@ void MainWindow::writeJobProperty()
         for ( std::size_t i = 0; i < exec_prop_list.size(); i++ )
         {
             ui_.jobPropertyList->model()->insertRow( ui_.jobPropertyList->model()->rowCount() );
-            QVariant new_row( QString( exec_prop_list[i].c_str() ) );
+            QVariant new_row( QString( exec_prop_list.at(i).c_str() ) );
             ui_.jobPropertyList->model()->setData( ui_.jobPropertyList->model()->index( ui_.jobPropertyList->model()->rowCount()-1, 0 ), new_row );
         }
     }
 }
-
 
 /*****************************************************************************
 ** Implemenation [Slots][manually connected]
@@ -2767,12 +2613,12 @@ void MainWindow::writeJobProperty()
  * the user can always see the latest log message.
  */
 void MainWindow::updateLoggingView() {
-        ui_.goToList -> scrollToBottom();
-        ui_.placeList -> scrollToBottom();
-        ui_.pickList  -> scrollToBottom();
-        ui_.listGoTo -> scrollToBottom();
-        ui_.listPlace -> scrollToBottom();
-        ui_.listPick  -> scrollToBottom();
+    ui_.goToList -> scrollToBottom();
+    ui_.placeList -> scrollToBottom();
+    ui_.pickList  -> scrollToBottom();
+    ui_.listGoTo -> scrollToBottom();
+    ui_.listPlace -> scrollToBottom();
+    ui_.listPick  -> scrollToBottom();
 }
 
 /*****************************************************************************

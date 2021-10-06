@@ -129,11 +129,12 @@ public Q_SLOTS:
     void on_buttonLeft_released    ();
     void on_buttonRight_released   ();
     void on_buttonFront_released   ();
+    void resetLocation                               (const std::string &name);
+    void resetSlot                                   (const std::string &name);
+    void resetBox                                    (const std::string &name);
+    void resetObject                                 (const std::string &name);
     void on_lateralTab_currentChanged                (int index);
-    void resetLocation                               (int index);
-    void resetSlot                                   (int index);
-    void resetBox                                    (int index);
-    void resetObject                                 (int index);
+    void on_tab_manager_currentChanged               (int index);
     void on_robotList_currentIndexChanged            (int index);
     void on_comboGraspNumber_currentIndexChanged     (int index);
     void on_comboActionType_currentIndexChanged      (int index);

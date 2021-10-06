@@ -174,10 +174,10 @@ public:
 //    void initialAddComponentsInManipulation();
 
     XmlRpc::XmlRpcValue getRecipeParam      (const std::vector<std::string> &recipe);
-    XmlRpc::XmlRpcValue getRecipeParam      (const int &index);
-    XmlRpc::XmlRpcValue getActionGoToParam  (const int &index);
-    XmlRpc::XmlRpcValue getActionPlaceParam (const int &index);
-    XmlRpc::XmlRpcValue getActionPickParam  (const int &index);
+    XmlRpc::XmlRpcValue getRecipeParam      (const std::string &name);
+    XmlRpc::XmlRpcValue getActionGoToParam  (const std::string &name);
+    XmlRpc::XmlRpcValue getActionPlaceParam (const std::string &name);
+    XmlRpc::XmlRpcValue getActionPickParam  (const std::string &name);
 
     bool addGoTo               (const go_to_action &gt_action);
     bool addPlace              (const place &place_action);
@@ -191,17 +191,17 @@ public:
     void addObject             (const object_type &object);
     void addSlot               (const manipulation_slot &slot);
     void addBox                (const box &internal_box);
-    void addObjectType         (const int &ind);
-    void addSlotGroups         (const int &ind);
-    void addLocationInfo       (const int &ind);
-    void addSecondLocationInfo (const int &ind);
-    void addSecondSlotGroups   (const int &ind);
-    void addSecondObjectType   (const int &ind);
-    void addLocationChanges    (const int &ind,   const go_to_location &new_location);
-    void addSlotChanges        (const int &ind,   const manipulation_slot &new_slot);
-    void addBoxChanges         (const int &ind,   const box &new_box);
-    void addObjectChanges      (const int &ind,   const object_type &new_object);
-    void addObjectCopyGrasp    (const int &index, const int &index2);
+    void addObjectType         (const std::string &name);
+    void addSlotGroups         (const std::string &name);
+    void addLocationInfo       (const std::string &name);
+    void addSecondLocationInfo (const std::string &name);
+    void addSecondSlotGroups   (const std::string &name);
+    void addSecondObjectType   (const std::string &name);
+    void addLocationChanges    (const go_to_location &new_location);
+    void addSlotChanges        (const manipulation_slot &new_slot);
+    void addBoxChanges         (const box &new_box);
+    void addObjectChanges      (const object_type &new_object);
+    void addObjectCopyGrasp    (const std::string &name, const int &index);
 
     std::vector<std::string> loadObjectsInManipulation();
 
@@ -211,19 +211,14 @@ public:
     bool loadNewSlot     (const manipulation_slot &slot_to_add);
 
     location          returnPosition(const std::string &base_frame, const std::string &target_frame);
-    go_to_action      returnGoToInfo         (const int &ind);
-    pick              returnPickInfo         (const int &ind);
-    place             returnPlaceInfo        (const int &ind);
-    go_to_location    returnLocationInfo     (const int &ind);
-    object_type       returnObjectInfo       (const int &ind);
-    box               returnBoxInfo          (const int &ind);
-    manipulation_slot returnSlotInfo         (const int &ind);
-    recipe            returnRecipeInfo       (const int &ind);
-    std::string       returnLocationListText (const int &ind);
-    std::string       returnGroupListText    (const int &ind);
-    std::string       returnObjectListText   (const int &ind);
-    std::string       returnObjDistListText  (const int &ind);
-    std::string       returnBoxListText      (const int &ind);
+    go_to_action      returnGoToInfo         (const std::string &name);
+    pick              returnPickInfo         (const std::string &name);
+    place             returnPlaceInfo        (const std::string &name);
+    go_to_location    returnLocationInfo     (const std::string &name);
+    object_type       returnObjectInfo       (const std::string &name);
+    box               returnBoxInfo          (const std::string &name);
+    manipulation_slot returnSlotInfo         (const std::string &name);
+    recipe            returnRecipeInfo       (const std::string &name);
     double returnGripperPosition();
 
     std::string getXmlMaxNumberString        (const int &value);
@@ -233,19 +228,19 @@ public:
     std::string getXmlPositionString         (const std::string &name_pos,  const position &pos);
     std::string getXmlQuaternionString       (const quaternion  &quat);
     std::string getXmlGroupString            (const std::string &name, const std::vector<std::string> &string_group);
-    std::string getXmlObjectGraspString      (const int &index, const int &index2);
-    std::string getXmlObjectGraspPosesString (const int &index);
+    std::string getXmlObjectGraspString      (const std::string &name, const int &index);
+    std::string getXmlObjectGraspPosesString (const std::string &name);
 
-    XmlRpc::XmlRpcValue getObjectGraspParam  (const int &index, const int &index2);
-    XmlRpc::XmlRpcValue getObjectParam       (const int &index);
-    XmlRpc::XmlRpcValue getGoToLocationParam (const int &index);
-    XmlRpc::XmlRpcValue getBoxParam          (const int &index);
-    XmlRpc::XmlRpcValue getGroupParam        (const int &index);
-    XmlRpc::XmlRpcValue getObjectNameParam   (const int &index);
-    XmlRpc::XmlRpcValue getSlotParam         (const int &index);
-    XmlRpc::XmlRpcValue getGoToParam         (const int &index);
-    XmlRpc::XmlRpcValue getPickParam         (const int &index);
-    XmlRpc::XmlRpcValue getPlaceParam        (const int &index);
+    XmlRpc::XmlRpcValue getObjectGraspParam  (const std::string &name, const int &index);
+    XmlRpc::XmlRpcValue getObjectParam       (const std::string &name);
+    XmlRpc::XmlRpcValue getGoToLocationParam (const std::string &name);
+    XmlRpc::XmlRpcValue getBoxParam          (const std::string &name);
+    XmlRpc::XmlRpcValue getGroupParam        (const std::string &name);
+    XmlRpc::XmlRpcValue getObjectNameParam   (const std::string &name);
+    XmlRpc::XmlRpcValue getSlotParam         (const std::string &name);
+    XmlRpc::XmlRpcValue getGoToParam         (const std::string &name);
+    XmlRpc::XmlRpcValue getPickParam         (const std::string &name);
+    XmlRpc::XmlRpcValue getPlaceParam        (const std::string &name);
 
     void loadTF                        ();
     void loadRobots                    ();
@@ -268,8 +263,8 @@ public:
     void setTargetFrame (const int &ind);
     void loadParam      (const int &ind);
     void writeParam     (const int &ind);
-    void writeRecipe    (const int &ind);
-    bool removeRecipe   (const int &ind);
+    void writeRecipe    (const std::string &name);
+    bool removeRecipe   (const std::string &name);
 
     /*********************
 	** Logging
@@ -325,16 +320,16 @@ public:
     void logSecondSlots      (const std::string &msg);
     void logSecondLocations  (const std::string &msg);
 
-    void removeGoTo     (const int &ind);
-    void removeLocation (const int &ind);
-    void removePlace    (const int &ind);
-    void removePick     (const int &ind);
-    void removeObject   (const int &ind);
-    void removeSlot     (const int &ind);
-    void removeBox      (const int &ind);
+    void removeGoTo         (const std::string &name);
+    void removePlace        (const std::string &name);
+    void removePick         (const std::string &name);
+    void removeLocation     (const std::string &name);
+    void removeObject       (const std::string &name);
+    void removeSlot         (const std::string &name);
+    void removeBox          (const std::string &name);
     void activeConfiguration(const std::string &config);
     void moveGripper        (const std::string &str);
-    std::vector<int> removeGroup( const int &ind);
+    std::vector<std::string> removeGroup(const std::string &name);
     bool compare( const std::vector<std::string> &v1, const std::vector<std::string> &v2);
     void readGripperPosition();
 
@@ -409,33 +404,26 @@ private:
     QStringListModel logging_model_recipe_;
     QStringListModel logging_model_job_properties_;
 
-    std::vector<go_to_location>    changed_locations_;
-    std::vector<manipulation_slot> changed_slots_;
-    std::vector<box>               changed_boxes_;
-    std::vector<std::string>       changed_groups_;
-    std::vector<go_to_location>    locations_to_remove_;
-    std::vector<manipulation_slot> slots_to_remove_;
-    std::vector<box>               boxes_to_remove_;
-    std::vector<std::string>       groups_to_remove_;
+    std::map<std::string, go_to_action>      go_to_actions_;
+    std::map<std::string, place>             place_actions_;
+    std::map<std::string, pick>              pick_actions_;
+    std::map<std::string, go_to_action>      go_to_actions_compare_;
+    std::map<std::string, place>             place_actions_compare_;
+    std::map<std::string, pick>              pick_actions_compare_;
 
-    std::vector<go_to_location>    go_to_locations_;
-    std::vector<go_to_action>      go_to_actions_;
-    std::vector<place>             place_actions_;
-    std::vector<pick>              pick_actions_;
-    std::vector<object_type>       objects_;
-    std::vector<manipulation_slot> manipulation_slots_;
-    std::vector<std::string>       groups_;
-    std::vector<box>               boxes_;
-    std::vector<recipe>            recipes_;
-    std::vector<go_to_location>    go_to_locations_compare_;
-    std::vector<go_to_action>      go_to_actions_compare_;
-    std::vector<place>             place_actions_compare_;
-    std::vector<pick>              pick_actions_compare_;
-    std::vector<object_type>       objects_compare_;
-    std::vector<manipulation_slot> slots_compare_;
-    std::vector<std::string>       groups_compare_;
-    std::vector<box>               boxes_compare_;
-    std::vector<recipe>            recipes_compare_;
+    std::map<std::string, go_to_location>    go_to_locations_;
+    std::map<std::string, object_type>       objects_;
+    std::map<std::string, manipulation_slot> manipulation_slots_;
+    std::map<std::string, std::string>       groups_;
+    std::map<std::string, box>               boxes_;
+    std::map<std::string, recipe>            recipes_;
+    std::map<std::string, go_to_location>    go_to_locations_compare_;
+    std::map<std::string, object_type>       objects_compare_;
+    std::map<std::string, manipulation_slot> slots_compare_;
+    std::map<std::string, std::string>       groups_compare_;
+    std::map<std::string, box>               boxes_compare_;
+    std::map<std::string, recipe>            recipes_compare_;
+
     std::vector<std::string>       param_names_;
     std::vector<std::string>       robot_name_params_;
 
