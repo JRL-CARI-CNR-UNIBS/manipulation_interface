@@ -900,7 +900,9 @@ void MainWindow::on_buttonRunRecipe_clicked(bool check)
         return;
     }
     loadObjects();
+    qnode_.activeConfiguration("watch");
     std::string risp = qnode_.runRecipe();
+    qnode_.activeConfiguration("watch");
     plotMsg(risp);
     ui_.comboConfiguration->setCurrentIndex(0);
 }
@@ -2001,6 +2003,7 @@ void MainWindow::on_comboActionType_currentIndexChanged(int index)
 
 void MainWindow::on_comboConfiguration_currentIndexChanged(int index)
 {
+    qnode_.activeConfiguration("watch");
     if ( index == 0 )
         qnode_.activeConfiguration("watch");
     else if ( index == 1 )
