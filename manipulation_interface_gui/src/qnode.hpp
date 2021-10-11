@@ -261,8 +261,8 @@ public:
     bool readGotoPickAndPlaceFromParam ();
 
     void setTargetFrame (const int &ind);
-    void loadParam      (const int &ind);
-    void writeParam     (const int &ind);
+    bool loadParam      (const int &ind);
+    bool writeParam     (const int &ind);
     void writeRecipe    (const std::string &name);
     bool removeRecipe   (const std::string &name);
 

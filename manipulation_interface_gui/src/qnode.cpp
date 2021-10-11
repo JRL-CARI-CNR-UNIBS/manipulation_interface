@@ -2046,12 +2046,12 @@ void QNode::loadTF()
     listener.getFrameStrings(TFs_);
 }
 
-void QNode::loadParam(const int &ind)
+bool QNode::loadParam(const int &ind)
 {
     if (!n_.getParamNames(param_names_))
     {
         ROS_ERROR("Empty robot parameter");
-        return;
+        return false;
     }
 
     if ( ind == 1 )
@@ -2077,12 +2077,10 @@ void QNode::loadParam(const int &ind)
 
         if ( i == 50 )
         {
-            ROS_ERROR("Mongo didn't load the params");
+            ROS_ERROR("Mongo doesn't work");
             ROS_ERROR("You probably need to change the Python version to mongo_connection or start mongo");
-            return;
+            return false;
         }
-        else
-            ROS_INFO("Loaded param by Mongo");
 
         readBoxesFromParam();
         ROS_INFO("Read boxes finish");
@@ -2094,12 +2092,15 @@ void QNode::loadParam(const int &ind)
         ROS_INFO("Read slots finish");
         readLocationsFromParam();
         ROS_INFO("Read locations finish");
+
+        ROS_INFO("Loaded param by Mongo");
     }
     else if ( ind == 2 )
     {
         readGotoPickAndPlaceFromParam();
         ROS_INFO("Read actions");
     }
+    return true;
 }
 
 void QNode::loadRobots()
@@ -2125,9 +2126,10 @@ void QNode::loadRobots()
     }
 }
 
-void QNode::writeParam(const int &ind)
+bool QNode::writeParam(const int &ind)
 {
-    loadParam( ind );
+    if ( !loadParam(ind) )
+        return false;
 
     if ( ind == 1)
     {
@@ -2277,6 +2279,7 @@ void QNode::writeParam(const int &ind)
                 logSecondPick(single_pick.first);
         }
     }
+    return true;
 }
 
 void QNode::writeLocations()
