@@ -1,13 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
-
   <include file="$(find manipulation_interface_mongo)/launch/start.launch" />
-
-  <include file="$(find manipulation_interface_gui)/launch/skills.launch" />
-
   <node  name="manipulation_interface_gui" type="manipulation_interface_gui" pkg="manipulation_interface_gui" output='screen'/>
-
   <node name="recipe_test_node" type="recipe_test_node" pkg="manipulation_interface_gui" output="screen"/>
-
 </launch>

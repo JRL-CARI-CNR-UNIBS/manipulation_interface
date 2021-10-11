@@ -1,15 +1,5 @@
 <?xml version="1.0"?>
 
 <launch>
-
-<!--these params are necessary for manipulaion-->
-
-<rosparam command="load" file="$(find manipulation_interface_mongo)/config/go_to_location_server.yaml" />
-<rosparam command="load" file="$(find manipulation_interface_mongo)/config/inbound_server.yaml" />
-<rosparam command="load" file="$(find manipulation_interface_mongo)/config/outbound_server.yaml" />
-<rosparam command="load" file="$(find manipulation_interface_mongo)/config/multi_skills.yaml" />
-<rosparam command="load" file="$(find manipulation_interface_mongo)/config/objects_geometric_description.yaml" />
-
 <node name="mongo_connection" type="mongo_connection.py" pkg="manipulation_interface_mongo" />
-
 </launch>
