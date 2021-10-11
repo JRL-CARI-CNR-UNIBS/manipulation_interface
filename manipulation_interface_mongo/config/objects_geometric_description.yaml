@@ -42,3 +42,33 @@ object_geometries:
     box: [0.16,0.03,0.03]
     offset_quaternion: [ 0, 0, 0, 1 ]
     offset: [0, 0, 0]
+
+  green_cube:
+    color: [0, 1, 0, 1]
+    box:  [0.05,0.05,0.05]
+    offset_quaternion: [ 0, 0, 0, 1 ]
+    offset: [0, 0, 0]
+
+  light_blue_cube:
+    color: [0.5294, 0.8078, 0.9804, 1]
+    box:  [0.05,0.05,0.05]
+    offset_quaternion: [ 0, 0, 0, 1 ]
+    offset: [0, 0, 0]
+
+  pink_cube:
+    color: [1, 0.7529, 0.7961, 1]
+    box:  [0.05,0.05,0.05]
+    offset_quaternion: [ 0, 0, 0, 1 ]
+    offset: [0, 0, 0]
+
+  white_cube:
+    color: [1, 1, 1, 1]
+    box:  [0.05,0.05,0.05]
+    offset_quaternion: [ 0, 0, 0, 1 ]
+    offset: [0, 0, 0]
+
+  yellow_cube:
+    color: [1, 1, 0, 1]
+    box:  [0.05,0.05,0.05]
+    offset_quaternion: [ 0, 0, 0, 1 ]
+    offset: [0, 0, 0]

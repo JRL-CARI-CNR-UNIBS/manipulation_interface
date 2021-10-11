@@ -1675,9 +1675,12 @@ void MainWindow::on_buttonRunSelectedAction_clicked(bool check)
     if ( !indexes.empty() )
     {
         loadObjects();
+        qnode_.activeConfiguration("watch");
         int index = indexes.at(0).row();
         std::string risp = qnode_.runSelectedAction(index);
+        qnode_.activeConfiguration("watch");
         plotMsg(risp);
+        ui_.comboConfiguration->setCurrentIndex(0);
     }
     else
     {
