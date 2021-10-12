@@ -20,6 +20,7 @@
 #include <fstream>
 #include <rosparam_utilities/rosparam_utilities.h>
 #include <manipulation_interface_mongo/SaveParam.h>
+#include <manipulation_interface_mongo/LoadParam.h>
 #include <manipulation_interface_gui/RunRecipeTest.h>
 #include <object_loader_msgs/AddObjects.h>
 #include <object_loader_msgs/ListObjects.h>
@@ -2048,6 +2049,12 @@ void QNode::loadTF()
 
 bool QNode::loadParam(const int &ind)
 {
+    ros::ServiceClient client = n_.serviceClient<manipulation_interface_mongo::LoadParam>("/load_param_by_mongo");
+    manipulation_interface_mongo::LoadParam srv;
+
+    if (!client.call(srv))
+        return false;
+
     if (!n_.getParamNames(param_names_))
     {
         ROS_ERROR("Empty robot parameter");

@@ -15,13 +15,13 @@ endif()
 
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
-	roscpp
-	  tf
+        roscpp
+        tf
 	rosparam_utilities
 	manipulation_interface_mongo
 	configuration_msgs
 	manipulation_msgs
-  manipulation_utils
+        manipulation_utils
 	manipulation_jobs_msgs
 	geometry_msgs
 	subscription_notifier)
