@@ -1704,6 +1704,7 @@ void MainWindow::on_buttonCopyLocation_clicked(bool chack)
             {
                 plotMsg("There is another location whit the same name.");
                 ui_.editNewLocation->clear();
+                return;
             }
             else
             {
@@ -1717,6 +1718,8 @@ void MainWindow::on_buttonCopyLocation_clicked(bool chack)
     }
     else
         plotMsg("No selected location.");
+
+    qnode_.saveComponents();
 }
 
 void MainWindow::on_buttonCopyObject_clicked(bool chack)
@@ -1733,6 +1736,7 @@ void MainWindow::on_buttonCopyObject_clicked(bool chack)
             {
                 plotMsg("There is another object whit the same name.");
                 ui_.editNewObject->clear();
+                return;
             }
             else
             {
@@ -1746,6 +1750,8 @@ void MainWindow::on_buttonCopyObject_clicked(bool chack)
     }
     else
         plotMsg("No selected object.");
+
+    qnode_.saveComponents();
 }
 
 void MainWindow::on_buttonCopySlot_clicked(bool chack)
@@ -1762,6 +1768,7 @@ void MainWindow::on_buttonCopySlot_clicked(bool chack)
             {
                 plotMsg("There is another slot whit the same name.");
                 ui_.editNewSlot->clear();
+                return;
             }
             else
             {
@@ -1775,6 +1782,8 @@ void MainWindow::on_buttonCopySlot_clicked(bool chack)
     }
     else
         plotMsg("No selected slot.");
+
+    qnode_.saveComponents();
 }
 
 void MainWindow::on_buttonCopyBox_clicked(bool chack)
@@ -1791,6 +1800,7 @@ void MainWindow::on_buttonCopyBox_clicked(bool chack)
             {
                 plotMsg("There is another box whit the same name.");
                 ui_.editNewBox->clear();
+                return;
             }
             else
                 ui_.editNewBox->clear();
@@ -1800,6 +1810,8 @@ void MainWindow::on_buttonCopyBox_clicked(bool chack)
     }
     else
         plotMsg("No selected box.");
+
+    qnode_.saveComponents();
 }
 
 void MainWindow::resetBox(const std::string &name)
