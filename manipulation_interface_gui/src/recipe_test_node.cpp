@@ -7,6 +7,7 @@
 #include <manipulation_msgs/GoToAction.h>
 #include <manipulation_msgs/RemoveObjectFromSlot.h>
 #include <manipulation_msgs/ListOfSlots.h>
+#include <object_loader_msgs/RemoveObjects.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <rosparam_utilities/rosparam_utilities.h>
 #include <manipulation_interface_gui/RunRecipeTest.h>
@@ -98,6 +99,8 @@ bool runRecipe( manipulation_interface_gui::RunRecipeTest::Request& req,
     ROS_WARN("Waiting for list slot server");
     list_of_slot_clnt.waitForExistence();
     ROS_WARN("Connection ok");
+
+    ros::ServiceClient remove_objects_from_scene_clnt = nh_.serviceClient<object_loader_msgs::RemoveObjects>("/remove_object_from_scene");
 
     XmlRpc::XmlRpcValue params;
 
@@ -579,30 +582,37 @@ bool runRecipe( manipulation_interface_gui::RunRecipeTest::Request& req,
 
             remove_object_from_slot.request.object_to_remove_name = place_goal.object_name;
             remove_object_from_slot.request.slot_name = place_result.slot_name;
-            ROS_ERROR("before, list request1");
-            list_of_slot_clnt.call(list_of_slots);
-            ROS_ERROR("before, list request2");
-            if (!list_of_slot_clnt.call(list_of_slots))
+
+//            if (!list_of_slot_clnt.call(list_of_slots))
+//            {
+//                ROS_ERROR("Unespected error calling %s service",list_of_slot_clnt.getService().c_str());
+//                return 0;
+//            }
+//            else
+//            {
+//                for ( std::size_t i = 0; i < list_of_slots.response.slot_names.size(); i++ )
+//                {
+//                    if ( remove_object_from_slot.request.slot_name == list_of_slots.response.slot_names.at(i) )
+//                    {
+//                        if ( list_of_slots.response.slot_sizes.at(i) < 0 )
+//                        {
+//                            if (!remove_object_from_slot_clnt.call(remove_object_from_slot))
+//                            {
+//                                ROS_ERROR("Unespected error calling %s service",remove_object_from_slot_clnt.getService().c_str());
+//                                return 0;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+
+            object_loader_msgs::RemoveObjects objects_to_remove_by_scene;
+            objects_to_remove_by_scene.request.obj_ids.push_back( remove_object_from_slot.request.object_to_remove_name );
+
+            if ( !remove_objects_from_scene_clnt.call(objects_to_remove_by_scene) )
             {
-                ROS_ERROR("Unespected error calling %s service",list_of_slot_clnt.getService().c_str());
+                ROS_ERROR("Unespected error calling %s service",remove_objects_from_scene_clnt.getService().c_str());
                 return 0;
-            }
-            else
-            {
-                for ( std::size_t i = 0; i < list_of_slots.response.slot_names.size(); i++ )
-                {
-                    if ( remove_object_from_slot.request.slot_name == list_of_slots.response.slot_names.at(i) )
-                    {
-                        if ( list_of_slots.response.slot_sizes.at(i) < 0 )
-                        {
-                            if (!remove_object_from_slot_clnt.call(remove_object_from_slot))
-                            {
-                                ROS_ERROR("Unespected error calling %s service",remove_object_from_slot_clnt.getService().c_str());
-                                return 0;
-                            }
-                        }
-                    }
-                }
             }
 
             ROS_INFO("Well done! ");
