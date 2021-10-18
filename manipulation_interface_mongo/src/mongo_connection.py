@@ -23,11 +23,6 @@ def save_components_params(srv):
                 boxes_collection.delete_many({})
                 boxes_collection.insert_many(boxes_param)
 
-        go_to_param = rospy.get_param("/go_to_location")
-        if go_to_param:
-                go_to_collection.delete_many({})
-                go_to_collection.insert_many(go_to_param)
-
         groups_param = rospy.get_param("/outbound/slots_group")
         if groups_param:
                 groups_collection.delete_many({})
@@ -62,6 +57,17 @@ def save_recipe_param(srv):
                 recipes_collection.insert_many(recipes_param)
 
         print('recipe param is saved')
+        return 'true'
+
+def clear_param(srv):
+        go_to_collection.delete_many({})
+        boxes_collection.delete_many({})
+        groups_collection.delete_many({})
+        objects_collection.delete_many({})
+        slots_collection.delete_many({})
+        tasks_collection.delete_many({})
+        recipes_collection.delete_many({})
+        print('Params cleared!')
         return 'true'
 
 def load_params(srv):
@@ -145,6 +151,7 @@ def server_launch():
         s = rospy.Service('/save_components_params_on_mongo', SaveParam, save_components_params)
         s = rospy.Service('/save_actions_param_on_mongo', SaveParam, save_actions_params)
         s = rospy.Service('/save_recipe_param_on_mongo', SaveParam, save_recipe_param)
+        s = rospy.Service('clear_param_on_mongo', SaveParam, clear_param)
         print("Ready to save new param.")
         rospy.spin()
 
