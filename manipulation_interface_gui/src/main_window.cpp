@@ -1233,9 +1233,16 @@ void MainWindow::on_buttonAddLocationChanges_clicked(bool check)
     loc.name                      = ui_.listLocationModify      ->model()->data(index).toString().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6)
-        plotMsg("One or more number aren't double");
+    {
+      plotMsg("One or more number aren't double");
+      return;
+    }
+
+    if ( qnode_.addLocationChanges(loc) )
+      plotMsg("Location added");
     else
-        qnode_.addLocationChanges(loc);
+      plotMsg("Can't add the location to location manager");
+
     qnode_.saveComponents();
 }
 
@@ -1266,9 +1273,16 @@ void MainWindow::on_buttonAddSlotChanges_clicked(bool check)
     slt.name                      = ui_.listSlotModify      ->model()->data(index).toString().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 || !ok11 || !ok12 || !ok13 )
-        plotMsg("One or more number aren't numers");
+    {
+      plotMsg("One or more number aren't numers");
+      return;
+    }
+
+    if ( qnode_.addSlotChanges(slt) )
+      plotMsg("Slot added");
     else
-        qnode_.addSlotChanges(slt);
+      plotMsg("Can't add the slot to location manager");
+
     qnode_.saveComponents();
 }
 
@@ -1296,9 +1310,16 @@ void MainWindow::on_buttonAddBoxChanges_clicked(bool check)
     bx.name                      = ui_.listBoxModify       ->model()->data(index).toString().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 || !ok11 || !ok12 )
-        plotMsg("One or more number aren't numers");
+    {
+      plotMsg("One or more number aren't numers");
+      return;
+    }
+
+    if ( qnode_.addBoxChanges(bx) )
+      plotMsg("Box added");
     else
-        qnode_.addBoxChanges(bx);
+      plotMsg("Can't add the box to location manager");
+
     qnode_.saveComponents();
 }
 
