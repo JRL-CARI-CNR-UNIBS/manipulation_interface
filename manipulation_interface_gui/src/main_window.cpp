@@ -430,8 +430,35 @@ void MainWindow::on_buttonAddAction_clicked(bool check)
 
 void MainWindow::on_buttonAddGrasp_clicked(bool check)
 {
-    std::string actual_base_frame = tf_name_space_+"/";
-    actual_base_frame.append(ui_.TfList->currentText().toStdString());
+    qnode_.loadTF();
+
+    std::string actual_base_frame;
+    std::string frame_name = tf_name_space_+"/";
+    frame_name.append(ui_.TfList->currentText().toStdString());
+    frame_name.append("/n_");
+    ROS_ERROR("Frame to search: %s", frame_name.c_str());
+    double distance = std::numeric_limits<double>::infinity();
+    for ( std::size_t i = 0; i < qnode_.TFs_.size(); i++ )
+    {
+        ROS_ERROR("parappa");
+        ROS_ERROR("Look frame: %s", qnode_.TFs_.at(i).c_str());
+        if ( qnode_.TFs_.at(i).find(frame_name) != std::string::npos )
+        {
+            ROS_ERROR("Frame passed");
+            location loc = qnode_.returnPosition(qnode_.TFs_.at(i), qnode_.target_frame_);
+            Eigen::Vector3d grasp_position;
+            grasp_position(0) = loc.pos.origin_x;
+            grasp_position(1) = loc.pos.origin_y;
+            grasp_position(2) = loc.pos.origin_z;
+            ROS_ERROR("Grasp distance = %lf ", grasp_position.norm());
+            if ( grasp_position.norm() < distance )
+            {
+                distance = grasp_position.norm();
+                actual_base_frame = qnode_.TFs_.at(i);
+            }
+        }
+    }
+    ROS_ERROR("object frame: %s", actual_base_frame.c_str());
     actual_object_grasp_.push_back(qnode_.returnPosition(actual_base_frame, qnode_.target_frame_));
     actual_tool_grasp_.push_back(qnode_.target_frame_);
     num_grasp_++;
@@ -1206,9 +1233,16 @@ void MainWindow::on_buttonAddLocationChanges_clicked(bool check)
     loc.name                      = ui_.listLocationModify      ->model()->data(index).toString().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6)
-        plotMsg("One or more number aren't double");
+    {
+      plotMsg("One or more number aren't double");
+      return;
+    }
+
+    if ( qnode_.addLocationChanges(loc) )
+      plotMsg("Location added");
     else
-        qnode_.addLocationChanges(loc);
+      plotMsg("Can't add the location to location manager");
+
     qnode_.saveComponents();
 }
 
@@ -1239,9 +1273,16 @@ void MainWindow::on_buttonAddSlotChanges_clicked(bool check)
     slt.name                      = ui_.listSlotModify      ->model()->data(index).toString().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 || !ok11 || !ok12 || !ok13 )
-        plotMsg("One or more number aren't numers");
+    {
+      plotMsg("One or more number aren't numers");
+      return;
+    }
+
+    if ( qnode_.addSlotChanges(slt) )
+      plotMsg("Slot added");
     else
-        qnode_.addSlotChanges(slt);
+      plotMsg("Can't add the slot to location manager");
+
     qnode_.saveComponents();
 }
 
@@ -1269,9 +1310,16 @@ void MainWindow::on_buttonAddBoxChanges_clicked(bool check)
     bx.name                      = ui_.listBoxModify       ->model()->data(index).toString().toStdString();
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 || !ok11 || !ok12 )
-        plotMsg("One or more number aren't numers");
+    {
+      plotMsg("One or more number aren't numers");
+      return;
+    }
+
+    if ( qnode_.addBoxChanges(bx) )
+      plotMsg("Box added");
     else
-        qnode_.addBoxChanges(bx);
+      plotMsg("Can't add the box to location manager");
+
     qnode_.saveComponents();
 }
 
@@ -1328,8 +1376,15 @@ void MainWindow::on_buttonLoadTF_clicked(bool chack)
             tf_name = qnode_.TFs_.at(i);
             found = tf_name.find("/",2);
             tf_name.erase( 0, found+1 );
+            found = tf_name.find("/n_",0);
+            tf_name.erase(tf_name.begin()+found,tf_name.end());
             tf = QString::fromStdString(tf_name);
-            ui_.TfList->addItem(tf);
+            bool presence = false;
+            for ( std::size_t j = 0; j < ui_.TfList->count(); j++ )
+                if ( ui_.TfList->findText(tf) != -1 )
+                     presence = true;
+            if ( !presence )
+                ui_.TfList->addItem(tf);
         }
     }
 }

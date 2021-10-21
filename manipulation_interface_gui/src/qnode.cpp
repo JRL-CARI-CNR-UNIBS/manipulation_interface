@@ -1992,39 +1992,102 @@ void QNode::addBox(const box &internal_box)
     boxes_.insert(std::make_pair(internal_box.name,internal_box));
 }
 
-void QNode::addLocationChanges(const go_to_location &new_location)
+bool QNode::addLocationChanges(const go_to_location &new_location)
 {
+  go_to_location internal_location;
     if ( go_to_locations_.find(new_location.name) != go_to_locations_.end() )
-        go_to_locations_.at(new_location.name) = new_location;
+    {
+      internal_location = go_to_locations_.at(new_location.name);
+      removeLocation(new_location.name);
+      if ( loadNewLocation(new_location) )
+      {
+        go_to_locations_.insert(std::make_pair(new_location.name,new_location));
+        return true;
+      }
+      else
+      {
+        loadNewLocation(internal_location);
+        go_to_locations_.insert(std::make_pair(internal_location.name,internal_location));
+        return false;
+      }
+    }
     else
     {
+      if ( loadNewLocation(new_location) )
+      {
         go_to_locations_.insert(std::make_pair(new_location.name, new_location));
         logLocation(new_location.name);
         logLocationModify(new_location.name);
+        return true;
+      }
+      else
+        return false;
     }
 }
 
-void QNode::addSlotChanges(const manipulation_slot &new_slot)
+bool QNode::addSlotChanges(const manipulation_slot &new_slot)
 {
+  manipulation_slot internal_slot;
     if ( manipulation_slots_.find(new_slot.name) != manipulation_slots_.end() )
-        manipulation_slots_.at(new_slot.name) = new_slot;
+    {
+      internal_slot = manipulation_slots_.at(new_slot.name);
+      removeSlot(new_slot.name);
+      if ( loadNewSlot(new_slot) )
+      {
+        manipulation_slots_.insert(std::make_pair(new_slot.name,new_slot));
+        return true;
+      }
+      else
+      {
+        loadNewSlot(internal_slot);
+        manipulation_slots_.insert( std::make_pair(internal_slot.name,internal_slot) );
+        return false;
+      }
+    }
     else
     {
+      if ( loadNewSlot(new_slot))
+      {
         manipulation_slots_.insert(std::make_pair(new_slot.name,new_slot));
         logSlot(new_slot.name);
         logSlotModify(new_slot.name);
+        return true;
+      }
+      else
+        return false;
     }
 }
 
-void QNode::addBoxChanges(const box &new_box)
+bool QNode::addBoxChanges(const box &new_box)
 {
+  box internal_box;
     if ( boxes_.find(new_box.name) != boxes_.end() )
-        boxes_.at(new_box.name) = new_box;
+    {
+      internal_box = boxes_.at(new_box.name);
+      removeBox(new_box.name);
+      if ( loadNewBox(new_box) )
+      {
+        boxes_.insert(std::make_pair(new_box.name,new_box));
+        return true;
+      }
+      else
+      {
+        loadNewBox(internal_box);
+        boxes_.insert(std::make_pair(internal_box.name,internal_box));
+        return false;
+      }
+    }
     else
     {
+      if ( loadNewBox(new_box) )
+      {
         boxes_.insert(std::make_pair(new_box.name,new_box));
         logBox(new_box.name);
         logBoxModify(new_box.name);
+        return true;
+      }
+      else
+        return false;
     }
 }
 

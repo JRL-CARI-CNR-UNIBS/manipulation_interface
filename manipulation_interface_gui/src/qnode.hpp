@@ -197,9 +197,9 @@ public:
     void addSecondLocationInfo (const std::string &name);
     void addSecondSlotGroups   (const std::string &name);
     void addSecondObjectType   (const std::string &name);
-    void addLocationChanges    (const go_to_location &new_location);
-    void addSlotChanges        (const manipulation_slot &new_slot);
-    void addBoxChanges         (const box &new_box);
+    bool addLocationChanges    (const go_to_location &new_location);
+    bool addSlotChanges        (const manipulation_slot &new_slot);
+    bool addBoxChanges         (const box &new_box);
     void addObjectChanges      (const object_type &new_object);
     void addObjectCopyGrasp    (const std::string &name, const int &index);
 
