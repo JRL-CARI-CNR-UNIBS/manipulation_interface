@@ -355,9 +355,13 @@ void QNode::addSecondObjectType(const std::string &name)
 
 void QNode::addObjectCopyGrasp(const std::string &name, const int &index)
 {
-    objects_.at(name).approach.push_back( objects_.at(name).approach.at(index) );
-    objects_.at(name).grasp.push_back   ( objects_.at(name).grasp.at(index) );
-    objects_.at(name).tool.push_back    ( objects_.at(name).tool.at(index) );
+    objects_.at(name).approach.push_back              ( objects_.at(name).approach.at(index) );
+    objects_.at(name).grasp.push_back                 ( objects_.at(name).grasp.at(index) );
+    objects_.at(name).tool.push_back                  ( objects_.at(name).tool.at(index) );
+    objects_.at(name).gripper_force.push_back         ( objects_.at(name).gripper_force.at(index) );
+    objects_.at(name).pre_gripper_position.push_back  ( objects_.at(name).pre_gripper_position.at(index) );
+    objects_.at(name).post_gripper_position.push_back ( objects_.at(name).post_gripper_position.at(index) );
+    objects_.at(name).leave.push_back                 ( objects_.at(name).leave.at(index) );
 }
 
 void QNode::writeRecipe(const std::string &name)
