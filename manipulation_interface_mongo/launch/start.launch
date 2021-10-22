@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 
 <launch>
-<node name="mongo_connection" type="mongo_connection.py" pkg="manipulation_interface_mongo" />
+  <rosparam command="load" file="$(find manipulation_interface_mongo)/config/mongo_db_name.yaml"/>
+  <node name="mongo_connection" type="mongo_connection.py" pkg="manipulation_interface_mongo" />
 </launch>

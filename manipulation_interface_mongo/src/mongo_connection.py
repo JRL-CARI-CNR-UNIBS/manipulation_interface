@@ -158,7 +158,12 @@ def server_launch():
 
 client = MongoClient('localhost', 27017)
 
-db = client.interface_data
+collection_name = rospy.get_param("collection_name");
+str1 = ""
+for ele in collection_name:
+    str1 += ele
+db = client[str1]
+
 
 boxes_collection           = db.boxes
 go_to_collection           = db.go_to_locations
