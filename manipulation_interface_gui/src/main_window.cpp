@@ -1394,6 +1394,11 @@ void MainWindow::on_buttonLoad_clicked(bool chack)
     qnode_.writeParam(1);
 }
 
+void MainWindow::on_buttonLoadObjects_clicked(bool chack)
+{
+    loadObjects();
+}
+
 void MainWindow::on_buttonCopyGrasp_clicked(bool chack)
 {
     QModelIndex index  = ui_.listObjectModify->currentIndex();

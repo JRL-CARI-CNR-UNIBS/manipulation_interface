@@ -474,6 +474,25 @@ std::string QNode::runRecipe()
     for ( int i = 0; i < logging_model_recipe_.rowCount(); i++ )
         recipe.push_back( logging_model_recipe_.data( logging_model_recipe_.index(i) ).toString().toStdString() );
 
+//This part is a feedback only for a specific application
+    bool object_grasped = false;
+
+    for ( std::size_t i = 0; i < recipe.size(); i++ )
+    {
+        if ( pick_actions_.find(recipe.at(i)) != pick_actions_.end() )
+        {
+            if ( object_grasped )
+            {
+                std::string str = "Recipe contain two consecutive pick without place";
+                return str;
+            }
+            object_grasped = true;
+        }
+        if ( place_actions_.find(recipe.at(i)) != place_actions_.end() )
+            object_grasped = false;
+    }
+//--------------------------------------------------------
+
     return callRunRecipe(recipe);
 }
 
