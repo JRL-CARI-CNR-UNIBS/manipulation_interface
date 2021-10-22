@@ -105,6 +105,7 @@ public Q_SLOTS:
     void on_buttonLoadRecipe_clicked              (bool check);
     void on_buttonLoadActions_clicked             (bool check);
     void on_buttonRunSelectedAction_clicked       (bool check);
+    void on_buttonLoadObjects_clicked             (bool check);
     void on_buttonAntiX_pressed    ();
     void on_buttonAntiY_pressed    ();
     void on_buttonAntiZ_pressed    ();
