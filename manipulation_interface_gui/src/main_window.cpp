@@ -956,7 +956,7 @@ void MainWindow::on_buttonGripper2_clicked(bool check)
 }
 
 void MainWindow::on_buttonAddObject_clicked(bool check)
-{ 
+{
     QString object_name = ui_.editObjectName->text();
     std::string obj_name = object_name.toStdString();
 
