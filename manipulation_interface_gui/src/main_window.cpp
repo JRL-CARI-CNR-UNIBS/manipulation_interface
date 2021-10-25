@@ -433,33 +433,39 @@ void MainWindow::on_buttonAddGrasp_clicked(bool check)
     qnode_.loadTF();
 
     std::string actual_base_frame;
-    std::string frame_name = tf_name_space_+"/";
-    frame_name.append(ui_.TfList->currentText().toStdString());
-    frame_name.append("/n_");
-    ROS_ERROR("Frame to search: %s", frame_name.c_str());
+    std::string frame_name = ui_.TfList->currentText().toStdString();
     double distance = std::numeric_limits<double>::infinity();
-    for ( std::size_t i = 0; i < qnode_.TFs_.size(); i++ )
+    object_loader_msgs::ListObjects objects_list = qnode_.returnObjectLoaderList();
+    for ( const std::string object_name: objects_list.response.ids)
     {
-        ROS_ERROR("parappa");
-        ROS_ERROR("Look frame: %s", qnode_.TFs_.at(i).c_str());
-        if ( qnode_.TFs_.at(i).find(frame_name) != std::string::npos )
+        if ( object_name.find(frame_name) != std::string::npos )
         {
-            ROS_ERROR("Frame passed");
-            location loc = qnode_.returnPosition(qnode_.TFs_.at(i), qnode_.target_frame_);
+            location loc;
+            if ( !qnode_.returnPosition(object_name, qnode_.target_frame_, loc) )
+            {
+                ROS_ERROR("Error with Transform");
+                continue;
+            }
             Eigen::Vector3d grasp_position;
             grasp_position(0) = loc.pos.origin_x;
             grasp_position(1) = loc.pos.origin_y;
             grasp_position(2) = loc.pos.origin_z;
-            ROS_ERROR("Grasp distance = %lf ", grasp_position.norm());
+            ROS_INFO("Grasp distance = %lf ", grasp_position.norm());
             if ( grasp_position.norm() < distance )
             {
                 distance = grasp_position.norm();
-                actual_base_frame = qnode_.TFs_.at(i);
+                actual_base_frame = object_name;
             }
         }
     }
-    ROS_ERROR("object frame: %s", actual_base_frame.c_str());
-    actual_object_grasp_.push_back(qnode_.returnPosition(actual_base_frame, qnode_.target_frame_));
+    ROS_INFO("Chosen object frame: %s", actual_base_frame.c_str());
+    location grasp_loc;
+    if ( !qnode_.returnPosition(actual_base_frame, qnode_.target_frame_, grasp_loc) )
+    {
+        plotMsg("Error whit Transform");
+        return;
+    }
+    actual_object_grasp_.push_back(grasp_loc);
     actual_tool_grasp_.push_back(qnode_.target_frame_);
     num_grasp_++;
     std::string str = "grasp";
@@ -485,7 +491,12 @@ void MainWindow::on_buttonSetApproach_clicked(bool check)
     int index = ui_.graspList->currentIndex();
     std::string actual_base_frame = tf_name_space_+"/";
     actual_base_frame.append( ui_.TfList->currentText().toStdString() );
-    location actual_approach = qnode_.returnPosition(actual_base_frame, qnode_.target_frame_);
+    location actual_approach;
+    if ( !qnode_.returnPosition(actual_base_frame, qnode_.target_frame_, actual_approach) )
+    {
+        plotMsg("Error with Transfom");
+        return;
+    }
     double dist_x = actual_approach.pos.origin_x - actual_object_grasp_.at(index).pos.origin_x;
     double dist_y = actual_approach.pos.origin_y - actual_object_grasp_.at(index).pos.origin_y;
     double dist_z = actual_approach.pos.origin_z - actual_object_grasp_.at(index).pos.origin_z;
@@ -515,7 +526,12 @@ void MainWindow::on_buttonSetLeave_clicked(bool check)
     int index = ui_.graspList->currentIndex();
     std::string actual_base_frame = tf_name_space_+"/";
     actual_base_frame.append( ui_.TfList->currentText().toStdString() );
-    location actual_leave = qnode_.returnPosition(actual_base_frame, qnode_.target_frame_);
+    location actual_leave;
+    if ( !qnode_.returnPosition(actual_base_frame, qnode_.target_frame_, actual_leave) )
+    {
+        plotMsg("Error with Transfom");
+        return;
+    }
     double dist_x = actual_leave.pos.origin_x - actual_object_grasp_.at(index).pos.origin_x;
     double dist_y = actual_leave.pos.origin_y - actual_object_grasp_.at(index).pos.origin_y;
     double dist_z = actual_leave.pos.origin_z - actual_object_grasp_.at(index).pos.origin_z;
@@ -540,7 +556,12 @@ void MainWindow::on_buttonAddApproachSlot_clicked(bool check)
 {
     if ( init_slot_final_ )
     {
-        location actual_approach = qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_);
+        location actual_approach;
+        if  ( !qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_, actual_approach) )
+        {
+            plotMsg("Error with Transfom");
+            return;
+        }
         double dist_x = actual_approach.pos.origin_x - actual_slot_final_position_.pos.origin_x;
         double dist_y = actual_approach.pos.origin_y - actual_slot_final_position_.pos.origin_y;
         double dist_z = actual_approach.pos.origin_z - actual_slot_final_position_.pos.origin_z;
@@ -566,7 +587,12 @@ void MainWindow::on_buttonAddApproachSlot_clicked(bool check)
 
 void MainWindow::on_buttonAddFinalPositionSlot_clicked(bool check)
 {
-    actual_slot_final_position_ = qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_);
+    actual_slot_final_position_;
+    if ( !qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_, actual_slot_final_position_) )
+    {
+        plotMsg("Error with Transfom");
+        return;
+    }
     actual_slot_approach_ = default_approach_;
     init_slot_final_ = true;
     ui_.buttonAddFinalPositionSlot->setEnabled(false);
@@ -587,7 +613,12 @@ void MainWindow::on_buttonAddLocation_clicked(bool check)
                 return;
             }
         }
-        location loc = qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_);
+        location loc;
+        if ( !qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_, loc) )
+        {
+            plotMsg("Error with Transfom");
+            return;
+        }
         go_to_location gt;
         gt.name      = location_name;
         gt.location_ = loc;
@@ -648,7 +679,12 @@ void MainWindow::on_buttonAddApproachBox_clicked(bool check)
 {
     if ( init_box_final_ )
     {
-        location actual_approach = qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_);
+        location actual_approach;
+        if ( !qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_, actual_approach) )
+        {
+            plotMsg("Error with Transfom");
+            return;
+        }
         double dist_x = actual_approach.pos.origin_x - actual_box_final_.pos.origin_x;
         double dist_y = actual_approach.pos.origin_y - actual_box_final_.pos.origin_y;
         double dist_z = actual_approach.pos.origin_z - actual_box_final_.pos.origin_z;
@@ -674,7 +710,11 @@ void MainWindow::on_buttonAddApproachBox_clicked(bool check)
 
 void MainWindow::on_buttonAddFinalBox_clicked(bool check)
 {
-    actual_box_final_ = qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_);
+    if ( !qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_, actual_box_final_) )
+    {
+        plotMsg("Error with Transfom");
+        return;
+    }
     actual_box_approach_ = default_approach_;
     init_box_final_ = true;
     ui_.buttonAddFinalBox->setEnabled(false);
@@ -2492,7 +2532,12 @@ void MainWindow::on_buttonAddLeavePositionSlot_clicked(bool check)
 {
     if ( init_slot_final_ )
     {
-        location actual_approach = qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_);
+        location actual_approach;
+        if ( !qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_, actual_approach) )
+        {
+            plotMsg("Error with Transfom");
+            return;
+        }
         double dist_x = actual_approach.pos.origin_x - actual_slot_final_position_.pos.origin_x;
         double dist_y = actual_approach.pos.origin_y - actual_slot_final_position_.pos.origin_y;
         double dist_z = actual_approach.pos.origin_z - actual_slot_final_position_.pos.origin_z;
@@ -2520,7 +2565,12 @@ void MainWindow::on_buttonAddLeavePositionBox_clicked(bool check)
 {
     if ( init_box_final_ )
     {
-        location actual_approach = qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_);
+        location actual_approach;
+        if ( !qnode_.returnPosition(qnode_.base_frame_, qnode_.target_frame_, actual_approach))
+        {
+            plotMsg("Error with Transfom");
+            return;
+        }
         double dist_x = actual_approach.pos.origin_x - actual_box_final_.pos.origin_x;
         double dist_y = actual_approach.pos.origin_y - actual_box_final_.pos.origin_y;
         double dist_z = actual_approach.pos.origin_z - actual_box_final_.pos.origin_z;
