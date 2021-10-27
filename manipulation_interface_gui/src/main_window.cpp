@@ -2818,7 +2818,14 @@ void MainWindow::writeJobProperty()
 void MainWindow::on_buttonAddDbName_clicked(bool check)
 {
     QString db_name = ui_.editDbName->text();
-    ui_.comboDbNames->addItem(db_name);
+    bool presence = false;
+    for ( int i = 0; i < ui_.comboDbNames->count(); i++ )
+        if ( !ui_.comboDbNames->itemText(i).compare(db_name) )
+            presence = true;
+    if ( !presence )
+        ui_.comboDbNames->addItem(db_name);
+    else
+        plotMsg("There is another db with the same name");
     ui_.editDbName->clear();
 }
 
