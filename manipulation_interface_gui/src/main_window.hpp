@@ -48,7 +48,9 @@ public Q_SLOTS:
     void addPick                      (int state);
     void addPlace                     (int state);
     void on_checkRobotTF_stateChanged (int state);
+    void on_checkDefaultBoxes_stateChanged (int state);
     void plotMsg (std::string msg);
+    void clearAll();
 
     void on_actionAbout_triggered();
     void on_buttonAddAction_clicked               (bool check);
@@ -106,6 +108,7 @@ public Q_SLOTS:
     void on_buttonLoadActions_clicked             (bool check);
     void on_buttonRunSelectedAction_clicked       (bool check);
     void on_buttonLoadObjects_clicked             (bool check);
+    void on_buttonAddDbName_clicked               (bool check);
     void on_buttonAntiX_pressed    ();
     void on_buttonAntiY_pressed    ();
     void on_buttonAntiZ_pressed    ();
@@ -130,10 +133,6 @@ public Q_SLOTS:
     void on_buttonLeft_released    ();
     void on_buttonRight_released   ();
     void on_buttonFront_released   ();
-    void resetLocation                               (const std::string &name);
-    void resetSlot                                   (const std::string &name);
-    void resetBox                                    (const std::string &name);
-    void resetObject                                 (const std::string &name);
     void on_lateralTab_currentChanged                (int index);
     void on_tab_manager_currentChanged               (int index);
     void on_robotList_currentIndexChanged            (int index);
@@ -143,6 +142,7 @@ public Q_SLOTS:
     void on_comboConfiguration2_currentIndexChanged  (int index);
     void on_comboRefFrame_currentIndexChanged        (int index);
     void on_comboJobType_currentIndexChanged         (int index);
+    void on_comboDbNames_currentIndexChanged         (int index);
 //    void on_comboPreExecProp_currentIndexChanged     (int index);
 //    void on_comboPostExecProp_currentIndexChanged    (int index);
     void on_TfList_currentIndexChanged               (int index);
@@ -165,6 +165,12 @@ public Q_SLOTS:
     void saveActions();
     void saveRecipe();
     void loadObjects();
+    void addDefaultBoxes();
+    void removeDefaultBoxes();
+    void resetLocation                               (const std::string &name);
+    void resetSlot                                   (const std::string &name);
+    void resetBox                                    (const std::string &name);
+    void resetObject                                 (const std::string &name);
 
     /******************************************
     ** Manual connections
@@ -213,6 +219,8 @@ private:
     double default_x_approach_ = 0;
     double default_y_approach_ = 0;
     double default_z_approach_ = -0.1;
+    double default_box_high_   = 0.3;
+    std::string default_base_frame_ = "world";
 
     int num_run_recipe_clicked_ = 0;
     int num_run_action_clicked_ = 0;

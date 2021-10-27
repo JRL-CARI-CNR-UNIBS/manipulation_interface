@@ -57,23 +57,22 @@ QNode::~QNode()
 bool QNode::init()
 {
     twist_pub_= n_.advertise<geometry_msgs::TwistStamped>("/target_cart_twist",1);
-    set_ctrl_srv_ = n_.serviceClient<configuration_msgs::StartConfiguration>("/configuration_manager/start_configuration");
-    gripper_srv_ = n_.serviceClient<manipulation_msgs::JobExecution>("/robotiq_gripper");
+    set_ctrl_client_ = n_.serviceClient<configuration_msgs::StartConfiguration>("/configuration_manager/start_configuration");
 
     start_ctrl_req_.request.start_configuration = "watch";
     start_ctrl_req_.request.strictness = 1;
 
-    set_ctrl_srv_.waitForExistence();
+    set_ctrl_client_.waitForExistence();
 
-    if ( !set_ctrl_srv_.call(start_ctrl_req_) )
+    if ( !set_ctrl_client_.call(start_ctrl_req_) )
     {
-        ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_srv_.getService().c_str(),start_ctrl_req_.request.start_configuration.c_str());
+        ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_client_.getService().c_str(),start_ctrl_req_.request.start_configuration.c_str());
         return false;
     }
 
     if (!start_ctrl_req_.response.ok)
     {
-        ROS_ERROR("Error on service %s response", set_ctrl_srv_.getService().c_str());
+        ROS_ERROR("Error on service %s response", set_ctrl_client_.getService().c_str());
         return false;
     }
 
@@ -85,26 +84,46 @@ bool QNode::init()
 
     js_sub_ = std::make_shared<ros_helper::SubscriptionNotifier<std_msgs::String>>(n_,"/gripper/joint_states",10);
 
-    add_locations_client_             = n_.serviceClient<manipulation_msgs::AddLocations>       ("/go_to_location_server/add_locations");
-    add_boxes_client_                 = n_.serviceClient<manipulation_msgs::AddBoxes>           ("/inbound_pick_server/add_boxes");
-    add_objs_client_                  = n_.serviceClient<manipulation_msgs::AddObjects>         ("/inbound_pick_server/add_objects");
-    add_slots_group_client_           = n_.serviceClient<manipulation_msgs::AddSlotsGroup>      ("/outbound_place_server/add_slots_group");
-    add_slots_client_                 = n_.serviceClient<manipulation_msgs::AddSlots>           ("/outbound_place_server/add_slots");
-    remove_locations_client_          = n_.serviceClient<manipulation_msgs::RemoveLocations>    ("/go_to_location_server/remove_locations");
-    remove_boxes_client_              = n_.serviceClient<manipulation_msgs::RemoveBoxes>        ("/inbound_pick_server/remove_boxes");
-    remove_objs_client_               = n_.serviceClient<manipulation_msgs::RemoveObjects>      ("/inbound_pick_server/remove_objects");
-    remove_slots_group_client_        = n_.serviceClient<manipulation_msgs::RemoveSlotsGroup>   ("/outbound_place_server/remove_slots_group");
-    remove_slots_client_              = n_.serviceClient<manipulation_msgs::RemoveSlots>        ("/outbound_place_server/remove_slots");
-    list_objects_client_              = n_.serviceClient<object_loader_msgs::ListObjects>       ("/list_objects");
-    list_manipulation_objects_client_ = n_.serviceClient<manipulation_msgs::ListOfObjects>      ("/inbound_pick_server/list_objects");
-    go_to_job_list_client_            = n_.serviceClient<manipulation_msgs::ListOfJobExecuters> ("/go_to_location_server/list_executers");
-    pick_job_list_client_             = n_.serviceClient<manipulation_msgs::ListOfJobExecuters> ("/inbound_pick_server/list_executers");
-    place_job_list_client_            = n_.serviceClient<manipulation_msgs::ListOfJobExecuters> ("/outbound_place_server/list_executers");
-    run_recipe_client_                = n_.serviceClient<manipulation_interface_gui::RunRecipeTest>("run_recipe");
+    add_locations_client_             = n_.serviceClient<manipulation_msgs::AddLocations>           ("/go_to_location_server/add_locations");
+    add_boxes_client_                 = n_.serviceClient<manipulation_msgs::AddBoxes>               ("/inbound_pick_server/add_boxes");
+    add_objs_client_                  = n_.serviceClient<manipulation_msgs::AddObjects>             ("/inbound_pick_server/add_objects");
+    add_slots_group_client_           = n_.serviceClient<manipulation_msgs::AddSlotsGroup>          ("/outbound_place_server/add_slots_group");
+    add_slots_client_                 = n_.serviceClient<manipulation_msgs::AddSlots>               ("/outbound_place_server/add_slots");
+    remove_locations_client_          = n_.serviceClient<manipulation_msgs::RemoveLocations>        ("/go_to_location_server/remove_locations");
+    remove_boxes_client_              = n_.serviceClient<manipulation_msgs::RemoveBoxes>            ("/inbound_pick_server/remove_boxes");
+    remove_objs_client_               = n_.serviceClient<manipulation_msgs::RemoveObjects>          ("/inbound_pick_server/remove_objects");
+    remove_slots_group_client_        = n_.serviceClient<manipulation_msgs::RemoveSlotsGroup>       ("/outbound_place_server/remove_slots_group");
+    remove_slots_client_              = n_.serviceClient<manipulation_msgs::RemoveSlots>            ("/outbound_place_server/remove_slots");
+    list_objects_client_              = n_.serviceClient<object_loader_msgs::ListObjects>           ("/list_objects");
+    list_manipulation_objects_client_ = n_.serviceClient<manipulation_msgs::ListOfObjects>          ("/inbound_pick_server/list_objects");
+    list_locations_client_            = n_.serviceClient<manipulation_msgs::ListOfLocations>        ("/go_to_location_server/list_locations");
+    list_slots_client_                = n_.serviceClient<manipulation_msgs::ListOfSlots>            ("/outbound_place_server/list_slots");
+    go_to_job_list_client_            = n_.serviceClient<manipulation_msgs::ListOfJobExecuters>     ("/go_to_location_server/list_executers");
+    pick_job_list_client_             = n_.serviceClient<manipulation_msgs::ListOfJobExecuters>     ("/inbound_pick_server/list_executers");
+    place_job_list_client_            = n_.serviceClient<manipulation_msgs::ListOfJobExecuters>     ("/outbound_place_server/list_executers");
+    run_recipe_client_                = n_.serviceClient<manipulation_interface_gui::RunRecipeTest> ("run_recipe");
+    get_db_name_client_               = n_.serviceClient<manipulation_interface_mongo::GetDbNames>  ("get_data_base_names");
+    change_db_name_client_            = n_.serviceClient<manipulation_interface_mongo::ChangeDb>    ("change_data_base");
+    gripper_client_                   = n_.serviceClient<manipulation_msgs::JobExecution>           ("/robotiq_gripper");
+
+#include <manipulation_msgs/ListOfLocations.h>
+#include <manipulation_msgs/ListOfSlots.h>
 
     ROS_INFO("Waiting for: %s server", add_locations_client_.getService().c_str());
     add_locations_client_.waitForExistence();
     ROS_INFO("Client %s connected to server", add_locations_client_.getService().c_str());
+
+    ROS_INFO("Waiting for: %s server", gripper_client_.getService().c_str());
+    gripper_client_.waitForExistence();
+    ROS_INFO("Client %s connected to server", gripper_client_.getService().c_str());
+
+    ROS_INFO("Waiting for: %s server", get_db_name_client_.getService().c_str());
+    get_db_name_client_.waitForExistence();
+    ROS_INFO("Client %s connected to server", get_db_name_client_.getService().c_str());
+
+    ROS_INFO("Waiting for: %s server", change_db_name_client_.getService().c_str());
+    change_db_name_client_.waitForExistence();
+    ROS_INFO("Client %s connected to server", change_db_name_client_.getService().c_str());
 
     ROS_INFO("Waiting for: %s server", remove_locations_client_.getService().c_str());
     remove_locations_client_.waitForExistence();
@@ -169,24 +188,34 @@ bool QNode::init()
     return true;
 }
 
-object_loader_msgs::ListObjects QNode::returnObjectLoaderList()
+bool QNode::returnObjectLoaderList(object_loader_msgs::ListObjects &obj_list)
 {
-    object_loader_msgs::ListObjects objects_list;
-
-    if ( !list_objects_client_.call( objects_list ) )
+    if ( !list_objects_client_.call( obj_list ) )
+    {
         ROS_ERROR("Unable to obtain the object list by object loader");
+        return false;
+    }
 
-    return objects_list;
+    return true;
 }
 
+bool QNode::returnManipulationObjectList(manipulation_msgs::ListOfObjects &obj_list)
+{
+    if ( !list_manipulation_objects_client_.call( obj_list ) )
+    {
+        ROS_ERROR("Unable to obtain the object list by manipulation");
+        return false;
+    }
+
+    return true;
+}
 
 std::vector<std::string> QNode::loadObjectsInManipulation()
 {
     manipulation_msgs::ListOfObjects manipulation_object_list;
 
-    if ( !list_manipulation_objects_client_.call( manipulation_object_list ) )
+    if ( !returnManipulationObjectList(manipulation_object_list) )
     {
-        ROS_ERROR("Unable to obtain the object list by manipulation");
         std::vector<std::string> objects_list;
         return objects_list;
     }
@@ -202,7 +231,12 @@ std::vector<std::string> QNode::loadObjectsInManipulation()
     }
 
 
-    object_loader_msgs::ListObjects objects_list = returnObjectLoaderList();
+    object_loader_msgs::ListObjects objects_list;
+    if ( !returnObjectLoaderList(objects_list) )
+    {
+        std::vector<std::string> obj_list;
+        return obj_list;
+    }
 
     manipulation_msgs::AddObjects add_objects_srv;
 
@@ -1098,14 +1132,12 @@ void QNode::removeSlot(const std::string &name)
 void QNode::removeBox(const std::string &name)
 {
     manipulation_msgs::RemoveBoxes remove_boxes_srv;
+    ROS_WARN("Box to remove: %s", name.c_str());
+    remove_boxes_srv.request.box_names.push_back(name);
+    if ( !remove_boxes_client_.call(remove_boxes_srv) )
+        ROS_ERROR("Error while calling remove boxes service");
     if ( boxes_.find(name) != boxes_.end() )
-    {
-        ROS_WARN("Box to remove: %s", name.c_str());
-        remove_boxes_srv.request.box_names.push_back(name);
-        if ( !remove_boxes_client_.call(remove_boxes_srv) )
-            ROS_ERROR("Error while calling remove boxes service");
         boxes_.erase(boxes_.find(name));
-    }
 }
 
 std::vector<std::string> QNode::removeGroup(const std::string &name)
@@ -1143,17 +1175,17 @@ void QNode::activeConfiguration(const std::string &config)
     start_ctrl_req_.request.start_configuration = config;
     start_ctrl_req_.request.strictness = 1;
 
-    set_ctrl_srv_.waitForExistence();
+    set_ctrl_client_.waitForExistence();
 
-    if ( !set_ctrl_srv_.call(start_ctrl_req_) )
+    if ( !set_ctrl_client_.call(start_ctrl_req_) )
     {
-        ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_srv_.getService().c_str(),start_ctrl_req_.request.start_configuration.c_str());
+        ROS_ERROR("Unable to call %s service to set controller %s",set_ctrl_client_.getService().c_str(),start_ctrl_req_.request.start_configuration.c_str());
         return;
     }
 
     if (!start_ctrl_req_.response.ok)
     {
-        ROS_ERROR("Error on service %s response", set_ctrl_srv_.getService().c_str());
+        ROS_ERROR("Error on service %s response", set_ctrl_client_.getService().c_str());
         return;
     }
     ROS_INFO("Controller %s started.",start_ctrl_req_.request.start_configuration.c_str());
@@ -1166,8 +1198,8 @@ void QNode::moveGripper(const std::string &str )
     gripper_req_.request.tool_id = "gripper_fake";
     gripper_req_.request.property_id = str;
 
-    gripper_srv_.waitForExistence();
-    if (!gripper_srv_.call(gripper_req_))
+    gripper_client_.waitForExistence();
+    if (!gripper_client_.call(gripper_req_))
     {
         ROS_ERROR("Unable to move gripper t %s state",gripper_req_.request.property_id.c_str());
         return;
@@ -3287,6 +3319,123 @@ bool QNode::getPostExecProp(const std::string &job_name, std::vector<std::string
         post_exec_prop_list = list_post_exec_srv.response.properties;
         return true;
     }
+}
+
+bool QNode::returnDbNames(std::vector<std::string> &db_names)
+{
+    manipulation_interface_mongo::GetDbNames get_db_names_srv;
+    if ( get_db_name_client_.call(get_db_names_srv) )
+    {
+        db_names = get_db_names_srv.response.dbNames;
+        return true;
+    }
+    else
+        return false;
+}
+
+bool QNode::changeDbName(const std::string &db_name)
+{
+    manipulation_interface_mongo::ChangeDb change_db_name_srv;
+    change_db_name_srv.request.dbName = db_name;
+    if (db_name.empty())
+    {
+        ROS_ERROR("Db name is empty");
+        return false;
+    }
+    if ( change_db_name_client_.call(change_db_name_srv) )
+        return true;
+    else
+        return false;
+}
+
+bool QNode::clearAll()
+{
+    go_to_actions_           .clear();
+    place_actions_           .clear();
+    pick_actions_            .clear();
+    go_to_actions_compare_   .clear();
+    place_actions_compare_   .clear();
+    pick_actions_compare_    .clear();
+    go_to_locations_         .clear();
+    objects_                 .clear();
+    manipulation_slots_      .clear();
+    groups_                  .clear();
+    boxes_                   .clear();
+    recipes_                 .clear();
+    go_to_locations_compare_ .clear();
+    objects_compare_         .clear();
+    slots_compare_           .clear();
+    groups_compare_          .clear();
+    boxes_compare_           .clear();
+    recipes_compare_         .clear();
+
+    manipulation_msgs::ListOfLocations location_list_srv;
+    if ( list_locations_client_.call(location_list_srv) )
+    {
+        manipulation_msgs::RemoveLocations remove_locations_srv;
+        remove_locations_srv.request.location_names = location_list_srv.response.locations;
+        if ( !remove_locations_client_.call(remove_locations_srv) )
+        {
+            ROS_ERROR("Error with remove_locations_client_");
+            return false;
+        }
+    }
+    else
+    {
+        ROS_ERROR("Error with list_locations_client_");
+        return false;
+    }
+
+    manipulation_msgs::ListOfObjects object_list_srv;
+    if ( list_manipulation_objects_client_.call(object_list_srv) )
+    {
+        manipulation_msgs::RemoveBoxes remove_boxes_srv;
+        remove_boxes_srv.request.box_names = object_list_srv.response.box_names;
+        if ( !remove_boxes_client_.call(remove_boxes_srv) )
+        {
+            ROS_ERROR("Error with remove_boxes_client_");
+            return false;
+        }
+
+        manipulation_msgs::RemoveObjects remove_objects_srv;
+        remove_objects_srv.request.object_names = object_list_srv.response.object_names;
+        if ( !remove_objs_client_.call(remove_objects_srv) )
+        {
+            ROS_ERROR("Error with remove_objs_client_");
+            return false;
+        }
+    }
+    else
+    {
+        ROS_ERROR("Error with list_manipulation_objects_client_");
+        return false;
+    }
+
+    manipulation_msgs::ListOfSlots slot_list_srv;
+    if ( list_slots_client_.call(slot_list_srv) )
+    {
+        manipulation_msgs::RemoveSlots remove_slots_srv;
+        remove_slots_srv.request.slots_names = slot_list_srv.response.slot_names;
+        if ( !remove_slots_client_.call(remove_slots_srv) )
+        {
+            ROS_ERROR("Error with remove_slots_client_");
+            return false;
+        }
+
+        manipulation_msgs::RemoveSlotsGroup remove_slot_groups_srv;
+        remove_slot_groups_srv.request.slots_group_names = slot_list_srv.response.slot_groups;
+        if ( !remove_slots_group_client_.call(remove_slot_groups_srv) )
+        {
+            ROS_ERROR("Error with remove_slots_group_client_");
+            return false;
+        }
+    }
+    else
+    {
+        ROS_ERROR("Error with list_slots_client_");
+        return false;
+    }
+    return true;
 }
 
 bool QNode::compare(const std::vector<std::string> &v1, const std::vector<std::string> &v2)

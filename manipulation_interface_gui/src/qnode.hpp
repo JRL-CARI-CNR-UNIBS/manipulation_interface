@@ -35,10 +35,14 @@
 #include <rosparam_utilities/rosparam_utilities.h>
 #include <manipulation_interface_mongo/SaveParam.h>
 #include <manipulation_interface_mongo/LoadParam.h>
+#include <manipulation_interface_mongo/ChangeDb.h>
+#include <manipulation_interface_mongo/GetDbNames.h>
 #include <manipulation_interface_gui/RunRecipeTest.h>
 #include <object_loader_msgs/AddObjects.h>
 #include <object_loader_msgs/ListObjects.h>
 #include <manipulation_msgs/ListOfObjects.h>
+#include <manipulation_msgs/ListOfLocations.h>
+#include <manipulation_msgs/ListOfSlots.h>
 #include <manipulation_msgs/AddLocations.h>
 #include <manipulation_msgs/AddBoxes.h>
 #include <manipulation_msgs/AddObjects.h>
@@ -183,6 +187,7 @@ public:
 	bool init();
 
     void cartMove (const std::vector<float> &twist_move);
+    bool clearAll();
 
     bool saveRecipe();
     std::string runRecipe();
@@ -223,14 +228,17 @@ public:
     void addObjectCopyGrasp    (const std::string &name, const int &index);
 
     std::vector<std::string> loadObjectsInManipulation();
-    object_loader_msgs::ListObjects returnObjectLoaderList();
+    bool returnObjectLoaderList(object_loader_msgs::ListObjects &obj_list);
+    bool returnManipulationObjectList(manipulation_msgs::ListOfObjects &obj_list);
 
     bool loadNewLocation (const go_to_location    &location_to_add);
     bool loadNewBox      (const box               &box_to_add);
     bool loadNewGroup    (const std::string       &group_to_add);
     bool loadNewSlot     (const manipulation_slot &slot_to_add);
 
+    bool changeDbName(const std::string &db_name);
     bool returnPosition(const std::string &base_frame, const std::string &target_frame, location &loc);
+    bool returnDbNames(std::vector<std::string> &db_names);
     go_to_action      returnGoToInfo         (const std::string &name);
     pick              returnPickInfo         (const std::string &name);
     place             returnPlaceInfo        (const std::string &name);
@@ -392,14 +400,18 @@ private:
     ros::ServiceClient remove_slots_client_;
     ros::ServiceClient list_objects_client_;
     ros::ServiceClient list_manipulation_objects_client_;
+    ros::ServiceClient list_locations_client_;
+    ros::ServiceClient list_slots_client_;
     ros::ServiceClient run_recipe_client_;
     ros::ServiceClient go_to_job_list_client_;
     ros::ServiceClient pick_job_list_client_;
     ros::ServiceClient place_job_list_client_;
+    ros::ServiceClient get_db_name_client_;
+    ros::ServiceClient change_db_name_client_;
+    ros::ServiceClient set_ctrl_client_;
+    ros::ServiceClient gripper_client_;
 
     ros::Publisher     twist_pub_;
-    ros::ServiceClient set_ctrl_srv_;
-    ros::ServiceClient gripper_srv_;
     configuration_msgs::StartConfiguration start_ctrl_req_;
     manipulation_msgs::JobExecution gripper_req_;
 

@@ -162,6 +162,14 @@ MainWindow::MainWindow(int argc, char** argv, ros::NodeHandle n, QWidget *parent
         for ( std::size_t i = 0; i < recipes_names.size(); i++)
             ui_.recipeBox->addItem( QString::fromStdString(recipes_names.at(i)) );
     writeJobType();
+
+    std::vector<std::string> db_names;
+    qnode_.returnDbNames(db_names);
+    for ( const std::string db_name: db_names )
+        if ( db_name.compare("default_data") & db_name.compare("admin") & db_name.compare("config") & db_name.compare("local") )
+            ui_.comboDbNames->addItem( QString::fromStdString(db_name) );
+
+    return;
 }
 
 MainWindow::~MainWindow() {}
@@ -435,7 +443,12 @@ void MainWindow::on_buttonAddGrasp_clicked(bool check)
     std::string actual_base_frame;
     std::string frame_name = ui_.TfList->currentText().toStdString();
     double distance = std::numeric_limits<double>::infinity();
-    object_loader_msgs::ListObjects objects_list = qnode_.returnObjectLoaderList();
+    object_loader_msgs::ListObjects objects_list;
+    if ( !qnode_.returnObjectLoaderList(objects_list) )
+    {
+        plotMsg("Error whit return object loader list");
+        return;
+    }
     for ( const std::string object_name: objects_list.response.ids)
     {
         if ( object_name.find(frame_name) != std::string::npos )
@@ -1748,6 +1761,65 @@ void MainWindow::on_buttonAntiZ_released()
     qnode_.cartMove ( twist_move );
 }
 
+void MainWindow::addDefaultBoxes()
+{
+    object_loader_msgs::ListObjects obj_list;
+    if ( !qnode_.returnObjectLoaderList(obj_list) )
+    {
+        plotMsg("Error with return object loader list");
+        return;
+    }
+    std::string msg = "Added the boxes: \n";
+    if ( ui_.checkDefaultBoxes->checkState() == Qt::Checked )
+    {
+        for ( const std::string obj_name: obj_list.response.ids )
+        {
+            location internal_loc;
+            qnode_.returnPosition(default_base_frame_, obj_name, internal_loc);
+
+            internal_loc.pos.origin_z = internal_loc.pos.origin_z + default_box_high_;
+            internal_loc.quat.rotation_x = 0.707;
+            internal_loc.quat.rotation_y = 0.707;
+            internal_loc.quat.rotation_z = 0.0;
+            internal_loc.quat.rotation_w = 0.0;
+            box bx;
+            std::string str = obj_name;
+            str.append("/box");
+            bx.name = str;
+            bx.location_ = internal_loc;
+            bx.approach.origin_x = 0.0;
+            bx.approach.origin_y = 0.0;
+            bx.approach.origin_z = 0.0;
+            bx.leave.origin_x = 0.0;
+            bx.leave.origin_y = 0.0;
+            bx.leave.origin_z = 0.0;
+            bx.frame = default_base_frame_;
+
+            if ( qnode_.loadNewBox( bx ) )
+            {
+                ROS_ERROR("Box name: %s", bx.name.c_str());
+                msg.append(bx.name);
+                msg.append("\n");
+                ROS_ERROR("Msg: %s", msg.c_str());
+
+            }
+        }
+    }
+    if ( obj_list.response.ids.empty() )
+        plotMsg("No boxes added");
+    else
+        plotMsg(msg);
+}
+
+void MainWindow::removeDefaultBoxes()
+{
+    manipulation_msgs::ListOfObjects manipulation_object_list;
+    qnode_.returnManipulationObjectList(manipulation_object_list);
+    for ( const std::string box_name: manipulation_object_list.response.box_names )
+        if ( box_name.find("manipulation/") != std::string::npos )
+            qnode_.removeBox(box_name);
+}
+
 void MainWindow::loadObjects()
 {
     std::vector<std::string> object_list = qnode_.loadObjectsInManipulation();
@@ -1767,6 +1839,14 @@ void MainWindow::loadObjects()
         }
         plotMsg(str);
     }
+}
+
+void MainWindow::on_checkDefaultBoxes_stateChanged (int state)
+{
+    if ( state == Qt::Unchecked)
+        removeDefaultBoxes();
+    else if ( state == Qt::Checked )
+        addDefaultBoxes();
 }
 
 void MainWindow::on_buttonRunSelectedAction_clicked(bool check)
@@ -2039,14 +2119,20 @@ void MainWindow::resetObject(const std::string &name)
 
 void MainWindow::on_checkRobotTF_stateChanged(int state)
 {
-    if ( state != 0 )
+    if ( state == Qt::Checked )
     {
-        ui_.lateralTab                    ->setEnabled(true);
+        ui_.lateralTab   ->setEnabled(true);
 
-        ui_.checkRobotTF ->setEnabled(false);
         ui_.worldTfList  ->setEnabled(false);
 
         qnode_.base_frame_ = ui_.worldTfList->currentText().toStdString();
+    }
+    else if ( state == Qt::Unchecked )
+    {
+        ui_.lateralTab   ->setEnabled(false);
+        ui_.worldTfList  ->setEnabled(true);
+
+        qnode_.base_frame_.clear();
     }
 }
 
@@ -2729,6 +2815,50 @@ void MainWindow::writeJobProperty()
     }
 }
 
+void MainWindow::on_buttonAddDbName_clicked(bool check)
+{
+    QString db_name = ui_.editDbName->text();
+    ui_.comboDbNames->addItem(db_name);
+    ui_.editDbName->clear();
+}
+
+void MainWindow::on_comboDbNames_currentIndexChanged(int index)
+{
+    clearAll();
+    qnode_.clearAll();
+    qnode_.changeDbName(ui_.comboDbNames->currentText().toStdString());
+    if ( !qnode_.writeParam(1) )
+        plotMsg("Mongo doesn't work \n You probably need to change the Python version to mongo_connection or start mongo");
+    qnode_.writeParam(2);
+}
+
+void MainWindow::clearAll()
+{
+    ui_.locationsList        ->model()->removeRows(0, ui_.locationsList        ->model()->rowCount());
+    ui_.slotList             ->model()->removeRows(0, ui_.slotList             ->model()->rowCount());
+    ui_.groupList            ->model()->removeRows(0, ui_.groupList            ->model()->rowCount());
+    ui_.boxList              ->model()->removeRows(0, ui_.boxList              ->model()->rowCount());
+    ui_.objectList           ->model()->removeRows(0, ui_.objectList           ->model()->rowCount());
+    ui_.goToList             ->model()->removeRows(0, ui_.goToList             ->model()->rowCount());
+    ui_.placeList            ->model()->removeRows(0, ui_.placeList            ->model()->rowCount());
+    ui_.pickList             ->model()->removeRows(0, ui_.pickList             ->model()->rowCount());
+    ui_.listLocationModify   ->model()->removeRows(0, ui_.listLocationModify   ->model()->rowCount());
+    ui_.listObjectModify     ->model()->removeRows(0, ui_.listObjectModify     ->model()->rowCount());
+    ui_.listBoxModify        ->model()->removeRows(0, ui_.listBoxModify        ->model()->rowCount());
+    ui_.listSlotModify       ->model()->removeRows(0, ui_.listSlotModify       ->model()->rowCount());
+    ui_.listGoTo             ->model()->removeRows(0, ui_.listGoTo             ->model()->rowCount());
+    ui_.listPlace            ->model()->removeRows(0, ui_.listPlace            ->model()->rowCount());
+    ui_.listPick             ->model()->removeRows(0, ui_.listPick             ->model()->rowCount());
+    ui_.listActionComponents ->model()->removeRows(0, ui_.listActionComponents ->model()->rowCount());
+    ui_.listRecipe           ->model()->removeRows(0, ui_.listRecipe           ->model()->rowCount());
+    ui_.listInfoAction       ->model()->removeRows(0, ui_.listInfoAction       ->model()->rowCount());
+    ui_.componentList        ->model()->removeRows(0, ui_.locationsList        ->model()->rowCount());
+    ui_.jobPropertyList      ->model()->removeRows(0, ui_.locationsList        ->model()->rowCount());
+
+    ui_.comboJobType->clear();
+    ui_.comboPostExecProp->clear();
+    ui_.comboPreExecProp->clear();
+}
 /*****************************************************************************
 ** Implemenation [Slots][manually connected]
 *****************************************************************************/

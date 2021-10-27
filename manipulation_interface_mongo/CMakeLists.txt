@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
 	 FILES
          LoadParam.srv
 	 SaveParam.srv
+         GetDbNames.srv
+         ChangeDb.srv
  )
 
 ## Generate added messages and services with any dependencies listed here
