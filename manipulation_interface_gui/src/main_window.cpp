@@ -1797,11 +1797,8 @@ void MainWindow::addDefaultBoxes()
 
             if ( qnode_.loadNewBox( bx ) )
             {
-                ROS_ERROR("Box name: %s", bx.name.c_str());
                 msg.append(bx.name);
                 msg.append("\n");
-                ROS_ERROR("Msg: %s", msg.c_str());
-
             }
         }
     }
