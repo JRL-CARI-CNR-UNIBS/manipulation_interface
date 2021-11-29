@@ -292,7 +292,7 @@ std::vector<std::string> QNode::loadObjectsInManipulation()
             ROS_INFO("The objects are added");
         if ( add_objects_srv.response.results == manipulation_msgs::AddObjects::Response::Error )
         {
-            ROS_ERROR("Error");
+            ROS_ERROR("Error with objects loading in manipulation");
         }
         if ( add_objects_srv.response.results == manipulation_msgs::AddObjects::Response::BoxNotFound )
             ROS_ERROR("Box not found");
@@ -497,7 +497,7 @@ std::string QNode::runRecipe()
     for ( int i = 0; i < logging_model_recipe_.rowCount(); i++ )
         recipe.push_back( logging_model_recipe_.data( logging_model_recipe_.index(i) ).toString().toStdString() );
 
-//This part is a feedback only for a specific application
+    //This part is a feedback only for a specific application
     bool object_grasped = false;
 
     for ( std::size_t i = 0; i < recipe.size(); i++ )
@@ -514,7 +514,7 @@ std::string QNode::runRecipe()
         if ( place_actions_.find(recipe.at(i)) != place_actions_.end() )
             object_grasped = false;
     }
-//--------------------------------------------------------
+    //--------------------------------------------------------
 
     return callRunRecipe(recipe);
 }
@@ -536,7 +536,7 @@ std::string QNode::callRunRecipe(const std::vector<std::string> &recipe)
     n_.setParam("recipe_to_run", param);
 
     manipulation_interface_gui::RunRecipeTest recipe_msg;
-    recipe_msg.request.robot_name = "manipulator";
+    recipe_msg.request.robot_name = "ur5_on_guide";
     recipe_msg.request.grasped_object_in = grasped_object_;
 
     if (run_recipe_client_.call(recipe_msg))
@@ -1811,18 +1811,18 @@ bool QNode::loadNewLocation(const go_to_location &location_to_add)
     {
         manipulation_msgs::AddLocations add_locations_srv;
         ROS_INFO("Location to add: %s", location_to_add.name.c_str());
-        manipulation_msgs::Location location_;
-        location_.name               = location_to_add.name;
-        location_.frame              = location_to_add.frame;
-        location_.pose.position.x    = location_to_add.location_.pos.origin_x;
-        location_.pose.position.y    = location_to_add.location_.pos.origin_y;
-        location_.pose.position.z    = location_to_add.location_.pos.origin_z;
-        location_.pose.orientation.w = location_to_add.location_.quat.rotation_w;
-        location_.pose.orientation.x = location_to_add.location_.quat.rotation_x;
-        location_.pose.orientation.y = location_to_add.location_.quat.rotation_y;
-        location_.pose.orientation.z = location_to_add.location_.quat.rotation_z;
+        manipulation_msgs::Location new_location;
+        new_location.name               = location_to_add.name;
+        new_location.frame              = location_to_add.frame;
+        new_location.pose.position.x    = location_to_add.location_.pos.origin_x;
+        new_location.pose.position.y    = location_to_add.location_.pos.origin_y;
+        new_location.pose.position.z    = location_to_add.location_.pos.origin_z;
+        new_location.pose.orientation.w = location_to_add.location_.quat.rotation_w;
+        new_location.pose.orientation.x = location_to_add.location_.quat.rotation_x;
+        new_location.pose.orientation.y = location_to_add.location_.quat.rotation_y;
+        new_location.pose.orientation.z = location_to_add.location_.quat.rotation_z;
 
-        add_locations_srv.request.locations.push_back(location_);
+        add_locations_srv.request.locations.push_back(new_location);
 
         if (!add_locations_client_.call(add_locations_srv))
         {
@@ -1847,27 +1847,25 @@ bool QNode::loadNewBox(const box &box_to_add)
     {
         manipulation_msgs::AddBoxes add_boxes_srv;
         ROS_INFO("Box to add: %s", box_to_add.name.c_str());
-        manipulation_msgs::Box box_;
-        box_.name = box_to_add.name;
-        box_.location.name = box_.name;
-        box_.location.frame = box_to_add.frame;
-        box_.location.name                              = box_.name;
-        box_.location.frame                             = box_to_add.frame;
-        box_.location.pose.position.x                   = box_to_add.location_.pos.origin_x;
-        box_.location.pose.position.y                   = box_to_add.location_.pos.origin_y;
-        box_.location.pose.position.z                   = box_to_add.location_.pos.origin_z;
-        box_.location.pose.orientation.w                = box_to_add.location_.quat.rotation_w;
-        box_.location.pose.orientation.x                = box_to_add.location_.quat.rotation_x;
-        box_.location.pose.orientation.y                = box_to_add.location_.quat.rotation_y;
-        box_.location.pose.orientation.z                = box_to_add.location_.quat.rotation_z;
-        box_.location.approach_relative_pose.position.x = box_to_add.approach.origin_x;
-        box_.location.approach_relative_pose.position.y = box_to_add.approach.origin_y;
-        box_.location.approach_relative_pose.position.z = box_to_add.approach.origin_z;
-        box_.location.leave_relative_pose.position.x    = box_to_add.leave.origin_x;
-        box_.location.leave_relative_pose.position.y    = box_to_add.leave.origin_y;
-        box_.location.leave_relative_pose.position.z    = box_to_add.leave.origin_z;
+        manipulation_msgs::Box new_box;
+        new_box.name = box_to_add.name;
+        new_box.location.name                              = new_box.name;
+        new_box.location.frame                             = box_to_add.frame;
+        new_box.location.pose.position.x                   = box_to_add.location_.pos.origin_x;
+        new_box.location.pose.position.y                   = box_to_add.location_.pos.origin_y;
+        new_box.location.pose.position.z                   = box_to_add.location_.pos.origin_z;
+        new_box.location.pose.orientation.w                = box_to_add.location_.quat.rotation_w;
+        new_box.location.pose.orientation.x                = box_to_add.location_.quat.rotation_x;
+        new_box.location.pose.orientation.y                = box_to_add.location_.quat.rotation_y;
+        new_box.location.pose.orientation.z                = box_to_add.location_.quat.rotation_z;
+        new_box.location.approach_relative_pose.position.x = box_to_add.approach.origin_x;
+        new_box.location.approach_relative_pose.position.y = box_to_add.approach.origin_y;
+        new_box.location.approach_relative_pose.position.z = box_to_add.approach.origin_z;
+        new_box.location.leave_relative_pose.position.x    = box_to_add.leave.origin_x;
+        new_box.location.leave_relative_pose.position.y    = box_to_add.leave.origin_y;
+        new_box.location.leave_relative_pose.position.z    = box_to_add.leave.origin_z;
 
-        add_boxes_srv.request.add_boxes.push_back( box_ );
+        add_boxes_srv.request.add_boxes.push_back( new_box );
 
         if (!add_boxes_client_.call(add_boxes_srv))
         {
@@ -1926,26 +1924,26 @@ bool QNode::loadNewSlot(const manipulation_slot &slot_to_add)
         ROS_INFO("Slot to add: %s", slot_to_add.name.c_str() );
         manipulation_msgs::AddSlots add_slots_srv;
         std::vector<manipulation_msgs::Slot> slot_vct;
-        manipulation_msgs::Slot slot_;
-        slot_.name                                       = slot_to_add.name;
-        slot_.slot_size                                  = slot_to_add.max_objects;
-        slot_.location.name                              = slot_.name;
-        slot_.location.frame                             = slot_to_add.frame;
-        slot_.location.pose.position.x                   = slot_to_add.location_.pos.origin_x;
-        slot_.location.pose.position.y                   = slot_to_add.location_.pos.origin_y;
-        slot_.location.pose.position.z                   = slot_to_add.location_.pos.origin_z;
-        slot_.location.pose.orientation.w                = slot_to_add.location_.quat.rotation_w;
-        slot_.location.pose.orientation.x                = slot_to_add.location_.quat.rotation_x;
-        slot_.location.pose.orientation.y                = slot_to_add.location_.quat.rotation_y;
-        slot_.location.pose.orientation.z                = slot_to_add.location_.quat.rotation_z;
-        slot_.location.approach_relative_pose.position.x = slot_to_add.approach.origin_x;
-        slot_.location.approach_relative_pose.position.y = slot_to_add.approach.origin_y;
-        slot_.location.approach_relative_pose.position.z = slot_to_add.approach.origin_z;
-        slot_.location.leave_relative_pose.position.x    = slot_to_add.leave.origin_x;
-        slot_.location.leave_relative_pose.position.y    = slot_to_add.leave.origin_y;
-        slot_.location.leave_relative_pose.position.z    = slot_to_add.leave.origin_z;
+        manipulation_msgs::Slot new_slot;
+        new_slot.name                                       = slot_to_add.name;
+        new_slot.slot_size                                  = slot_to_add.max_objects;
+        new_slot.location.name                              = new_slot.name;
+        new_slot.location.frame                             = slot_to_add.frame;
+        new_slot.location.pose.position.x                   = slot_to_add.location_.pos.origin_x;
+        new_slot.location.pose.position.y                   = slot_to_add.location_.pos.origin_y;
+        new_slot.location.pose.position.z                   = slot_to_add.location_.pos.origin_z;
+        new_slot.location.pose.orientation.w                = slot_to_add.location_.quat.rotation_w;
+        new_slot.location.pose.orientation.x                = slot_to_add.location_.quat.rotation_x;
+        new_slot.location.pose.orientation.y                = slot_to_add.location_.quat.rotation_y;
+        new_slot.location.pose.orientation.z                = slot_to_add.location_.quat.rotation_z;
+        new_slot.location.approach_relative_pose.position.x = slot_to_add.approach.origin_x;
+        new_slot.location.approach_relative_pose.position.y = slot_to_add.approach.origin_y;
+        new_slot.location.approach_relative_pose.position.z = slot_to_add.approach.origin_z;
+        new_slot.location.leave_relative_pose.position.x    = slot_to_add.leave.origin_x;
+        new_slot.location.leave_relative_pose.position.y    = slot_to_add.leave.origin_y;
+        new_slot.location.leave_relative_pose.position.z    = slot_to_add.leave.origin_z;
 
-        slot_vct.push_back(slot_);
+        slot_vct.push_back(new_slot);
 
         add_slots_srv.request.slots_group_name = slot_to_add.group;
         add_slots_srv.request.add_slots = slot_vct;
@@ -2035,100 +2033,100 @@ void QNode::addBox(const box &internal_box)
 
 bool QNode::addLocationChanges(const go_to_location &new_location)
 {
-  go_to_location internal_location;
+    go_to_location internal_location;
     if ( go_to_locations_.find(new_location.name) != go_to_locations_.end() )
     {
-      internal_location = go_to_locations_.at(new_location.name);
-      removeLocation(new_location.name);
-      if ( loadNewLocation(new_location) )
-      {
-        go_to_locations_.insert(std::make_pair(new_location.name,new_location));
-        return true;
-      }
-      else
-      {
-        loadNewLocation(internal_location);
-        go_to_locations_.insert(std::make_pair(internal_location.name,internal_location));
-        return false;
-      }
+        internal_location = go_to_locations_.at(new_location.name);
+        removeLocation(new_location.name);
+        if ( loadNewLocation(new_location) )
+        {
+            go_to_locations_.insert(std::make_pair(new_location.name,new_location));
+            return true;
+        }
+        else
+        {
+            loadNewLocation(internal_location);
+            go_to_locations_.insert(std::make_pair(internal_location.name,internal_location));
+            return false;
+        }
     }
     else
     {
-      if ( loadNewLocation(new_location) )
-      {
-        go_to_locations_.insert(std::make_pair(new_location.name, new_location));
-        logLocation(new_location.name);
-        logLocationModify(new_location.name);
-        return true;
-      }
-      else
-        return false;
+        if ( loadNewLocation(new_location) )
+        {
+            go_to_locations_.insert(std::make_pair(new_location.name, new_location));
+            logLocation(new_location.name);
+            logLocationModify(new_location.name);
+            return true;
+        }
+        else
+            return false;
     }
 }
 
 bool QNode::addSlotChanges(const manipulation_slot &new_slot)
 {
-  manipulation_slot internal_slot;
+    manipulation_slot internal_slot;
     if ( manipulation_slots_.find(new_slot.name) != manipulation_slots_.end() )
     {
-      internal_slot = manipulation_slots_.at(new_slot.name);
-      removeSlot(new_slot.name);
-      if ( loadNewSlot(new_slot) )
-      {
-        manipulation_slots_.insert(std::make_pair(new_slot.name,new_slot));
-        return true;
-      }
-      else
-      {
-        loadNewSlot(internal_slot);
-        manipulation_slots_.insert( std::make_pair(internal_slot.name,internal_slot) );
-        return false;
-      }
+        internal_slot = manipulation_slots_.at(new_slot.name);
+        removeSlot(new_slot.name);
+        if ( loadNewSlot(new_slot) )
+        {
+            manipulation_slots_.insert(std::make_pair(new_slot.name,new_slot));
+            return true;
+        }
+        else
+        {
+            loadNewSlot(internal_slot);
+            manipulation_slots_.insert( std::make_pair(internal_slot.name,internal_slot) );
+            return false;
+        }
     }
     else
     {
-      if ( loadNewSlot(new_slot))
-      {
-        manipulation_slots_.insert(std::make_pair(new_slot.name,new_slot));
-        logSlot(new_slot.name);
-        logSlotModify(new_slot.name);
-        return true;
-      }
-      else
-        return false;
+        if ( loadNewSlot(new_slot))
+        {
+            manipulation_slots_.insert(std::make_pair(new_slot.name,new_slot));
+            logSlot(new_slot.name);
+            logSlotModify(new_slot.name);
+            return true;
+        }
+        else
+            return false;
     }
 }
 
 bool QNode::addBoxChanges(const box &new_box)
 {
-  box internal_box;
+    box internal_box;
     if ( boxes_.find(new_box.name) != boxes_.end() )
     {
-      internal_box = boxes_.at(new_box.name);
-      removeBox(new_box.name);
-      if ( loadNewBox(new_box) )
-      {
-        boxes_.insert(std::make_pair(new_box.name,new_box));
-        return true;
-      }
-      else
-      {
-        loadNewBox(internal_box);
-        boxes_.insert(std::make_pair(internal_box.name,internal_box));
-        return false;
-      }
+        internal_box = boxes_.at(new_box.name);
+        removeBox(new_box.name);
+        if ( loadNewBox(new_box) )
+        {
+            boxes_.insert(std::make_pair(new_box.name,new_box));
+            return true;
+        }
+        else
+        {
+            loadNewBox(internal_box);
+            boxes_.insert(std::make_pair(internal_box.name,internal_box));
+            return false;
+        }
     }
     else
     {
-      if ( loadNewBox(new_box) )
-      {
-        boxes_.insert(std::make_pair(new_box.name,new_box));
-        logBox(new_box.name);
-        logBoxModify(new_box.name);
-        return true;
-      }
-      else
-        return false;
+        if ( loadNewBox(new_box) )
+        {
+            boxes_.insert(std::make_pair(new_box.name,new_box));
+            logBox(new_box.name);
+            logBoxModify(new_box.name);
+            return true;
+        }
+        else
+            return false;
     }
 }
 
@@ -2437,7 +2435,7 @@ bool QNode::readBoxesFromParam()
 
     box param_box;
 
-    for(int i=0; i < config.size(); i++)
+    for( int i=0; i < config.size(); i++ )
     {
         XmlRpc::XmlRpcValue param = config[i];
         if( param.getType() != XmlRpc::XmlRpcValue::TypeStruct)

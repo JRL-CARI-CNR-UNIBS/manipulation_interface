@@ -1287,14 +1287,14 @@ void MainWindow::on_buttonAddLocationChanges_clicked(bool check)
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6)
     {
-      plotMsg("One or more number aren't double");
-      return;
+        plotMsg("One or more number aren't double");
+        return;
     }
 
     if ( qnode_.addLocationChanges(loc) )
-      plotMsg("Location added");
+        plotMsg("Location added");
     else
-      plotMsg("Can't add the location to location manager");
+        plotMsg("Can't add the location to location manager");
 
     qnode_.saveComponents();
 }
@@ -1327,14 +1327,14 @@ void MainWindow::on_buttonAddSlotChanges_clicked(bool check)
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 || !ok11 || !ok12 || !ok13 )
     {
-      plotMsg("One or more number aren't numers");
-      return;
+        plotMsg("One or more number aren't numers");
+        return;
     }
 
     if ( qnode_.addSlotChanges(slt) )
-      plotMsg("Slot added");
+        plotMsg("Slot added");
     else
-      plotMsg("Can't add the slot to location manager");
+        plotMsg("Can't add the slot to location manager");
 
     qnode_.saveComponents();
 }
@@ -1364,14 +1364,14 @@ void MainWindow::on_buttonAddBoxChanges_clicked(bool check)
 
     if ( !ok0 || !ok1 || !ok2 || !ok3 || !ok4 || !ok5 || !ok6 || !ok7 || !ok8 || !ok9 || !ok10 || !ok11 || !ok12 )
     {
-      plotMsg("One or more number aren't numers");
-      return;
+        plotMsg("One or more number aren't numers");
+        return;
     }
 
     if ( qnode_.addBoxChanges(bx) )
-      plotMsg("Box added");
+        plotMsg("Box added");
     else
-      plotMsg("Can't add the box to location manager");
+        plotMsg("Can't add the box to location manager");
 
     qnode_.saveComponents();
 }
@@ -1435,7 +1435,7 @@ void MainWindow::on_buttonLoadTF_clicked(bool chack)
             bool presence = false;
             for ( std::size_t j = 0; j < ui_.TfList->count(); j++ )
                 if ( ui_.TfList->findText(tf) != -1 )
-                     presence = true;
+                    presence = true;
             if ( !presence )
                 ui_.TfList->addItem(tf);
         }

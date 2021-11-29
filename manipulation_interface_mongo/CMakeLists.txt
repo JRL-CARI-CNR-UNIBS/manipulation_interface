@@ -4,7 +4,7 @@ project(manipulation_interface_mongo)
 find_package(catkin REQUIRED COMPONENTS
   message_generation
   rospy
-	std_msgs
+  std_msgs
 )
 
 ## Generate services in the 'srv' folder

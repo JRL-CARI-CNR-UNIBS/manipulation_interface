@@ -384,7 +384,6 @@ private:
 
     ros::NodeHandle n_;
 
-
     std::shared_ptr<ros_helper::SubscriptionNotifier<std_msgs::String>> js_sub_;
     std_msgs::String gripper_pos_;
 
