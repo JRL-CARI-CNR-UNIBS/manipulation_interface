@@ -18,26 +18,6 @@
 #include <tf/transform_listener.h>
 #include "qnode.hpp"
 #include <fstream>
-#include <rosparam_utilities/rosparam_utilities.h>
-#include <manipulation_interface_mongo/SaveParam.h>
-#include <manipulation_interface_mongo/LoadParam.h>
-#include <manipulation_interface_gui/RunRecipeTest.h>
-#include <object_loader_msgs/AddObjects.h>
-#include <object_loader_msgs/ListObjects.h>
-#include <manipulation_msgs/ListOfObjects.h>
-#include <manipulation_msgs/AddLocations.h>
-#include <manipulation_msgs/AddBoxes.h>
-#include <manipulation_msgs/AddObjects.h>
-#include <manipulation_msgs/AddSlots.h>
-#include <manipulation_msgs/AddSlotsGroup.h>
-#include <manipulation_msgs/RemoveLocations.h>
-#include <manipulation_msgs/RemoveBoxes.h>
-#include <manipulation_msgs/RemoveObjects.h>
-#include <manipulation_msgs/RemoveSlots.h>
-#include <manipulation_msgs/RemoveSlotsGroup.h>
-#include <manipulation_msgs/ListOfJobExecuters.h>
-#include <manipulation_jobs_msgs/ListOfExecuterProperties.h>
-
 #include <Eigen/Geometry>
 #include <geometry_msgs/PoseStamped.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -189,6 +169,17 @@ bool QNode::init()
     return true;
 }
 
+object_loader_msgs::ListObjects QNode::returnObjectLoaderList()
+{
+    object_loader_msgs::ListObjects objects_list;
+
+    if ( !list_objects_client_.call( objects_list ) )
+        ROS_ERROR("Unable to obtain the object list by object loader");
+
+    return objects_list;
+}
+
+
 std::vector<std::string> QNode::loadObjectsInManipulation()
 {
     manipulation_msgs::ListOfObjects manipulation_object_list;
@@ -211,13 +202,7 @@ std::vector<std::string> QNode::loadObjectsInManipulation()
     }
 
 
-    object_loader_msgs::ListObjects objects_list;
-
-    if ( !list_objects_client_.call( objects_list ) )
-    {
-        ROS_ERROR("Unable to obtain the object list by object loader");
-        return objects_list.response.ids;
-    }
+    object_loader_msgs::ListObjects objects_list = returnObjectLoaderList();
 
     manipulation_msgs::AddObjects add_objects_srv;
 
@@ -816,12 +801,12 @@ bool QNode::addBoxCopy(const box &new_box)
     return true;
 }
 
-location QNode::returnPosition(const std::string &base_frame, const std::string &target_frame)
+bool QNode::returnPosition(const std::string &base_frame, const std::string &target_frame, location &loc)
 {
     tf::TransformListener listener;
     ros::Duration(0.3).sleep();
     tf::StampedTransform transform;
-    location loc;
+    ROS_INFO("Start transfom calculation between %s and %s", base_frame.c_str(), target_frame.c_str());
     try
     {
         listener.lookupTransform(base_frame, target_frame, ros::Time(0), transform);
@@ -830,6 +815,7 @@ location QNode::returnPosition(const std::string &base_frame, const std::string 
     {
         ROS_ERROR("%s",ex.what());
         ros::Duration(1.0).sleep();
+        return false;
     }
     loc.pos.origin_x    = transform.getOrigin().getX();
     loc.pos.origin_y    = transform.getOrigin().getY();
@@ -838,7 +824,7 @@ location QNode::returnPosition(const std::string &base_frame, const std::string 
     loc.quat.rotation_y = transform.getRotation().getY();
     loc.quat.rotation_z = transform.getRotation().getZ();
     loc.quat.rotation_w = transform.getRotation().getW();
-    return loc;
+    return true;
 }
 
 go_to_action QNode::returnGoToInfo(const std::string &name)
