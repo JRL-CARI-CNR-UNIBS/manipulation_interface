@@ -393,7 +393,7 @@ bool runRecipe( manipulation_interface_gui::RunRecipeTest::Request& req,
                 single_action.to_loc       = "trajectory_tracking";
                 single_action.leave_loc    = "trajectory_tracking";
                 single_action.tool_id      = "gripper_fake";
-                single_action.job_exec     = "go_to";
+                single_action.job_exec     = "";
                 single_action.pre_exec_id  = "open";
                 single_action.exec_id      = "open";
                 single_action.post_exec_id = "open";
